@@ -29,8 +29,8 @@ Function Notify(String asModName, String asMessage, Bool abDisplayOnScreen = Tru
 				OpenUserLog("APPS_Framework")
 			EndIf
 
-			TraceUser(LogName, "Source: " + asModName)
 			TraceUser(LogName, "Info: " + asMessage)
+			TraceUser(LogName, "Source: " + asModName)
 		EndIf
 	EndIf
 
@@ -69,13 +69,13 @@ Function Warn(String asModName, String asMessage, String asReason = "", Bool abA
 				OpenUserLog("APPS_Framework")
 			EndIf
 
-			TraceUser(LogName, "Source: " + asModName)
+			TraceUser(LogName, "Warning: " + asMessage)
 
 			If(asReason != "")
 				TraceUser(LogName, "Reason: " + asReason)
 			EndIf
 
-			TraceUser(LogName, "Warning: " + asMessage)
+			TraceUser(LogName, "Source: " + asModName)
 		EndIf
 	EndIf
 
@@ -120,9 +120,9 @@ Function Throw(String asModName, String asMessage, String asReason) Global
 				OpenUserLog("APPS_Framework")
 			EndIf
 
-			TraceUser(LogName, "Source: " + asModName)
-			TraceUser(LogName, "Reason: " + asReason)
 			TraceUser(LogName, "Error: " + asMessage)
+			TraceUser(LogName, "Reason: " + asReason)
+			TraceUser(LogName, "Source: " + asModName)
 		EndIf
 	EndIf
 
