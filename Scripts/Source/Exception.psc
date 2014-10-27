@@ -23,7 +23,7 @@ Function Notify(String asModName, String asMessage, Bool abDisplayOnScreen = Tru
 				If(!OpenUserLog(LogName))
 					LogName = "APPS_Framework"
 					OpenUserLog("APPS_Framework")
-					TraceUser(LogName, "Error: User log file from mod " + asModName + "contained invalid chars thus couldn't be opened!")
+					TraceUser(LogName, "Error: Log file " + LogName + " from mod " + asModName + "couldn't be opened!")
 				EndIf
 			ElseIf(GetIntValue(Token, "APPS.Exceptions.LogFile") == 1)
 				OpenUserLog("APPS_Framework")
