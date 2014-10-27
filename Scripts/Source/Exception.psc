@@ -16,16 +16,16 @@ Function Notify(String asModName, String asMessage, Bool abDisplayOnScreen = Tru
 	LogName = GetStringValue(Token, "APPS.Exceptions.LogName")
 
 	If(HasIntValue(Token, "APPS.Exceptions.LogInfos"))
-		If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 2)
+		If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 2) ;2 - Writes into Papyrus log
 			Trace("Source: " + asModName + "\nInfo: " + asMessage)
 		Else
-			If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 0)
+			If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 0) ;0 - Writes into mod's user log
 				If(!OpenUserLog(LogName))
 					LogName = "APPS_Framework"
 					OpenUserLog("APPS_Framework")
-					TraceUser(LogName, "Error: User log file from mod " + asModName + "contained invalid chars thus couldn't be opened!")
+					TraceUser(LogName, "Error: Log file " + LogName + " from mod " + asModName + "couldn't be opened!")
 				EndIf
-			ElseIf(GetIntValue(Token, "APPS.Exceptions.LogFile") == 1)
+			ElseIf(GetIntValue(Token, "APPS.Exceptions.LogFile") == 1) ;1 - Writes into APPS_Framework user log
 				OpenUserLog("APPS_Framework")
 			EndIf
 
@@ -56,16 +56,16 @@ Function Warn(String asModName, String asMessage, String asReason = "", Bool abA
 	LogName = GetStringValue(Token, "APPS.Exceptions.LogName")
 
 	If(HasIntValue(Token, "APPS.Exceptions.LogWarnings"))
-		If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 2)
+		If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 2) ;2 - Writes into Papyrus log
 			If(asReason != "")
 				Trace("Source: " + asModName + "\nReason: " + asReason + "\nWarning: " + asMessage)
 			Else
 				Trace("Source: " + asModName + "\nWarning: " + asMessage)
 			EndIf
 		Else
-			If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 0)
+			If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 0) ;0 - Writes into mod's user log
 				OpenUserLog(LogName)
-			ElseIf(GetIntValue(Token, "APPS.Exceptions.LogFile") == 1)
+			ElseIf(GetIntValue(Token, "APPS.Exceptions.LogFile") == 1) ;1 - Writes into APPS_Framework user log
 				OpenUserLog("APPS_Framework")
 			EndIf
 
@@ -111,12 +111,12 @@ Function Throw(String asModName, String asMessage, String asReason) Global
 	LogName = GetStringValue(Token, "APPS.Exceptions.LogName")
 
 	If(HasIntValue(Token, "APPS.Exceptions.LogErrors"))
-		If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 2)
+		If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 2) ;2 - Writes into Papyrus log
 			Trace("Source: " + asModName + "\nReason: " + asReason + "\nWarning: " + asMessage)
 		Else
-			If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 0)
+			If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 0) ;0 - Writes into mod's user log
 				OpenUserLog(LogName)
-			ElseIf(GetIntValue(Token, "APPS.Exceptions.LogFile") == 1)
+			ElseIf(GetIntValue(Token, "APPS.Exceptions.LogFile") == 1) ;1 - Writes into APPS_Framework user log
 				OpenUserLog("APPS_Framework")
 			EndIf
 

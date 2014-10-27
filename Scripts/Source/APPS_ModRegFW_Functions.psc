@@ -4,6 +4,8 @@ Import StorageUtil
 Int Property USE_MOD_USER_LOG = 0 AutoReadOnly Hidden
 Int Property USE_FRAMEWORK_LOG = 1 AutoReadOnly Hidden
 Int Property USE_PAPYRUS_LOG = 2 AutoReadOnly Hidden
+Int Property MOD_NOT_FOUND = -1 AutoReadOnly Hidden
+String Property ModName Auto
 String Property SUKEY_EXCEPTIONS_LOGFILE = "APPS.Exceptions.LogFile" AutoReadOnly Hidden
 String Property SUKEY_DISPLAY_ERRORS = "APPS.Exceptions.DisplayErrors" AutoReadOnly Hidden
 String Property SUKEY_DISPLAY_WARNINGS = "APPS.Exceptions.DisplayWarnings" AutoReadOnly Hidden
@@ -11,13 +13,12 @@ String Property SUKEY_DISPLAY_INFOS = "APPS.Exceptions.DisplayInfos" AutoReadOnl
 String Property SUKEY_LOG_ERRORS = "APPS.Exceptions.LogErrors" AutoReadOnly Hidden
 String Property SUKEY_LOG_WARNINGS = "APPS.Exceptions.LogWarnings" AutoReadOnly Hidden
 String Property SUKEY_LOG_INFOS = "APPS.Exceptions.LogInfos" AutoReadOnly Hidden
-String Property ModName Auto
 String Property SUKEY_REGISTERED_MODS = "APPS.RegisteredMods" AutoReadOnly Hidden
-String Property SUKEY_INSTALL_MODS = "APPS.InstallMods" AutoReadOnly Hidden
+String Property SUKEY_INIT_MODS = "APPS.InstallMods" AutoReadOnly Hidden
+String Property SUKEY_INIT_MODS_TOOLTIP = "APPS.InstallMods.Tooltip" AutoReadOnly Hidden
 String Property SUKEY_UNINSTALL_MODS = "APPS.UninstallMods" AutoReadOnly Hidden
 String Property SUKEY_EXCEPTIONS_LOGNAME = "APPS.Exceptions.LogName" AutoReadOnly Hidden
 String Property IS_EMPTY = "" AutoReadOnly Hidden
-String Property MOD_NOT_FOUND = -1 AutoReadOnly Hidden
 
 ;/ |------------------------------------------------------------------------------------------------------------|
    |Registers a mod to access advanced functions of the framework.												|
@@ -76,10 +77,10 @@ EndFunction
    |Returns True if the install quest is successfully registered.												|
    |Returns False if Self is the install quest and no stage was submitted.										|
    |------------------------------------------------------------------------------------------------------------| /;
-Bool Function RegisterInstallQuest(Quest akInstallQuest = None, Int aiSetStage = 0)
-	Quest InstallQuest
+Bool Function RegisterInitQuest(Quest akInitQuest = None, Int aiSetStage = 0, String asTooltip = "")
+	Quest InitQuest
 
-	If(akInstallQuest == None && aiSetStage == 0)
+	If(akInitQuest == None && aiSetStage == 0)
 		Exception.Throw("APPS - Framework", "Can't register install quest because none was submitted and stage 0 for this quest is invalid.", "Invalid stage submitted")
 		Return False
 	EndIf
@@ -89,15 +90,19 @@ Bool Function RegisterInstallQuest(Quest akInstallQuest = None, Int aiSetStage =
 		Return False
 	EndIf
 
-	If(akInstallQuest == None)
-		InstallQuest = Self
+	If(akInitQuest == None)
+		InitQuest = Self
 	Else
-		InstallQuest = akInstallQuest
+		InitQuest = akInitQuest
 	EndIf
 
-	FormListAdd(None, SUKEY_INSTALL_MODS, InstallQuest)
-	IntListAdd(None, SUKEY_INSTALL_MODS, aiSetStage)
-	StringListAdd(None, SUKEY_INSTALL_MODS, ModName)
+	FormListAdd(None, SUKEY_INIT_MODS, InitQuest)
+	IntListAdd(None, SUKEY_INIT_MODS, aiSetStage)
+	StringListAdd(None, SUKEY_INIT_MODS, ModName)
+
+	If(asTooltip != IS_EMPTY)
+		SetStringValue(Self, SUKEY_INIT_MODS_TOOLTIP, asTooltip)
+	EndIf
 
 	Exception.Notify("APPS - Framework", ModName + " successfully registered an installation quest.")
 	Return True
@@ -127,7 +132,7 @@ Bool Function RegisterUninstallQuest(Quest akUninstallQuest = None, Int aiSetSta
 	Return True
 EndFunction
 
-Bool Function RegisterForExceptionModule(String asLogName)
+Function RegisterForExceptionModule(String asLogName)
 	SetStringValue(Self, SUKEY_EXCEPTIONS_LOGNAME, asLogName)
 	SetIntValue(Self, SUKEY_EXCEPTIONS_LOGFILE, USE_MOD_USER_LOG)
 	SetIntValue(Self, SUKEY_DISPLAY_WARNINGS, 1)
@@ -137,8 +142,46 @@ Bool Function RegisterForExceptionModule(String asLogName)
 	SetIntValue(Self, SUKEY_LOG_ERRORS, 1)
 EndFunction
 
-Function LogName(String asLogName)
-	
+Function SetInfoHandling(Bool abLogInfos = True, Bool abDisplayInfos = False)
+	If(abLogInfos)
+		SetIntValue(Self, SUKEY_LOG_INFOS, 1)
+	Else
+		UnsetIntValue(Self, SUKEY_LOG_INFOS)
+	EndIf
+
+	If(abDisplayInfos)
+		SetIntValue(Self, SUKEY_DISPLAY_INFOS, 1)
+	Else
+		UnsetIntValue(Self, SUKEY_DISPLAY_INFOS)
+	EndIf
+EndFunction
+
+Function SetWarningHandling(Bool abLogWarnings = True, Bool abDisplayWarnings = True)
+	If(abLogWarnings)
+		SetIntValue(Self, SUKEY_LOG_WARNINGS, 1)
+	Else
+		UnsetIntValue(Self, SUKEY_LOG_WARNINGS)
+	EndIf
+
+	If(abDisplayWarnings)
+		SetIntValue(Self, SUKEY_DISPLAY_WARNINGS, 1)
+	Else
+		UnsetIntValue(Self, SUKEY_DISPLAY_WARNINGS)
+	EndIf
+EndFunction
+
+Function SetErrorHandling(Bool abLogErrors = True, Bool abDisplayErrors = True)
+	If(abLogErrors)
+		SetIntValue(Self, SUKEY_LOG_ERRORS, 1)
+	Else
+		UnsetIntValue(Self, SUKEY_LOG_ERRORS)
+	EndIf
+
+	If(abDisplayErrors)
+		SetIntValue(Self, SUKEY_DISPLAY_ERRORS, 1)
+	Else
+		UnsetIntValue(Self, SUKEY_DISPLAY_ERRORS)
+	EndIf
 EndFunction
 
 ;/ |------------------------------------------------------------------------------------------------------------|
