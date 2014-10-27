@@ -213,7 +213,7 @@ State WaitingTimeBetweenInits
 			TimeToNextInit = a_value
 		EndIf
 		
-		SetSliderOptionValueST(TimeToNextInit, "{1} seconds")
+		SetSliderOptionValueST(TimeToNextInit, "{1} sec")
 	EndEvent
 
 	Event OnHighlightST()
@@ -228,16 +228,16 @@ State StartInitialization
 	
 	Event OnSelectST()
 		If (ShowMessage("$START_INITIALIZATION_CONFIRMATION") == true)
-			;TODO show a "close menu" message
+			ShowMessage("$CLOSE_MCM", withCancel = false, acceptLabel = "$OK")
 			InitSafetyLock = true
 			SetTextOptionValueST("$INITIALIZING")
 			ForcePageReset()	;this ensures install order is displayed again with OPTION_FLAG_DISABLED			
-			Utility.Wait(0.1)
+			Utility.Wait(0.1)	;forces the user to close the menu
 			
 			While (StringListCount(None, SUKEY_INSTALL_MODS) > 0)
 				String ModToInit = StringListGet(None, SUKEY_INSTALL_MODS, 0)
 				Debug.Notification(ModToInit)
-				InitializeMod(ModToInit, abSafetyLock = false) ;SafetyLock is handled by line InitSafetyLock = true
+				InitializeMod(ModToInit, abSafetyLock = false, abVerbose = true) ;SafetyLock is handled by line InitSafetyLock = true, abVerbose will show notifications as each mod is initialized
 				Utility.Wait(TimeToNextInit)
 			EndWhile
 			
@@ -249,32 +249,7 @@ State StartInitialization
 		EndIf
 	EndEvent
 EndState
-;/	one ring (button) to uninstall them all
-State UninstallAll
-	Event OnHighlightST()
-		SetInfoText("$EXPLAIN_UNINSTALL_ALL")
-	EndEvent
-	
-	Event OnSelectST()
-		If (ShowMessage("$UNINSTALL_ALL_CONFIRMATION") == true)
-			SafetyLock = true
-			SetTextOptionValueST("$UNINSTALLING")
-			ForcePageReset()	;this ensures uninstall list is displayed again with OPTION_FLAG_DISABLED
-			
-			While (StringListCount(None, SUKEY_UNINSTALL_MODS) > 0)
-				String ModName = StringListGet(None, SUKEY_UNINSTALL_MODS, 0)
-				UninstallMod(ModName)
-			EndWhile
-			
-			ShowMessage("$UNINSTALL_SEQUENCE_COMPLETE")
-			
-			SafetyLock = false
-			SetTextOptionValueST("$GO")
-			ForcePageReset()
-		EndIf
-	EndEvent
-EndState			
-/;
+
 Event OnOptionHighlight(Int aiOption)
 		Int i
 		
@@ -315,11 +290,18 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 		If(aiOpenedMenu == IntListGet(None, SUKEY_MENU_OPTIONS, i))
 			If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
 				ChangeInitOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), aiSelectedOption)
-				i = IntListCount(None, SUKEY_MENU_OPTIONS)
+				i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
 			ElseIf (aiSelectedOption == INITIALIZE_MOD)
 				If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == true)
-					InitializeMod(StringListGet(None, SUKEY_MENU_OPTIONS, i))
-					i = IntListCount(None, SUKEY_MENU_OPTIONS)
+					ShowMessage("$CLOSE_MCM", withCancel = false, acceptLabel = "$OK")
+					String ModToInit = StringListGet(None, SUKEY_MENU_OPTIONS, i)
+					Utility.Wait(0.1)	;forces the user to close the menu
+					
+					If (InitializeMod(ModToInit))
+						Debug.MessageBox(ModToInit + $INITIALIZED)
+					EndIf
+					
+					i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
 				EndIf
 			EndIf
 		Else
@@ -349,8 +331,6 @@ Function ChangeInitOrder(String asModName, Int aiPositionChange)
 	Int ModIndex = StringListFind(None, SUKEY_INSTALL_MODS, asModName)
 	Form InitQuest = FormListGet(None, SUKEY_INSTALL_MODS, ModIndex)
 	Int iSetStage = IntListGet(None, SUKEY_INSTALL_MODS, ModIndex)
-
-	;ShowMessage("Index: " + ModIndex + "\nQuest: " + (InitQuest As Quest).GetName(), False)
 
 	If(aiPositionChange == MOVE_TOP)
 		If(ModIndex == (StringListCount(None, SUKEY_INSTALL_MODS) - 1))
@@ -419,45 +399,71 @@ Function ChangeInitOrder(String asModName, Int aiPositionChange)
 	EndIf
 EndFunction
 
-Function InitializeMod(String asModName, Bool abSafetyLock = true)
+Bool Function InitializeMod(String asModName, Bool abSafetyLock = true, Bool abVerbose = false)
 	Int ModIndex = StringListFind(None, SUKEY_INSTALL_MODS, asModName)
 	Quest InitQuest = FormListGet(None, SUKEY_INSTALL_MODS, ModIndex) as Quest
 	Int iSetStage = IntListGet(None, SUKEY_INSTALL_MODS, ModIndex)
-	;/
+	Bool result = true
+	
 	If (abSafetyLock)
 		InitSafetyLock = true
 	EndIf
-	/;
-	If (InitQuest.SetStage(iSetStage) == false)
-		Debug.MessageBox(asModName + "$MOD_FAILED_TO_INITIALIZE")
-		
-		StringListRemove(None, SUKEY_REGISTERED_MODS, asModName)
-		FormListRemoveAt(None, SUKEY_REGISTERED_MODS, ModIndex)
+	
+	If (iSetStage != -1)
+		If (InitQuest.SetStage(iSetStage) == false)
+			Debug.MessageBox(asModName + "$FAILED_TO_INITIALIZE")
+			result == false
+			
+			StringListRemove(None, SUKEY_REGISTERED_MODS, asModName)
+			FormListRemoveAt(None, SUKEY_REGISTERED_MODS, ModIndex)
+		ElseIf (abVerbose)
+			Debug.Notification(asModName + "$INITIALIZED")
+		EndIf
 	Else
-		Debug.MessageBox("Mod Initialized")
+		If (InitQuest.Start() == false)
+			Debug.MessageBox(asModName + "$FAILED_TO_INITIALIZE")
+			result == false
+			
+			StringListRemove(None, SUKEY_REGISTERED_MODS, asModName)
+			FormListRemoveAt(None, SUKEY_REGISTERED_MODS, ModIndex)
+		ElseIf (abVerbose)
+			Debug.Notification(asModName + "$INITIALIZED")
+		EndIf
 	EndIf
-	;/
+	
 	If (abSafetyLock)
 		InitSafetyLock = false
 	EndIf
-	/;
+	
 	StringListRemove(None, SUKEY_INSTALL_MODS, asModName)
 	FormListRemove(None, SUKEY_INSTALL_MODS, InitQuest)
 	IntListRemove(None, SUKEY_INSTALL_MODS, iSetStage)
+	
+	Return result
 EndFunction
 
 Function UninstallMod(String asModName, Bool abSafetyLock = true)
 	Int ModIndex = StringListFind(None, SUKEY_UNINSTALL_MODS, asModName)
 	Quest UninstallQuest = FormListGet(None, SUKEY_UNINSTALL_MODS, ModIndex) as Quest
 	Int iSetStage = IntListGet(None, SUKEY_UNINSTALL_MODS, ModIndex)
+	Bool result = true
 	
 	If (abSafetyLock)
 		UninstSafetyLock = true
 	EndIf
 	
-	If (UninstallQuest.SetStage(iSetStage) == false)
-		ShowMessage(asModName + "$MOD_FAILED_TO_UNINSTALL", false, "OK")
-		Debug.MessageBox(asModName + "$MOD_FAILED_TO_UNINSTALL")
+	If (iSetStage != -1)
+		If (UninstallQuest.SetStage(iSetStage) == false)
+			ShowMessage(asModName + "$FAILED_TO_UNINSTALL", false, "OK")
+			Debug.MessageBox(asModName + "$FAILED_TO_UNINSTALL")
+			result = false
+		EndIf
+	Else
+		If (UninstallQuest.Stop() == false)
+			ShowMessage(asModName + "$FAILED_TO_UNINSTALL", false, "OK")
+			Debug.MessageBox(asModName + "$FAILED_TO_UNINSTALL")
+			result = false
+		EndIf
 	EndIf
 	
 	If (abSafetyLock)
@@ -470,6 +476,8 @@ Function UninstallMod(String asModName, Bool abSafetyLock = true)
 	
 	StringListRemove(None, SUKEY_REGISTERED_MODS, asModName)
 	FormListRemoveAt(None, SUKEY_REGISTERED_MODS, ModIndex)
+	
+	Return result
 EndFunction
 
 ;/
@@ -498,10 +506,9 @@ All tabs:
 	- Update ModIndex-related functions to use new Core helper functions
 	- Max array size & MCM menu sice: 128
 Tab: Init Manager
-	- Initialization should be started through external quest
-	- Remove mod from registry if failed to init
+
 Tab: Uninstall Manager
-	- Uninstall should be started through external quest
+
 Tab: Exception Manager
 	- Enable/disable global file logging
 	- ShowMessage if file logging is enabled, that it will now be disabled for this game session
