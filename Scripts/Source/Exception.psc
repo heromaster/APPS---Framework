@@ -15,7 +15,7 @@ Function Notify(String asModName, String asMessage, Bool abDisplayOnScreen = Tru
 
 	LogName = GetStringValue(Token, "APPS.Exceptions.LogName")
 
-	If(HasIntValue(Token, "APPS.Exceptions.LogInfos"))
+	If(HasIntValue(Token, "APPS.Exceptions.LogInfos") && Utility.GetINIBool("bEnableLogging:Papyrus"))
 		If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 2) ;2 - Writes into Papyrus log
 			Trace("Source: " + asModName + "\nInfo: " + asMessage)
 		Else
@@ -55,7 +55,7 @@ Function Warn(String asModName, String asMessage, String asReason = "", Bool abA
 
 	LogName = GetStringValue(Token, "APPS.Exceptions.LogName")
 
-	If(HasIntValue(Token, "APPS.Exceptions.LogWarnings"))
+	If(HasIntValue(Token, "APPS.Exceptions.LogWarnings") && Utility.GetINIBool("bEnableLogging:Papyrus"))
 		If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 2) ;2 - Writes into Papyrus log
 			If(asReason != "")
 				Trace("Source: " + asModName + "\nReason: " + asReason + "\nWarning: " + asMessage)
@@ -110,7 +110,7 @@ Function Throw(String asModName, String asMessage, String asReason) Global
 
 	LogName = GetStringValue(Token, "APPS.Exceptions.LogName")
 
-	If(HasIntValue(Token, "APPS.Exceptions.LogErrors"))
+	If(HasIntValue(Token, "APPS.Exceptions.LogErrors") && Utility.GetINIBool("bEnableLogging:Papyrus"))
 		If(GetIntValue(Token, "APPS.Exceptions.LogFile") == 2) ;2 - Writes into Papyrus log
 			Trace("Source: " + asModName + "\nReason: " + asReason + "\nWarning: " + asMessage)
 		Else
