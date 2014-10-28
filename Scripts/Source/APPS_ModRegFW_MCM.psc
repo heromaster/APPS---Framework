@@ -4,8 +4,13 @@ Int FileLogLevel
 String[] Ordering
 String[] LogLevel
 String[] InfoManagerModsListOptions
+String[] LoggingMethod
 Int InfoManagerModsListSelection
 Quest InfoManagerToken
+Int Property USE_MOD_USER_LOG = 0 AutoReadOnly Hidden
+Int Property USE_FRAMEWORK_LOG = 1 AutoReadOnly Hidden
+Int Property USE_PAPYRUS_LOG = 2 AutoReadOnly Hidden
+Int Property MOD_NOT_FOUND = -1 AutoReadOnly Hidden
 String Property SUKEY_EXCEPTIONS_LOGFILE = "APPS.Exceptions.LogFile" AutoReadOnly Hidden
 String Property SUKEY_EXCEPTIONS_LOGNAME = "APPS.Exceptions.LogName" AutoReadOnly Hidden
 String Property SUKEY_DISPLAY_ERRORS = "APPS.Exceptions.DisplayErrors" AutoReadOnly Hidden
@@ -53,6 +58,11 @@ Event OnConfigInit()
 	LogLevel[1] = "$WARNINGS_AND_ERRORS"
 	LogLevel[2] = "$ONLY_ERRORS"
 	LogLevel[3] = "$NOTHING"
+	
+	LoggingMethod = New String[3]
+	LoggingMethod[0] = "$USE_MOD_USER_LOG"
+	LoggingMethod[1] = "$USE_FRAMEWORK_LOG"
+	LoggingMethod[2] = "$USE_PAPYRUS_LOG"
 EndEvent
 
 Event OnPageReset(String asPage)
@@ -79,14 +89,34 @@ Event OnPageReset(String asPage)
 		AddHeaderOption("$MOD_SPECIFIC_SETTINGS")
 		AddMenuOptionST("InfoManagerModsList", "$FOR", "$SELECT")
 		
+		;fetching the Int contents of SUKEY_EXCEPTIONS_LOGFILE array and converting them to strings
+		String TokenLoggingMethod
+		
+		If (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
+			TokenLoggingMethod = LoggingMethod[0]
+		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
+			TokenLoggingMethod = LoggingMethod[1]
+		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_PAPYRUS_LOG)
+			TokenLoggingMethod = LoggingMethod[2]
+		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == MOD_NOT_FOUND)
+			TokenLoggingMethod = ""
+		EndIf
+		
 		SetCursorPosition(1)	;go to top of right column
-		AddHeaderOption("$INFORMATIONS")
+		AddHeaderOption(InfoManagerModsListOptions[InfoManagerModsListSelection] + "$SETTINGS")
+		AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", TokenLoggingMethod)
+		AddEmptyOption()
+		AddHeaderOption("$INFOS")
 		AddToggleOptionST("DisplayInfos", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS))
-		AddToggleOptionST("InfosLog", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS))
+		AddToggleOptionST("LogInfos", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS))		
 		AddEmptyOption()		
 		AddHeaderOption("$WARNINGS")
+		AddToggleOptionST("DisplayWarnings", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS))
+		AddToggleOptionST("LogWarnings", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS))
 		AddEmptyOption()		
 		AddHeaderOption("$ERRORS")
+		AddToggleOptionST("DisplayErrors", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS))
+		AddToggleOptionST("LogErrors", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, SUKEY_LOG_ERRORS))
 		
 		
 		;/
@@ -201,6 +231,60 @@ State InfoManagerModsList
 		SetInfoText("$EXPLAIN_INFO_MANAGER_MODS_LIST")
 	EndEvent
 EndState
+
+State DisplayInfos
+	Event OnSelectST()
+		If (HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS))
+			UnsetIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS)
+		Else
+			SetIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS, 1)
+		EndIf
+	EndEvent
+	
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_DISPLAY_INFOS")
+	EndEvent
+EndState
+
+State LogInfos
+	Event OnSelectST()
+		If (HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS))
+			UnsetIntValue(InfoManagerToken, SUKEY_LOG_INFOS)
+		Else
+			SetIntValue(InfoManagerToken, SUKEY_LOG_INFOS, 1)
+		EndIf
+	EndEvent
+	
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_LOG_INFOS")
+	EndEvent
+EndState
+
+State LoggingMethod
+	Event OnMenuOpenST()
+		SetMenuDialogOptions(LoggingMethod)
+		
+		If (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
+			SetMenuDialogStartIndex(0)
+		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
+			SetMenuDialogStartIndex(1)
+		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_PAPYRUS_LOG)
+			SetMenuDialogStartIndex(2)
+		Else
+			SetMenuDialogStartIndex(0)
+		EndIf
+	EndEvent
+	
+	Event OnMenuAcceptST(int aiSelectedOption)
+		SetMenuOptionValueST(aiSelectedOption)
+		SetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE, aiSelectedOption)
+	EndEvent
+	
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_LOGGING_METHOD")
+	EndEvent
+EndState
+		
 
 ;/
 State DisplayInfoMessage
