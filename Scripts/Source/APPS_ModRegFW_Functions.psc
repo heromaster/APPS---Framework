@@ -104,7 +104,7 @@ Bool Function RegisterInitQuest(Quest akInitQuest = None, Int aiSetStage = 0, St
 		SetStringValue(Self, SUKEY_INIT_MODS_TOOLTIP, asTooltip)
 	EndIf
 
-	Exception.Notify("APPS - Framework", ModName + " successfully registered an installation quest.")
+	Exception.Notify("APPS - Framework", ModName + " successfully registered an initialization quest.")
 	Return True
 EndFunction
 
