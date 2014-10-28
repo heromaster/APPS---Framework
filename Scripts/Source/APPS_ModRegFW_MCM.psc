@@ -89,34 +89,33 @@ Event OnPageReset(String asPage)
 		AddHeaderOption("$MOD_SPECIFIC_SETTINGS")
 		AddMenuOptionST("InfoManagerModsList", "$FOR", "$SELECT")
 		
-		;fetching the Int contents of SUKEY_EXCEPTIONS_LOGFILE array and converting them to strings
-		String TokenLoggingMethod
+		;filling up the InfoManagerModsListOptions array with the names of the registered mods, to be shown as a menu later
+		Int RegisteredMods = StringListCount(None, SUKEY_REGISTERED_MODS)
+		InfoManagerModsListOptions = PapyrusUtil.StringArray(RegisteredMods)
+		Int i
 		
-		If (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
-			TokenLoggingMethod = LoggingMethod[0]
-		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
-			TokenLoggingMethod = LoggingMethod[1]
-		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_PAPYRUS_LOG)
-			TokenLoggingMethod = LoggingMethod[2]
-		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == MOD_NOT_FOUND)
-			TokenLoggingMethod = ""
-		EndIf
+			While (i < RegisteredMods)
+				InfoManagerModsListOptions[i] = StringListGet(None, SUKEY_REGISTERED_MODS, i)
+				i += 1
+			EndWhile
 		
 		SetCursorPosition(1)	;go to top of right column
-		AddHeaderOption(InfoManagerModsListOptions[InfoManagerModsListSelection] + "$SETTINGS")
-		AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", TokenLoggingMethod)
+		AddTextOptionST("ModSettings", "", "$NO_MOD_SELECTED")
+		AddEmptyOption()
+		AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", "")
+		AddTextOptionST("LogName", "Log Name", "")
 		AddEmptyOption()
 		AddHeaderOption("$INFOS")
-		AddToggleOptionST("DisplayInfos", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS))
-		AddToggleOptionST("LogInfos", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS))		
+		AddToggleOptionST("DisplayInfos", "$DISPLAY_ON_SCREEN", false)
+		AddToggleOptionST("LogInfos", "$LOG_TO_FILE", false)		
 		AddEmptyOption()		
 		AddHeaderOption("$WARNINGS")
-		AddToggleOptionST("DisplayWarnings", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS))
-		AddToggleOptionST("LogWarnings", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS))
+		AddToggleOptionST("DisplayWarnings", "$DISPLAY_ON_SCREEN", false)
+		AddToggleOptionST("LogWarnings", "$LOG_TO_FILE", false)
 		AddEmptyOption()		
 		AddHeaderOption("$ERRORS")
-		AddToggleOptionST("DisplayErrors", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS))
-		AddToggleOptionST("LogErrors", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, SUKEY_LOG_ERRORS))
+		AddToggleOptionST("DisplayErrors", "$DISPLAY_ON_SCREEN", false)
+		AddToggleOptionST("LogErrors", "$LOG_TO_FILE", false)
 		
 		
 		;/
@@ -205,25 +204,40 @@ State EnableLogging
 EndState
 
 State InfoManagerModsList
-	Event OnMenuOpenST()
-		Int RegisteredMods = StringListCount(None, SUKEY_REGISTERED_MODS)
-		InfoManagerModsListOptions = PapyrusUtil.StringArray(RegisteredMods)
-		Int i
-		
-			While (i < RegisteredMods)
-				InfoManagerModsListOptions[i] = StringListGet(None, SUKEY_REGISTERED_MODS, i)
-				i += 1
-			EndWhile
-			
+	Event OnMenuOpenST()			
 		SetMenuDialogOptions(InfoManagerModsListOptions)
 		SetMenuDialogStartIndex(InfoManagerModsListSelection)
 		;SetMenuDialogDefaultIndex
 	EndEvent
 	
 	Event OnMenuAcceptST(int aiSelectedOption)
+		Utility.WaitMenuMode(0.5)
+		;ShowMessage(aiSelectedOption)
+		InfoManagerToken = FormListGet(None, SUKEY_REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
+	
+		;fetching the Int contents of SUKEY_EXCEPTIONS_LOGFILE array and converting them to strings
+		String TokenLoggingMethod
+		
+		If (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
+			TokenLoggingMethod = LoggingMethod[0]
+		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
+			TokenLoggingMethod = LoggingMethod[1]
+		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_PAPYRUS_LOG)
+			TokenLoggingMethod = LoggingMethod[2]
+		EndIf
+		
 		SetMenuOptionValueST(InfoManagerModsListOptions[aiSelectedOption])
 		
-		InfoManagerToken = FormListGet(None, SUKEY_REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
+		SetTextOptionValueST(InfoManagerModsListOptions[aiSelectedOption], False, "ModSettings")
+		SetMenuOptionValueST(TokenLoggingMethod, false, "LoggingMethod")
+		SetTextOptionValueST(GetStringValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGNAME), false, "LogName")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS), False, "DisplayInfos")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS), False, "LogInfos")		
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS), False, "DisplayWarnings")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS), False, "LogWarnings")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS), False, "DisplayErrors")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_ERRORS), False, "LogErrors")
+
 		InfoManagerModsListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
 	EndEvent
 	
@@ -276,7 +290,7 @@ State LoggingMethod
 	EndEvent
 	
 	Event OnMenuAcceptST(int aiSelectedOption)
-		SetMenuOptionValueST(aiSelectedOption)
+		SetMenuOptionValueST(LoggingMethod[aiSelectedOption])
 		SetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE, aiSelectedOption)
 	EndEvent
 	
@@ -623,6 +637,8 @@ Tab: Init Manager
 Tab: Uninstall Manager
 
 Tab: Exception Manager
+	- Disable toggles when no mod selected
+	- Move lines around to take better advantage of space
 	- Enable/disable global file logging
 	- Disable logging buttons if global glogging is disabled
 	- ShowMessage if file logging is enabled, that it will now be disabled for this game session
