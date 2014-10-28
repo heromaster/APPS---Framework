@@ -3,7 +3,17 @@ Import StorageUtil
 Int FileLogLevel
 String[] Ordering
 String[] LogLevel
-String[] LoggingModMenuOptions
+String[] InfoManagerModsListOptions
+Int InfoManagerModsListSelection
+Quest InfoManagerToken
+String Property SUKEY_EXCEPTIONS_LOGFILE = "APPS.Exceptions.LogFile" AutoReadOnly Hidden
+String Property SUKEY_EXCEPTIONS_LOGNAME = "APPS.Exceptions.LogName" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_ERRORS = "APPS.Exceptions.DisplayErrors" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_WARNINGS = "APPS.Exceptions.DisplayWarnings" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_INFOS = "APPS.Exceptions.DisplayInfos" AutoReadOnly Hidden
+String Property SUKEY_LOG_ERRORS = "APPS.Exceptions.LogErrors" AutoReadOnly Hidden
+String Property SUKEY_LOG_WARNINGS = "APPS.Exceptions.LogWarnings" AutoReadOnly Hidden
+String Property SUKEY_LOG_INFOS = "APPS.Exceptions.LogInfos" AutoReadOnly Hidden
 String Property SUKEY_REGISTERED_MODS = "APPS.RegisteredMods" AutoReadOnly Hidden
 String Property SUKEY_MENU_OPTIONS = "APPS.MCM.RegisteredMods" AutoReadOnly Hidden
 String Property SUKEY_INIT_MODS = "APPS.InitMods" AutoReadOnly Hidden
@@ -25,7 +35,7 @@ Bool UninstSafetyLock = False
 Event OnConfigInit()
 	Pages = new String[4]
 	Pages[0] = "$REGISTRY"
-	Pages[1] = "$LOGGING"
+	Pages[1] = "$INFO_MANAGER"
 	Pages[2] = "$INITIALIZATION_MANAGER"
 	Pages[3] = "$UNINSTALL_MANAGER"
 	
@@ -61,13 +71,24 @@ Event OnPageReset(String asPage)
 			AddTextOption(StringListGet(None, SUKEY_REGISTERED_MODS, i - 1), "")
 			i -= 1
 		EndWhile		
-	ElseIf (asPage == Pages[1])	;logging
+	ElseIf (asPage == Pages[1])	;info manager
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		AddHeaderOption("$GENERAL_SETTINGS")
 		AddToggleOptionST("EnableLogging", "$ENABLE_LOGGING", Utility.GetINIBool("bEnableLogging:Papyrus"))
 		AddEmptyOption()
 		AddHeaderOption("$MOD_SPECIFIC_SETTINGS")
-		AddMenuOptionST("LoggingModMenu", "PLACEHOLDER", "PLACEHOLDER")
+		AddMenuOptionST("InfoManagerModsList", "$FOR", "$SELECT")
+		
+		SetCursorPosition(1)	;go to top of right column
+		AddHeaderOption("$INFORMATIONS")
+		AddToggleOptionST("DisplayInfos", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS))
+		AddToggleOptionST("InfosLog", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS))
+		AddEmptyOption()		
+		AddHeaderOption("$WARNINGS")
+		AddEmptyOption()		
+		AddHeaderOption("$ERRORS")
+		
+		
 		;/
 		AddHeaderOption("$LOG_OVERVIEW")
 		AddToggleOptionST("EnableLogs", "$ENABLE_LOGS", Utility.GetINIBool("bEnableLogging:Papyrus"))
@@ -153,25 +174,31 @@ State EnableLogging
 	EndEvent
 EndState
 
-State LoggingModMenu
+State InfoManagerModsList
 	Event OnMenuOpenST()
 		Int RegisteredMods = StringListCount(None, SUKEY_REGISTERED_MODS)
-		LoggingModMenuOptions = PapyrusUtil.StringArray(RegisteredMods)
+		InfoManagerModsListOptions = PapyrusUtil.StringArray(RegisteredMods)
 		Int i
 		
 			While (i < RegisteredMods)
-				LoggingModMenuOptions[i] = StringListGet(None, SUKEY_REGISTERED_MODS, i)
+				InfoManagerModsListOptions[i] = StringListGet(None, SUKEY_REGISTERED_MODS, i)
 				i += 1
 			EndWhile
 			
-		SetMenuDialogOptions(LoggingModMenuOptions)
-		;SetMenuDialogStartIndex
+		SetMenuDialogOptions(InfoManagerModsListOptions)
+		SetMenuDialogStartIndex(InfoManagerModsListSelection)
 		;SetMenuDialogDefaultIndex
 	EndEvent
 	
 	Event OnMenuAcceptST(int aiSelectedOption)
-		;LoggingModMenuOptions = PapyrusUtil.StringArray(RegisteredMods - 1)
-		SetMenuOptionValueST(LoggingModMenuOptions[aiSelectedOption])
+		SetMenuOptionValueST(InfoManagerModsListOptions[aiSelectedOption])
+		
+		InfoManagerToken = FormListGet(None, SUKEY_REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
+		InfoManagerModsListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
+	EndEvent
+	
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_INFO_MANAGER_MODS_LIST")
 	EndEvent
 EndState
 
@@ -513,6 +540,7 @@ Tab: Uninstall Manager
 
 Tab: Exception Manager
 	- Enable/disable global file logging
+	- Disable logging buttons if global glogging is disabled
 	- ShowMessage if file logging is enabled, that it will now be disabled for this game session
 	- Enable/disable framework logging
 	- LogLevel to write to files (Info, Warning, Error) --> a) Three toggle buttons b) Menu(Everything, Only Warnings and Errors, Only Errors) (for each mod)
