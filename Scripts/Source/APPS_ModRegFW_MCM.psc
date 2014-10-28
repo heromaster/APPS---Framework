@@ -500,13 +500,14 @@ All tabs
 	- disable everything if any mod is initializing or uninstalling
 	- seperate init safety lockup from uninstall safety lockup and display messages accordingly
 	- display instructions to close MCM menu
-------------------------------------------------------------------------------------------------------------------------	
+------------------------------------------------------------------------------------------------------------------------
 TODO:
 All tabs:
+	- Convert from using UNINSTALL naming to INIT for functions and keys
 	- Update ModIndex-related functions to use new Core helper functions
 	- Max array size & MCM menu sice: 128
 Tab: Init Manager
-
+	- Take advantage of tooltip functionality by heromaster
 Tab: Uninstall Manager
 
 Tab: Exception Manager
