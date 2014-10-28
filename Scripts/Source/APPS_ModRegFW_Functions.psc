@@ -85,8 +85,8 @@ Bool Function RegisterInitQuest(Quest akInitQuest = None, Int aiSetStage = 0, St
 		Return False
 	EndIf
 	
-	If(aiSetStage < 0)
-		Exception.Throw("APPS - Framework", "Stage " + aiSetStage + " is an invalid stage.", "Invalid stage submitted")
+	If(aiSetStage < -1)
+		Exception.Throw("APPS - Framework", "Stage " + aiSetStage + " from " + ModName + " is an invalid stage.", "Invalid stage submitted")
 		Return False
 	EndIf
 
@@ -116,8 +116,8 @@ Bool Function RegisterUninstallQuest(Quest akUninstallQuest = None, Int aiSetSta
 		Return False
 	EndIf
 	
-	If(aiSetStage < 0)
-		Exception.Throw("APPS - Framework", "Stage " + aiSetStage + " is an invalid stage.", "Invalid stage submitted")
+	If(aiSetStage < -1)
+		Exception.Throw("APPS - Framework", "Stage " + aiSetStage + " from " + ModName + " is an invalid stage.", "Invalid stage submitted")
 		Return False
 	EndIf
 
