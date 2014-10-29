@@ -2,14 +2,14 @@ ScriptName APPS_FW_SelfInit Extends Quest
 Import StorageUtil
 
 Event OnInit()
-	SetIntValue(Self, "APPS.Exceptions.DisplayErrors", 1)
-	SetIntValue(Self, "APPS.Exceptions.DisplayWarnings", 1)
-	SetIntValue(Self, "APPS.Exceptions.DisplayInfos", 1)
-	SetIntValue(Self, "APPS.Exceptions.LogErrors", 1)
-	SetIntValue(Self, "APPS.Exceptions.LogWarnings", 1)
-	SetIntValue(Self, "APPS.Exceptions.LogInfos", 1)
-	SetIntValue(Self, "APPS.Exceptions.LogFile", 1)
-	SetStringValue(Self, "APPS.Exceptions.LogName", "APPS_Framework")
+	SetIntValue(Self, "APPS.InfoManager.DisplayErrors", 1)
+	SetIntValue(Self, "APPS.InfoManager.DisplayWarnings", 1)
+	SetIntValue(Self, "APPS.InfoManager.DisplayInfos", 1)
+	SetIntValue(Self, "APPS.InfoManager.LogErrors", 1)
+	SetIntValue(Self, "APPS.InfoManager.LogWarnings", 1)
+	SetIntValue(Self, "APPS.InfoManager.LogInfos", 1)
+	SetIntValue(Self, "APPS.InfoManager.LogFile", 1)
+	SetStringValue(Self, "APPS.InfoManager.LogName", "APPS_Framework")
 	StringListAdd(None, "APPS.RegisteredMods", "APPS - Framework")
 	FormListAdd(None, "APPS.RegisteredMods", Self)
 

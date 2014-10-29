@@ -4,7 +4,7 @@ Quest Property UninstallQuest Auto
 
 Event OnInit()
 	RegisterMod()
-	RegisterInitQuest(InitQuest, -1, "Uses a different quest for init which has no stages!")
-	RegisterUninstallQuest(UninstallQuest, -1)
+	RegisterInitQuest(InitQuest, 0, "Uses a different quest for init which has no stages!")
+	RegisterUninstallQuest(UninstallQuest)
 	RegisterForExceptionModule("APPS_Test1")
 EndEvent

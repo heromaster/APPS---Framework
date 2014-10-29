@@ -11,31 +11,31 @@ Int Property USE_MOD_USER_LOG = 0 AutoReadOnly Hidden
 Int Property USE_FRAMEWORK_LOG = 1 AutoReadOnly Hidden
 Int Property USE_PAPYRUS_LOG = 2 AutoReadOnly Hidden
 Int Property MOD_NOT_FOUND = -1 AutoReadOnly Hidden
-String Property SUKEY_EXCEPTIONS_LOGFILE = "APPS.Exceptions.LogFile" AutoReadOnly Hidden
-String Property SUKEY_EXCEPTIONS_LOGNAME = "APPS.Exceptions.LogName" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_ERRORS = "APPS.Exceptions.DisplayErrors" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_WARNINGS = "APPS.Exceptions.DisplayWarnings" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_INFOS = "APPS.Exceptions.DisplayInfos" AutoReadOnly Hidden
-String Property SUKEY_LOG_ERRORS = "APPS.Exceptions.LogErrors" AutoReadOnly Hidden
-String Property SUKEY_LOG_WARNINGS = "APPS.Exceptions.LogWarnings" AutoReadOnly Hidden
-String Property SUKEY_LOG_INFOS = "APPS.Exceptions.LogInfos" AutoReadOnly Hidden
+Int Property MOVE_TOP = 0 AutoReadOnly Hidden
+Int Property MOVE_UP = 1 AutoReadOnly Hidden
+Int Property MOVE_DOWN = 3 AutoReadOnly Hidden
+Int Property MOVE_BOTTOM = 4 AutoReadOnly Hidden
+Int Property INITIALIZE_MOD = 6 AutoReadOnly Hidden
+String Property FW_LOG = "APPS - Framework" AutoReadOnly Hidden
+String Property SUKEY_EXCEPTIONS_LOGFILE = "APPS.InfoManager.LogFile" AutoReadOnly Hidden
+String Property SUKEY_EXCEPTIONS_LOGNAME = "APPS.InfoManager.LogName" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_ERRORS = "APPS.InfoManager.DisplayErrors" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_WARNINGS = "APPS.InfoManager.DisplayWarnings" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_INFOS = "APPS.InfoManager.DisplayInfos" AutoReadOnly Hidden
+String Property SUKEY_LOG_ERRORS = "APPS.InfoManager.LogErrors" AutoReadOnly Hidden
+String Property SUKEY_LOG_WARNINGS = "APPS.InfoManager.LogWarnings" AutoReadOnly Hidden
+String Property SUKEY_LOG_INFOS = "APPS.InfoManager.LogInfos" AutoReadOnly Hidden
 String Property SUKEY_REGISTERED_MODS = "APPS.RegisteredMods" AutoReadOnly Hidden
 String Property SUKEY_MENU_OPTIONS = "APPS.MCM.RegisteredMods" AutoReadOnly Hidden
 String Property SUKEY_INIT_MODS = "APPS.InitMods" AutoReadOnly Hidden
 String Property SUKEY_INIT_MODS_TOOLTIP = "APPS.InitMods.Tooltip" AutoReadOnly Hidden
 String Property SUKEY_UNINSTALL_MODS = "APPS.UninstallMods" AutoReadOnly Hidden
-Int Property MOVE_TOP = 0 AutoReadOnly Hidden
-Int Property MOVE_UP = 1 AutoReadOnly Hidden
-Int Property MOVE_DOWN = 3 AutoReadOnly Hidden
-Int Property MOVE_BOTTOM = 4 AutoReadOnly Hidden
-Int Property INITIALIZE_MOD = 5 AutoReadOnly Hidden
+
 Int InitControlFlags 
 Int UninstallControlFlags 
 Float Property TimeToNextInit = 1.0 Auto Hidden
 Bool InitSafetyLock = False 
 Bool UninstSafetyLock = False 
-
-
 
 Event OnConfigInit()
 	Pages = new String[4]
@@ -43,7 +43,7 @@ Event OnConfigInit()
 	Pages[1] = "$INFO_MANAGER"
 	Pages[2] = "$INITIALIZATION_MANAGER"
 	Pages[3] = "$UNINSTALL_MANAGER"
-	
+
 	Ordering = New String[7]
 	Ordering[0] = "$MOVE_TOP"
 	Ordering[1] = "$MOVE_UP"
@@ -52,13 +52,13 @@ Event OnConfigInit()
 	Ordering[4] = "$MOVE_BOTTOM"
 	Ordering[5] = "--------------"
 	Ordering[6] = "$INITIALIZE_MOD"
-	
+
 	LogLevel = New String[4]
 	LogLevel[0] = "$EVERYTHING"
 	LogLevel[1] = "$WARNINGS_AND_ERRORS"
 	LogLevel[2] = "$ONLY_ERRORS"
 	LogLevel[3] = "$NOTHING"
-	
+
 	LoggingMethod = New String[3]
 	LoggingMethod[0] = "$USE_MOD_USER_LOG"
 	LoggingMethod[1] = "$USE_FRAMEWORK_LOG"
@@ -76,11 +76,11 @@ Event OnPageReset(String asPage)
 		
 		Int RegisteredMods = StringListCount(None, SUKEY_REGISTERED_MODS)
 		Int i = RegisteredMods
-		
+
 		While (i > 0)
 			AddTextOption(StringListGet(None, SUKEY_REGISTERED_MODS, i - 1), "")
 			i -= 1
-		EndWhile		
+		EndWhile
 	ElseIf (asPage == Pages[1])	;info manager
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		AddHeaderOption("$GENERAL_SETTINGS")
@@ -93,52 +93,35 @@ Event OnPageReset(String asPage)
 		Int RegisteredMods = StringListCount(None, SUKEY_REGISTERED_MODS)
 		InfoManagerModsListOptions = PapyrusUtil.StringArray(RegisteredMods)
 		Int i
-		
+
 			While (i < RegisteredMods)
 				InfoManagerModsListOptions[i] = StringListGet(None, SUKEY_REGISTERED_MODS, i)
 				i += 1
 			EndWhile
-		
+
 		SetCursorPosition(1)	;go to top of right column
-		AddTextOptionST("ModSettings", "", "$NO_MOD_SELECTED")
-		AddEmptyOption()
-		AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", "")
-		AddTextOptionST("LogName", "Log Name", "")
-		AddEmptyOption()
+		AddTextOptionST("ModSettings", "$NO_MOD_SELECTED", "", OPTION_FLAG_DISABLED)
+		AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", "", OPTION_FLAG_DISABLED)
+		AddTextOptionST("LogName", "Log Name", "", OPTION_FLAG_DISABLED)
 		AddHeaderOption("$INFOS")
-		AddToggleOptionST("DisplayInfos", "$DISPLAY_ON_SCREEN", false)
-		AddToggleOptionST("LogInfos", "$LOG_TO_FILE", false)		
-		AddEmptyOption()		
+		AddToggleOptionST("DisplayInfos", "$DISPLAY_ON_SCREEN", False, OPTION_FLAG_DISABLED)
+		AddToggleOptionST("LogInfos", "$LOG_TO_FILE", False, OPTION_FLAG_DISABLED)
 		AddHeaderOption("$WARNINGS")
-		AddToggleOptionST("DisplayWarnings", "$DISPLAY_ON_SCREEN", false)
-		AddToggleOptionST("LogWarnings", "$LOG_TO_FILE", false)
-		AddEmptyOption()		
+		AddToggleOptionST("DisplayWarnings", "$DISPLAY_ON_SCREEN", False, OPTION_FLAG_DISABLED)
+		AddToggleOptionST("LogWarnings", "$LOG_TO_FILE", False, OPTION_FLAG_DISABLED)
 		AddHeaderOption("$ERRORS")
-		AddToggleOptionST("DisplayErrors", "$DISPLAY_ON_SCREEN", false)
-		AddToggleOptionST("LogErrors", "$LOG_TO_FILE", false)
-		
-		
-		;/
-		AddHeaderOption("$LOG_OVERVIEW")
-		AddToggleOptionST("EnableLogs", "$ENABLE_LOGS", Utility.GetINIBool("bEnableLogging:Papyrus"))
-		AddMenuOptionST("LogLevelFile", "$LOG_LEVEL", LogLevel[FileLogLevel])
-		AddHeaderOption("$DISPLAY_MESSAGES")
-		AddToggleOptionST("DisplayInfoMessage", "$DISPLAY_INFO_MSG", Core.DisplayInfo)
-		AddToggleOptionST("DisplayWarningMessage", "$DISPLAY_WARNING_MSG", Core.DisplayWarning)
-		AddToggleOptionST("DisplayErrorMessage", "$DISPLAY_ERROR_MSG", Core.DisplayError)
-		AddHeaderOption("$ERROR_REDIRECT")
-		AddMenuOptionST("LogRedirectMenu", "$LOG_REDIRECT_MENU", "Nothing")
-		/;
+		AddToggleOptionST("DisplayErrors", "$DISPLAY_ON_SCREEN", False, OPTION_FLAG_DISABLED)
+		AddToggleOptionST("LogErrors", "$LOG_TO_FILE", False, OPTION_FLAG_DISABLED)
 	ElseIf (asPage == Pages[2])	;initialization manager
 		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, SUKEY_INIT_MODS) == 0) 
 			InitControlFlags = OPTION_FLAG_DISABLED
 		Else
 			InitControlFlags = OPTION_FLAG_NONE
 		EndIf
-			
+
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		AddSliderOptionST("WaitingTimeBetweenInits", "$WAITING_TIME_BETWEEN_INITS", 1.0, "{1} seconds", InitControlFlags)
-		
+
 		If (InitSafetyLock)
 			AddHeaderOption("$INIT_IN_PROGRESS")
 		ElseIf (UninstSafetyLock)
@@ -146,7 +129,7 @@ Event OnPageReset(String asPage)
 		Else
 			AddTextOptionST("StartInitialization", "$START_INITIALIZATION_SEQUENCE", "$GO")
 		EndIf
-		
+
 		AddEmptyOption()
 		AddHeaderOption("$INITIALIZATION_ORDER")
 		AddEmptyOption()
@@ -164,9 +147,9 @@ Event OnPageReset(String asPage)
 		Else
 			UninstallControlFlags = OPTION_FLAG_NONE
 		EndIf
-	
+
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		
+
 		If (InitSafetyLock)
 			AddHeaderOption("$INIT_IN_PROGRESS")
 		ElseIf (UninstSafetyLock)
@@ -174,49 +157,60 @@ Event OnPageReset(String asPage)
 		Else
 			AddEmptyOption()
 		EndIf
-		
-		;AddTextOptionST("UninstallAll", "$UNINSTALL_ALL", "$GO", UninstallControlFlags)	;one ring (button) to uninstall them all
-		;AddEmptyOption()
+
 		AddHeaderOption("$MODS_WITH_UNINSTALL_FEATURE")
 		AddEmptyOption()
-		
+
 		Int UninstallMods = FormListCount(None, SUKEY_UNINSTALL_MODS)
 		Int i = UninstallMods
-		
-		While (i > 0)
-			IntListAdd(None, SUKEY_MENU_OPTIONS, AddTextOption(StringListGet(None, SUKEY_UNINSTALL_MODS, i - 1), "", UninstallControlFlags))
-			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_UNINSTALL_MODS, i - 1))
-			i -= 1
-		EndWhile		
+
+		While (i < FormListCount(None, SUKEY_UNINSTALL_MODS))
+			IntListAdd(None, SUKEY_MENU_OPTIONS, AddTextOption(StringListGet(None, SUKEY_UNINSTALL_MODS, i), "", UninstallControlFlags))
+			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_UNINSTALL_MODS, i))
+			i += 1
+		EndWhile
 	EndIf
 EndEvent
 
 State EnableLogging
 	Event OnSelectST()
+		If(Utility.GetINIBool("bEnableLogging:Papyrus"))
+			If(!ShowMessage("$DISABLES_EVERY_LOG"))
+				Return
+			EndIf
+		EndIf
+
 		Utility.SetINIBool("bEnableLogging:Papyrus", !Utility.GetINIBool("bEnableLogging:Papyrus"))
 		SetToggleOptionValueST(Utility.GetINIBool("bEnableLogging:Papyrus"))
+
+		ForcePageReset()
 	EndEvent
-	
+
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_ENABLE_LOGGING")
 	EndEvent
 EndState
 
 State InfoManagerModsList
-	Event OnMenuOpenST()			
+	Event OnMenuOpenST()
 		SetMenuDialogOptions(InfoManagerModsListOptions)
 		SetMenuDialogStartIndex(InfoManagerModsListSelection)
 		;SetMenuDialogDefaultIndex
 	EndEvent
-	
+
 	Event OnMenuAcceptST(int aiSelectedOption)
+		Int OptionFlag = OPTION_FLAG_NONE
 		Utility.WaitMenuMode(0.5)
 		;ShowMessage(aiSelectedOption)
 		InfoManagerToken = FormListGet(None, SUKEY_REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
-	
+
 		;fetching the Int contents of SUKEY_EXCEPTIONS_LOGFILE array and converting them to strings
 		String TokenLoggingMethod
-		
+
+		If(!Utility.GetINIBool("bEnableLogging:Papyrus"))
+			OptionFlag = OPTION_FLAG_DISABLED
+		EndIf
+
 		If (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
 			TokenLoggingMethod = LoggingMethod[0]
 		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
@@ -224,22 +218,30 @@ State InfoManagerModsList
 		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_PAPYRUS_LOG)
 			TokenLoggingMethod = LoggingMethod[2]
 		EndIf
-		
-		SetMenuOptionValueST(InfoManagerModsListOptions[aiSelectedOption])
-		
-		SetTextOptionValueST(InfoManagerModsListOptions[aiSelectedOption], False, "ModSettings")
-		SetMenuOptionValueST(TokenLoggingMethod, false, "LoggingMethod")
-		SetTextOptionValueST(GetStringValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGNAME), false, "LogName")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS), False, "DisplayInfos")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS), False, "LogInfos")		
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS), False, "DisplayWarnings")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS), False, "LogWarnings")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS), False, "DisplayErrors")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_ERRORS), False, "LogErrors")
 
+		SetMenuOptionValueST(InfoManagerModsListOptions[aiSelectedOption])
+		SetTextOptionValueST(InfoManagerModsListOptions[aiSelectedOption], True, "ModSettings")
+		SetMenuOptionValueST(TokenLoggingMethod, True, "LoggingMethod")
+		SetTextOptionValueST(GetStringValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGNAME), True, "LogName")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS), True, "DisplayInfos")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS), True, "LogInfos")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS), True, "DisplayWarnings")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS), True, "LogWarnings")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS), True, "DisplayErrors")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_ERRORS), True, "LogErrors")
+		SetOptionFlagsST(OptionFlag, True, "ModSettings")
+		SetOptionFlagsST(OptionFlag, True, "LoggingMethod")
+		SetOptionFlagsST(OptionFlag, True, "LogName")
+		SetOptionFlagsST(OptionFlag, True, "DisplayInfos")
+		SetOptionFlagsST(OptionFlag, True, "LogInfos")
+		SetOptionFlagsST(OptionFlag, True, "DisplayWarnings")
+		SetOptionFlagsST(OptionFlag, True, "LogWarnings")
+		SetOptionFlagsST(OptionFlag, True, "DisplayErrors")
+		SetOptionFlagsST(OptionFlag, False, "LogErrors")
+		
 		InfoManagerModsListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
 	EndEvent
-	
+
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_INFO_MANAGER_MODS_LIST")
 	EndEvent
@@ -247,36 +249,104 @@ EndState
 
 State DisplayInfos
 	Event OnSelectST()
-		If (HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS))
+		If(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS))
 			UnsetIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS)
 		Else
 			SetIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS, 1)
 		EndIf
+
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS))
 	EndEvent
-	
+
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_DISPLAY_INFOS")
 	EndEvent
 EndState
 
+State DisplayWarnings
+	Event OnSelectST()
+		If(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS))
+			UnsetIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS)
+		Else
+			SetIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS, 1)
+		EndIf
+
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS))
+	EndEvent
+
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_DISPLAY_WARNINGS")
+	EndEvent
+EndState
+
+State DisplayErrors
+	Event OnSelectST()
+		If(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS))
+			UnsetIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS)
+		Else
+			SetIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS, 1)
+		EndIf
+
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS))
+	EndEvent
+
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_DISPLAY_ERRORS")
+	EndEvent
+EndState
+
 State LogInfos
 	Event OnSelectST()
-		If (HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS))
+		If(HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS))
 			UnsetIntValue(InfoManagerToken, SUKEY_LOG_INFOS)
 		Else
 			SetIntValue(InfoManagerToken, SUKEY_LOG_INFOS, 1)
 		EndIf
+
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS))
 	EndEvent
-	
+
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_LOG_INFOS")
+	EndEvent
+EndState
+
+State LogWarnings
+	Event OnSelectST()
+		If(HasIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS))
+			UnsetIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS)
+		Else
+			SetIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS, 1)
+		EndIf
+
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS))
+	EndEvent
+
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_LOG_WARNINGS")
+	EndEvent
+EndState
+
+State LogErrors
+	Event OnSelectST()
+		If(HasIntValue(InfoManagerToken, SUKEY_LOG_ERRORS))
+			UnsetIntValue(InfoManagerToken, SUKEY_LOG_ERRORS)
+		Else
+			SetIntValue(InfoManagerToken, SUKEY_LOG_ERRORS, 1)
+		EndIf
+
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_ERRORS))
+	EndEvent
+
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_LOG_ERRORS")
 	EndEvent
 EndState
 
 State LoggingMethod
 	Event OnMenuOpenST()
 		SetMenuDialogOptions(LoggingMethod)
-		
+
 		If (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
 			SetMenuDialogStartIndex(0)
 		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
@@ -287,41 +357,18 @@ State LoggingMethod
 			SetMenuDialogStartIndex(0)
 		EndIf
 	EndEvent
-	
+
 	Event OnMenuAcceptST(int aiSelectedOption)
 		Utility.WaitMenuMode(0.5)	;waiting time to fix strange mix up of variables (SkyUI bug?)
 		SetMenuOptionValueST(LoggingMethod[aiSelectedOption])
 		SetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE, aiSelectedOption)
 	EndEvent
-	
+
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_LOGGING_METHOD")
 	EndEvent
 EndState
-		
 
-;/
-State DisplayInfoMessage
-	Event OnSelectST()
-		Core.DisplayInfo = !Core.DisplayInfo
-		SetToggleOptionValueST(Core.DisplayInfo)
-	EndEvent
-EndState
-
-State DisplayWarningMessage
-	Event OnSelectST()
-		Core.DisplayInfo = !Core.DisplayWarning
-		SetToggleOptionValueST(Core.DisplayWarning)
-	EndEvent
-EndState
-
-State DisplayErrorMessage
-	Event OnSelectST()
-		Core.DisplayInfo = !Core.DisplayError
-		SetToggleOptionValueST(Core.DisplayError)
-	EndEvent
-EndState
-/;
 State WaitingTimeBetweenInits
 	Event OnSliderOpenST()
 		SetSliderDialogStartValue(TimeToNextInit)
@@ -329,14 +376,14 @@ State WaitingTimeBetweenInits
 		SetSliderDialogRange(0.0, 5.0)
 		SetSliderDialogInterval(0.1)
 	EndEvent
-	
+
 	Event OnSliderAcceptST(float a_value)
 		If (a_value < 0.5)	;waiting times < 0.5 seconds are prone to errors (Heromaster)
 			TimeToNextInit = 0.5
 		Else
 			TimeToNextInit = a_value
 		EndIf
-		
+
 		SetSliderOptionValueST(TimeToNextInit, "{1} sec")
 	EndEvent
 
@@ -349,7 +396,7 @@ State StartInitialization
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_START_INITIALIZATION")
 	EndEvent
-	
+
 	Event OnSelectST()
 		If (ShowMessage("$START_INITIALIZATION_CONFIRMATION") == true)
 			ShowMessage("$CLOSE_MCM", false, "$OK")
@@ -357,18 +404,18 @@ State StartInitialization
 			SetTextOptionValueST("$INITIALIZING")
 			ForcePageReset()	;this ensures install order is displayed again with OPTION_FLAG_DISABLED			
 			Utility.Wait(0.1)	;forces the user to close the menu
-			
+
 			While (StringListCount(None, SUKEY_INIT_MODS) > 0)
 				String ModToInit = StringListGet(None, SUKEY_INIT_MODS, 0)
-				Debug.Notification(ModToInit)
-				InitializeMod(ModToInit, abSafetyLock = false, abVerbose = true) ;SafetyLock is handled by line InitSafetyLock = true, abVerbose will show notifications as each mod is initialized
+				Exception.Notify(FW_LOG, ModToInit)
+				InitializeMod(ModToInit, abSafetyLock = false) ;SafetyLock is handled by line InitSafetyLock = true
 				Utility.Wait(TimeToNextInit)
 			EndWhile
-			
-			Debug.MessageBox("$INITIALIZATION_SEQUENCE_COMPLETE")
-			
+
+			Exception.Notify(FW_LOG, "$INITIALIZATION_SEQUENCE_COMPLETE")
+
 			InitSafetyLock = false
-			SetTextOptionValueST("$GO")
+			SetTextOptionValueST("$GO", False, "StartInitialization")
 			ForcePageReset()
 		EndIf
 	EndEvent
@@ -376,22 +423,17 @@ EndState
 
 Event OnOptionHighlight(Int aiOption)
 		Int i
-		
+
 		While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
 			If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
-				If (CurrentPage == Pages[2])
-					SetInfoText(StringListGet(None, SUKEY_INIT_MODS_TOOLTIP, i))
-					i = IntListCount(None, SUKEY_MENU_OPTIONS)
-				ElseIf (CurrentPage == Pages[3])
-					SetInfoText("$EXPLAIN_UNINSTALL")
-					i = IntListCount(None, SUKEY_MENU_OPTIONS)
-				EndIf
+				SetInfoText(StringListGet(None, SUKEY_INIT_MODS_TOOLTIP, i))
+				i = IntListCount(None, SUKEY_MENU_OPTIONS)
 			Else
 				i += 1
 			EndIf
 		EndWhile
 EndEvent
-			
+
 Event OnOptionMenuOpen(Int aiOption)
 	Int i
 
@@ -409,7 +451,7 @@ EndEvent
 
 Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 	Int i
-	
+
 	While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
 		If(aiOpenedMenu == IntListGet(None, SUKEY_MENU_OPTIONS, i))
 			If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
@@ -420,11 +462,9 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 					ShowMessage("$CLOSE_MCM", false, "$OK")
 					String ModToInit = StringListGet(None, SUKEY_MENU_OPTIONS, i)
 					Utility.Wait(0.1)	;forces the user to close the menu
-					
-					If (InitializeMod(ModToInit))
-						Debug.MessageBox(ModToInit + "$INITIALIZED")
-					EndIf
-					
+
+					InitializeMod(ModToInit)
+
 					i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
 				EndIf
 			EndIf
@@ -432,20 +472,18 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 			i += 1
 		EndIf
 	EndWhile
-
-	ForcePageReset()
 EndEvent
 
 Event OnOptionSelect(Int aiOption)
 	Int i
-	
+
 	While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
 		If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
 			If (ShowMessage("$UNINSTALL_MOD_CONFIRMATION") == true)
 				UninstallMod(StringListGet(None, SUKEY_MENU_OPTIONS, i))
 				i = IntListCount(None, SUKEY_MENU_OPTIONS)
 			EndIf
-		Else	
+		Else
 			i += 1
 		EndIf
 	EndWhile
@@ -463,10 +501,10 @@ Function ChangeInitOrder(String asModName, Int aiPositionChange)
 
 		FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
 		FormListInsert(None, SUKEY_INIT_MODS, 0, InitQuest)
-		
+
 		StringListRemove(None, SUKEY_INIT_MODS, asModName)
 		StringListInsert(None, SUKEY_INIT_MODS, 0, asModName)
-		
+
 		IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
 		IntListInsert(None, SUKEY_INIT_MODS, 0, iSetStage)
 	ElseIf(aiPositionChange == MOVE_UP)
@@ -510,58 +548,55 @@ Function ChangeInitOrder(String asModName, Int aiPositionChange)
 		If(ModIndex == StringListCount(None, SUKEY_INIT_MODS) - 1)
 			Return
 		EndIf
-		
+
 		FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
 		FormListAdd(None, SUKEY_INIT_MODS, InitQuest)
-		
+
 		StringListRemove(None, SUKEY_INIT_MODS, asModName)
 		StringListAdd(None, SUKEY_INIT_MODS, asModName)
-		
+
 		IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
 		IntListAdd(None, SUKEY_INIT_MODS, iSetStage)
 	EndIf
 EndFunction
 
-Bool Function InitializeMod(String asModName, Bool abSafetyLock = true, Bool abVerbose = false)
+Bool Function InitializeMod(String asModName, Bool abSafetyLock = True)
 	Int ModIndex = StringListFind(None, SUKEY_INIT_MODS, asModName)
 	Quest InitQuest = FormListGet(None, SUKEY_INIT_MODS, ModIndex) as Quest
 	Int iSetStage = IntListGet(None, SUKEY_INIT_MODS, ModIndex)
 	Bool result = True
-	
+
 	If (abSafetyLock)
 		InitSafetyLock = true
 	EndIf
-	
-	If (iSetStage != -1)
-		If (InitQuest.SetStage(iSetStage) == false)
-			Debug.MessageBox(asModName + "$FAILED_TO_INITIALIZE")
-			result == false
-			
-			StringListRemove(None, SUKEY_REGISTERED_MODS, asModName)
-			FormListRemoveAt(None, SUKEY_REGISTERED_MODS, ModIndex)
-		ElseIf (abVerbose)
-			Debug.Notification(asModName + "$INITIALIZED")
+
+	If(iSetStage == 0)
+		If(!InitQuest.Start())
+			result = False
 		EndIf
 	Else
-		If (InitQuest.Start() == false)
-			Debug.MessageBox(asModName + "$FAILED_TO_INITIALIZE")
-			result == false
-			
-			StringListRemove(None, SUKEY_REGISTERED_MODS, asModName)
-			FormListRemoveAt(None, SUKEY_REGISTERED_MODS, ModIndex)
-		ElseIf (abVerbose)
-			Debug.Notification(asModName + "$INITIALIZED")
+		If(!InitQuest.SetStage(iSetStage))
+			result = False
 		EndIf
 	EndIf
-	
+
+	If(result)
+		Exception.Notify(FW_LOG, asModName + "$INITIALIZED")
+	Else
+		Exception.Throw(FW_LOG, "Failed to initialize mod", asModName + "$FAILED_TO_INITIALIZE")
+
+		StringListRemove(None, SUKEY_REGISTERED_MODS, asModName)
+		FormListRemoveAt(None, SUKEY_REGISTERED_MODS, ModIndex)
+	EndIf
+
 	If (abSafetyLock)
 		InitSafetyLock = false
 	EndIf
-	
+
 	StringListRemove(None, SUKEY_INIT_MODS, asModName)
 	FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
 	IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
-	
+
 	Return result
 EndFunction
 
@@ -570,36 +605,34 @@ Bool Function UninstallMod(String asModName, Bool abSafetyLock = true)
 	Quest UninstallQuest = FormListGet(None, SUKEY_UNINSTALL_MODS, ModIndex) as Quest
 	Int iSetStage = IntListGet(None, SUKEY_UNINSTALL_MODS, ModIndex)
 	Bool result = true
-	
+
 	If (abSafetyLock)
 		UninstSafetyLock = true
 	EndIf
-	
-	If (iSetStage != -1)
-		If (UninstallQuest.SetStage(iSetStage) == false)
-			ShowMessage(asModName + "$FAILED_TO_UNINSTALL", false, "OK")
-			Debug.MessageBox(asModName + "$FAILED_TO_UNINSTALL")
+
+	If(iSetStage == 0)
+		If (!UninstallQuest.Start())
+			Exception.Throw(FW_LOG, "Uninstallation failed", asModName + "$FAILED_TO_UNINSTALL")
 			result = false
 		EndIf
 	Else
-		If (UninstallQuest.Start() == false)
-			ShowMessage(asModName + "$FAILED_TO_UNINSTALL", false, "OK")
-			Debug.MessageBox(asModName + "$FAILED_TO_UNINSTALL")
+		If(!UninstallQuest.SetStage(iSetStage))
+			Exception.Throw(FW_LOG, "Uninstallation failed", asModName + "$FAILED_TO_UNINSTALL")
 			result = false
 		EndIf
 	EndIf
-	
+
 	If (abSafetyLock)
 		UninstSafetyLock = false
 	EndIf
-	
+
 	StringListRemove(None, SUKEY_UNINSTALL_MODS, asModName)
 	FormListRemove(None, SUKEY_UNINSTALL_MODS, UninstallQuest)
 	IntListRemove(None, SUKEY_UNINSTALL_MODS, iSetStage)
-	
+
 	StringListRemove(None, SUKEY_REGISTERED_MODS, asModName)
 	FormListRemoveAt(None, SUKEY_REGISTERED_MODS, ModIndex)
-	
+
 	Return result
 EndFunction
 
@@ -609,6 +642,17 @@ All tabs:
 	- Switch from using UNINSTALL naming to INIT for functions and keys
 Tab: Registry
 	- Show a list of all registered mods
+Tab: Info Manager
+	- LogLevel to write to files (Info, Warning, Error) --> a) Three toggle buttons b) Menu(Everything, Only Warnings and Errors, Only Errors) (for each mod)
+	- LogLevel to display MessageBoxes (Info, Warning, Error) --> a) Three toggle buttons b) Menu(Everything, Only Warnings and Errors, Only Errors) (for each mod)
+	- Disable toggles when no mod selected
+	- Move lines around to take better advantage of space
+	- Enable/disable global file logging
+	- Disable logging buttons if global glogging is disabled
+	- Enable/disable framework logging
+	- Mod settings could look like the Profile Menu form SexLab
+	- Redirect log files to: Papyrus log, APPS - Framework user log, each mod with own user log
+	- ShowMessage if file logging is enabled, that it will now be disabled for this game session
 Tab: Initialization Manager
 	- Move mods up and down the list to change initialize order
 	- Menu point "Start Initialization" (Maybe with a ShowMessage where the user will be informed)
@@ -628,22 +672,8 @@ All tabs
 ------------------------------------------------------------------------------------------------------------------------
 TODO:
 All tabs:
-	
 	- Update ModIndex-related functions to use new Core helper functions
 	- Max array size & MCM menu sice: 128
 Tab: Init Manager
 	- Take advantage of tooltip functionality by heromaster
-Tab: Uninstall Manager
-
-Tab: Exception Manager
-	- Disable toggles when no mod selected
-	- Move lines around to take better advantage of space
-	- Enable/disable global file logging
-	- Disable logging buttons if global glogging is disabled
-	- ShowMessage if file logging is enabled, that it will now be disabled for this game session
-	- Enable/disable framework logging
-	- LogLevel to write to files (Info, Warning, Error) --> a) Three toggle buttons b) Menu(Everything, Only Warnings and Errors, Only Errors) (for each mod)
-	- LogLevel to display MessageBoxes (Info, Warning, Error) --> a) Three toggle buttons b) Menu(Everything, Only Warnings and Errors, Only Errors) (for each mod)
-	- Redirect log files to: Papyrus log, APPS - Framework user log, each mod with own user log
-	- Mod settings could look like the Profile Menu form SexLab
 /;

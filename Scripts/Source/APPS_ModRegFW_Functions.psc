@@ -6,24 +6,25 @@ Int Property USE_FRAMEWORK_LOG = 1 AutoReadOnly Hidden
 Int Property USE_PAPYRUS_LOG = 2 AutoReadOnly Hidden
 Int Property MOD_NOT_FOUND = -1 AutoReadOnly Hidden
 String Property ModName Auto
-String Property SUKEY_EXCEPTIONS_LOGFILE = "APPS.Exceptions.LogFile" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_ERRORS = "APPS.Exceptions.DisplayErrors" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_WARNINGS = "APPS.Exceptions.DisplayWarnings" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_INFOS = "APPS.Exceptions.DisplayInfos" AutoReadOnly Hidden
-String Property SUKEY_LOG_ERRORS = "APPS.Exceptions.LogErrors" AutoReadOnly Hidden
-String Property SUKEY_LOG_WARNINGS = "APPS.Exceptions.LogWarnings" AutoReadOnly Hidden
-String Property SUKEY_LOG_INFOS = "APPS.Exceptions.LogInfos" AutoReadOnly Hidden
+String Property FW_LOG = "APPS - Framework" AutoReadOnly Hidden
+String Property SUKEY_LOGFILE = "APPS.InfoManager.LogFile" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_ERRORS = "APPS.InfoManager.DisplayErrors" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_WARNINGS = "APPS.InfoManager.DisplayWarnings" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_INFOS = "APPS.InfoManager.DisplayInfos" AutoReadOnly Hidden
+String Property SUKEY_LOG_ERRORS = "APPS.InfoManager.LogErrors" AutoReadOnly Hidden
+String Property SUKEY_LOG_WARNINGS = "APPS.InfoManager.LogWarnings" AutoReadOnly Hidden
+String Property SUKEY_LOG_INFOS = "APPS.InfoManager.LogInfos" AutoReadOnly Hidden
 String Property SUKEY_REGISTERED_MODS = "APPS.RegisteredMods" AutoReadOnly Hidden
 String Property SUKEY_INIT_MODS = "APPS.InitMods" AutoReadOnly Hidden
 String Property SUKEY_INIT_MODS_TOOLTIP = "APPS.InitMods.Tooltip" AutoReadOnly Hidden
 String Property SUKEY_UNINSTALL_MODS = "APPS.UninstallMods" AutoReadOnly Hidden
-String Property SUKEY_EXCEPTIONS_LOGNAME = "APPS.Exceptions.LogName" AutoReadOnly Hidden
+String Property SUKEY_LOGNAME = "APPS.InfoManager.LogName" AutoReadOnly Hidden
 String Property IS_EMPTY = "" AutoReadOnly Hidden
 
 ;/ |------------------------------------------------------------------------------------------------------------|
    |Registers a mod to access advanced functions of the framework.												|
    |If a mod wants to update its token, this function should be called again with a different Quest.			|
-   |------------------------------------------------------------------------------------------------------------|																		|
+   |------------------------------------------------------------------------------------------------------------|
    |Return value: Bool																							|
    |Returns True if the mod is successfully registered, the token is updated or the token is already in the		|
    |registration list.																							|
@@ -33,7 +34,7 @@ Bool Function RegisterMod()
 	;If no mod name was given (no ModName property or quest name set) it will not register the mod
 	If(ModName == IS_EMPTY)
 		If(_GetFormNameIfAvailable(Self) == IS_EMPTY)
-			Exception.Throw("APPS - Framework", "No mod name was given. Can't register your mod.", "Registration failed")
+			Exception.Throw(FW_LOG, "No mod name was given. Can't register mod with ID: " + Self.GetFormID() + ".", "Registration failed")
 			Return False
 		Else
 			ModName = Self.GetName()
@@ -45,16 +46,16 @@ Bool Function RegisterMod()
 	If(ModIndex > MOD_NOT_FOUND)
 		;Check if the token is the same one when the mod has been already registered
 		If(Self == FormListGet(None, SUKEY_REGISTERED_MODS, ModIndex))
-			Exception.Warn("APPS - Framework", "Mod " + ModName + " is already registered.")
+			Exception.Warn(FW_LOG, "Mod " + ModName + " is already registered.")
 		;It's not the same token, so just update the entry with the new token
 		Else
 			FormListSet(None, SUKEY_REGISTERED_MODS, ModIndex, Self)
-			Exception.Notify("APPS - Framework", "Mod " + ModName + " found in registration list. Updated to new token.")
+			Exception.Notify(FW_LOG, "Mod " + ModName + " found in registration list. Updated to new token.")
 		EndIf
 	Else
 		StringListInsert(None, SUKEY_REGISTERED_MODS, 0, ModName)
 		FormListInsert(None, SUKEY_REGISTERED_MODS, 0, Self)
-		Exception.Notify("APPS - Framework", "Mod " + ModName + " is successfully registered.")
+		Exception.Notify(FW_LOG, "Mod " + ModName + " is registered.")
 	EndIf
 
 	Return True
@@ -81,12 +82,12 @@ Bool Function RegisterInitQuest(Quest akInitQuest = None, Int aiSetStage = 0, St
 	Quest InitQuest
 
 	If(akInitQuest == None && aiSetStage == 0)
-		Exception.Throw("APPS - Framework", "Can't register install quest because none was submitted and stage 0 for this quest is invalid.", "Invalid stage submitted")
+		Exception.Throw(FW_LOG, "Can't register initialization quest from " + ModName + " because none was submitted and stage 0 for this quest is invalid.", "Invalid stage submitted")
 		Return False
 	EndIf
 	
-	If(aiSetStage < -1)
-		Exception.Throw("APPS - Framework", "Stage " + aiSetStage + " from " + ModName + " is an invalid stage.", "Invalid stage submitted")
+	If(aiSetStage < 0)
+		Exception.Throw(FW_LOG, "Stage " + aiSetStage + " from " + ModName + " is an invalid stage.", "Invalid stage submitted")
 		Return False
 	EndIf
 
@@ -104,7 +105,7 @@ Bool Function RegisterInitQuest(Quest akInitQuest = None, Int aiSetStage = 0, St
 		SetStringValue(Self, SUKEY_INIT_MODS_TOOLTIP, asTooltip)
 	EndIf
 
-	Exception.Notify("APPS - Framework", ModName + " successfully registered an initialization quest.")
+	Exception.Notify(FW_LOG, ModName + " registered an initialization quest.")
 	Return True
 EndFunction
 
@@ -112,12 +113,12 @@ Bool Function RegisterUninstallQuest(Quest akUninstallQuest = None, Int aiSetSta
 	Quest UninstallQuest = Self
 
 	If(akUninstallQuest == None && aiSetStage == 0)
-		Exception.Throw("APPS - Framework", "Can't register uninstall quest because none was submitted and stage 0 for this quest is invalid.", "Invalid stage submitted")
+		Exception.Throw(FW_LOG, "Can't register uninstall quest because none was submitted and stage 0 for this quest is invalid.", "Invalid stage submitted")
 		Return False
 	EndIf
 	
 	If(aiSetStage < -1)
-		Exception.Throw("APPS - Framework", "Stage " + aiSetStage + " from " + ModName + " is an invalid stage.", "Invalid stage submitted")
+		Exception.Throw(FW_LOG, "Stage " + aiSetStage + " from " + ModName + " is an invalid stage.", "Invalid stage submitted")
 		Return False
 	EndIf
 
@@ -128,13 +129,13 @@ Bool Function RegisterUninstallQuest(Quest akUninstallQuest = None, Int aiSetSta
 	FormListAdd(None, SUKEY_UNINSTALL_MODS, UninstallQuest)
 	IntListAdd(None, SUKEY_UNINSTALL_MODS, aiSetStage)
 	StringListAdd(None, SUKEY_UNINSTALL_MODS, ModName)
-	Exception.Notify("APPS - Framework", "Quest successfully registered to be uninstalled at a later point.")
+	Exception.Notify(FW_LOG, "Quest registered an uninstallation quest.")
 	Return True
 EndFunction
 
 Function RegisterForExceptionModule(String asLogName)
-	SetStringValue(Self, SUKEY_EXCEPTIONS_LOGNAME, asLogName)
-	SetIntValue(Self, SUKEY_EXCEPTIONS_LOGFILE, USE_MOD_USER_LOG)
+	SetStringValue(Self, SUKEY_LOGNAME, asLogName)
+	SetIntValue(Self, SUKEY_LOGFILE, USE_MOD_USER_LOG)
 	SetIntValue(Self, SUKEY_DISPLAY_WARNINGS, 1)
 	SetIntValue(Self, SUKEY_DISPLAY_ERRORS, 1)
 	SetIntValue(Self, SUKEY_LOG_INFOS, 1)
