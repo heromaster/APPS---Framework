@@ -26,8 +26,8 @@ String Property SUKEY_INIT_MODS_TOOLTIP = "APPS.InitMods.Tooltip" AutoReadOnly H
 String Property SUKEY_UNINSTALL_MODS = "APPS.UninstallMods" AutoReadOnly Hidden
 Int Property MOVE_TOP = 0 AutoReadOnly Hidden
 Int Property MOVE_UP = 1 AutoReadOnly Hidden
-Int Property MOVE_DOWN = 3 AutoReadOnly Hidden
-Int Property MOVE_BOTTOM = 4 AutoReadOnly Hidden
+Int Property MOVE_DOWN = 2 AutoReadOnly Hidden
+Int Property MOVE_BOTTOM = 3 AutoReadOnly Hidden
 Int Property INITIALIZE_MOD = 5 AutoReadOnly Hidden
 Int InitControlFlags 
 Int UninstallControlFlags 
@@ -150,13 +150,14 @@ Event OnPageReset(String asPage)
 		AddEmptyOption()
 		AddHeaderOption("$INITIALIZATION_ORDER")
 		AddEmptyOption()
-
-		Int i
-
-		While (i < FormListCount(None, SUKEY_INIT_MODS))
-			IntListAdd(None, SUKEY_MENU_OPTIONS, AddMenuOption(StringListGet(None, SUKEY_INIT_MODS, i), "#" + (i + 1) As String + ": ", InitControlFlags))
-			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_INIT_MODS, i))
-			i += 1
+		
+		Int InitMods = FormListCount(None, SUKEY_INIT_MODS)
+		Int i = InitMods
+		
+		While (i > 0)
+			IntListAdd(None, SUKEY_MENU_OPTIONS, AddMenuOption(StringListGet(None, SUKEY_INIT_MODS, i - 1), "#" + (InitMods + 1 - i) As String + ": ", InitControlFlags))
+			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_INIT_MODS, i - 1))
+			i -= 1
 		EndWhile
 	ElseIf (asPage == Pages[3])	;uninstall manager
 		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, SUKEY_UNINSTALL_MODS) == 0)
@@ -457,60 +458,10 @@ Function ChangeInitOrder(String asModName, Int aiPositionChange)
 	Int iSetStage = IntListGet(None, SUKEY_INIT_MODS, ModIndex)
 
 	If(aiPositionChange == MOVE_TOP)
-		If(ModIndex == 0)
-			Return
-		EndIf
-
-		FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
-		FormListInsert(None, SUKEY_INIT_MODS, 0, InitQuest)
-		
-		StringListRemove(None, SUKEY_INIT_MODS, asModName)
-		StringListInsert(None, SUKEY_INIT_MODS, 0, asModName)
-		
-		IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
-		IntListInsert(None, SUKEY_INIT_MODS, 0, iSetStage)
-	ElseIf(aiPositionChange == MOVE_UP)
-		If(ModIndex == 0)
-			Return
-		EndIf
-
-		FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
-		FormListInsert(None, SUKEY_INIT_MODS, (ModIndex - 1), InitQuest)
-
-		StringListRemove(None, SUKEY_INIT_MODS, asModName)
-		StringListInsert(None, SUKEY_INIT_MODS, (ModIndex - 1), asModName)
-
-		IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
-		IntListInsert(None, SUKEY_INIT_MODS, (ModIndex - 1), iSetStage)
-	ElseIf(aiPositionChange == MOVE_DOWN)
 		If(ModIndex == (StringListCount(None, SUKEY_INIT_MODS) - 1))
 			Return
 		EndIf
 
-		If(ModIndex == (StringListCount(None, SUKEY_REGISTERED_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
-			FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
-			FormListAdd(None, SUKEY_INIT_MODS, InitQuest)
-
-			StringListRemove(None, SUKEY_INIT_MODS, asModName)
-			StringListAdd(None, SUKEY_INIT_MODS, asModName)
-
-			IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
-			IntListAdd(None, SUKEY_INIT_MODS, iSetStage)
-		Else
-			FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
-			FormListInsert(None, SUKEY_INIT_MODS, (ModIndex + 1), InitQuest)
-
-			StringListRemove(None, SUKEY_INIT_MODS, asModName)
-			StringListInsert(None, SUKEY_INIT_MODS, (ModIndex +1), asModName)
-
-			IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
-			IntListInsert(None, SUKEY_INIT_MODS, (ModIndex + 1), iSetStage)
-		EndIf
-	ElseIf(aiPositionChange == MOVE_BOTTOM)
-		If(ModIndex == StringListCount(None, SUKEY_INIT_MODS) - 1)
-			Return
-		EndIf
-		
 		FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
 		FormListAdd(None, SUKEY_INIT_MODS, InitQuest)
 		
@@ -519,6 +470,57 @@ Function ChangeInitOrder(String asModName, Int aiPositionChange)
 		
 		IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
 		IntListAdd(None, SUKEY_INIT_MODS, iSetStage)
+	ElseIf(aiPositionChange == MOVE_UP)
+		If(ModIndex == (StringListCount(None, SUKEY_INIT_MODS) - 1))
+			Return
+		EndIf
+		
+		If(ModIndex == (StringListCount(None, SUKEY_INIT_MODS) - 2)) ;this is equivalent to MOVE_TOP, errors otherwise
+		
+			FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
+			FormListAdd(None, SUKEY_INIT_MODS, InitQuest)
+			
+			StringListRemove(None, SUKEY_INIT_MODS, asModName)
+			StringListAdd(None, SUKEY_INIT_MODS, asModName)
+
+			IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
+			IntListAdd(None, SUKEY_INIT_MODS, iSetStage)
+		Else
+			FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
+			FormListInsert(None, SUKEY_INIT_MODS, (ModIndex + 1), InitQuest)
+			
+			StringListRemove(None, SUKEY_INIT_MODS, asModName)
+			StringListInsert(None, SUKEY_INIT_MODS, (ModIndex + 1), asModName)
+			
+			IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
+			IntListAdd(None, SUKEY_INIT_MODS, (ModIndex +1), iSetStage)
+		EndIf
+	ElseIf(aiPositionChange == MOVE_DOWN)
+		If(ModIndex == 0)
+			Return
+		EndIf
+		
+		FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
+		FormListInsert(None, SUKEY_INIT_MODS, (ModIndex - 1), InitQuest)
+		
+		StringListRemove(None, SUKEY_INIT_MODS, asModName)
+		StringListInsert(None, SUKEY_INIT_MODS, (ModIndex - 1), asModName)
+		
+		IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
+		IntListAdd(None, SUKEY_INIT_MODS, (ModIndex - 1), iSetStage)
+	ElseIf(aiPositionChange == MOVE_BOTTOM)
+		If(ModIndex == 0)
+			Return
+		EndIf
+		
+		FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
+		FormListInsert(None, SUKEY_INIT_MODS, 0, InitQuest)
+		
+		StringListRemove(None, SUKEY_INIT_MODS, asModName)
+		StringListInsert(None, SUKEY_INIT_MODS, 0, asModName)
+		
+		IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
+		IntListAdd(None, SUKEY_INIT_MODS, 0, iSetStage)
 	EndIf
 EndFunction
 
