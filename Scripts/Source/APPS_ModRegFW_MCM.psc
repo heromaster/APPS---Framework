@@ -290,6 +290,7 @@ State LoggingMethod
 	EndEvent
 	
 	Event OnMenuAcceptST(int aiSelectedOption)
+		Utility.WaitMenuMode(0.5)	;waiting time to fix strange mix up of variables (SkyUI bug?)
 		SetMenuOptionValueST(LoggingMethod[aiSelectedOption])
 		SetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE, aiSelectedOption)
 	EndEvent
@@ -332,7 +333,7 @@ State WaitingTimeBetweenInits
 	
 	Event OnSliderAcceptST(float a_value)
 		If (a_value < 0.5)	;waiting times < 0.5 seconds are prone to errors (Heromaster)
-			TimeToNextInit = 0.0
+			TimeToNextInit = 0.5
 		Else
 			TimeToNextInit = a_value
 		EndIf
