@@ -30,10 +30,9 @@ String Property SUKEY_MENU_OPTIONS = "APPS.MCM.RegisteredMods" AutoReadOnly Hidd
 String Property SUKEY_INIT_MODS = "APPS.InitMods" AutoReadOnly Hidden
 String Property SUKEY_INIT_MODS_TOOLTIP = "APPS.InitMods.Tooltip" AutoReadOnly Hidden
 String Property SUKEY_UNINSTALL_MODS = "APPS.UninstallMods" AutoReadOnly Hidden
-
 Int InitControlFlags 
 Int UninstallControlFlags 
-Float Property TimeToNextInit = 1.0 Auto Hidden
+Float TimeToNextInit = 1.0
 Bool InitSafetyLock = False 
 Bool UninstSafetyLock = False 
 
@@ -87,7 +86,10 @@ Event OnPageReset(String asPage)
 		AddToggleOptionST("EnableLogging", "$ENABLE_LOGGING", Utility.GetINIBool("bEnableLogging:Papyrus"))
 		AddEmptyOption()
 		AddHeaderOption("$MOD_SPECIFIC_SETTINGS")
-		AddMenuOptionST("InfoManagerModsList", "$FOR", "$SELECT")
+		AddMenuOptionST("InfoManagerModsList", "", "$SELECT")
+		AddEmptyOption()
+		AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", "", OPTION_FLAG_DISABLED)
+		AddTextOptionST("LogName", "Log Name", "", OPTION_FLAG_DISABLED)
 		
 		;filling up the InfoManagerModsListOptions array with the names of the registered mods, to be shown as a menu later
 		Int RegisteredMods = StringListCount(None, SUKEY_REGISTERED_MODS)
@@ -98,11 +100,8 @@ Event OnPageReset(String asPage)
 				InfoManagerModsListOptions[i] = StringListGet(None, SUKEY_REGISTERED_MODS, i)
 				i += 1
 			EndWhile
-
+		
 		SetCursorPosition(1)	;go to top of right column
-		AddTextOptionST("ModSettings", "$NO_MOD_SELECTED", "", OPTION_FLAG_DISABLED)
-		AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", "", OPTION_FLAG_DISABLED)
-		AddTextOptionST("LogName", "Log Name", "", OPTION_FLAG_DISABLED)
 		AddHeaderOption("$INFOS")
 		AddToggleOptionST("DisplayInfos", "$DISPLAY_ON_SCREEN", False, OPTION_FLAG_DISABLED)
 		AddToggleOptionST("LogInfos", "$LOG_TO_FILE", False, OPTION_FLAG_DISABLED)
