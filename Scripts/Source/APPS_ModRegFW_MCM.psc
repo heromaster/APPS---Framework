@@ -377,7 +377,7 @@ State WaitingTimeBetweenInits
 	EndEvent
 
 	Event OnSliderAcceptST(float afSelectedValue)
-		If (afSelectedValue < 0.5)	;waiting times < 0.5 seconds are prone to errors (Heromaster)
+		If (0.0 < afSelectedValue && afSelectedValue < 0.5)	;waiting times < 0.5 seconds are prone to errors (Heromaster)
 			TimeToNextInit = 0.5
 		Else
 			TimeToNextInit = afSelectedValue
