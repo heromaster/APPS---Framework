@@ -75,11 +75,11 @@ Event OnPageReset(String asPage)
 		AddEmptyOption()
 		
 		Int RegisteredMods = StringListCount(None, SUKEY_REGISTERED_MODS)
-		Int i = RegisteredMods
+		Int i
 
-		While (i > 0)
-			AddTextOption(StringListGet(None, SUKEY_REGISTERED_MODS, i - 1), "")
-			i -= 1
+		While (i < RegisteredMods)
+			AddTextOption(StringListGet(None, SUKEY_REGISTERED_MODS, i), "")
+			i += 1
 		EndWhile
 	ElseIf (asPage == Pages[1])	;info manager
 		SetCursorFillMode(TOP_TO_BOTTOM)
