@@ -376,11 +376,11 @@ State WaitingTimeBetweenInits
 		SetSliderDialogInterval(0.1)
 	EndEvent
 
-	Event OnSliderAcceptST(float a_value)
-		If (a_value < 0.5)	;waiting times < 0.5 seconds are prone to errors (Heromaster)
+	Event OnSliderAcceptST(float afSelectedValue)
+		If (afSelectedValue < 0.5)	;waiting times < 0.5 seconds are prone to errors (Heromaster)
 			TimeToNextInit = 0.5
 		Else
-			TimeToNextInit = a_value
+			TimeToNextInit = afSelectedValue
 		EndIf
 
 		SetSliderOptionValueST(TimeToNextInit, "{1} sec")
