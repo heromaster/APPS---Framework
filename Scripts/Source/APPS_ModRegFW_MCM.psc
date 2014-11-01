@@ -1,5 +1,6 @@
 ScriptName APPS_ModRegFW_MCM Extends SKI_ConfigBase
 Import StorageUtil
+
 Int FileLogLevel
 String[] Ordering
 String[] LogLevel
@@ -7,29 +8,29 @@ String[] InfoManagerModsListOptions
 String[] LoggingMethod
 Int InfoManagerModsListSelection
 Quest InfoManagerToken
-Int Property USE_MOD_USER_LOG = 0 AutoReadOnly Hidden
-Int Property USE_FRAMEWORK_LOG = 1 AutoReadOnly Hidden
-Int Property USE_PAPYRUS_LOG = 2 AutoReadOnly Hidden
-Int Property MOD_NOT_FOUND = -1 AutoReadOnly Hidden
-Int Property MOVE_TOP = 0 AutoReadOnly Hidden
-Int Property MOVE_UP = 1 AutoReadOnly Hidden
-Int Property MOVE_DOWN = 3 AutoReadOnly Hidden
-Int Property MOVE_BOTTOM = 4 AutoReadOnly Hidden
-Int Property INITIALIZE_MOD = 6 AutoReadOnly Hidden
-String Property FW_LOG = "APPS - Framework" AutoReadOnly Hidden
-String Property SUKEY_EXCEPTIONS_LOGFILE = "APPS.InfoManager.LogFile" AutoReadOnly Hidden
-String Property SUKEY_EXCEPTIONS_LOGNAME = "APPS.InfoManager.LogName" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_ERRORS = "APPS.InfoManager.DisplayErrors" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_WARNINGS = "APPS.InfoManager.DisplayWarnings" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_INFOS = "APPS.InfoManager.DisplayInfos" AutoReadOnly Hidden
-String Property SUKEY_LOG_ERRORS = "APPS.InfoManager.LogErrors" AutoReadOnly Hidden
-String Property SUKEY_LOG_WARNINGS = "APPS.InfoManager.LogWarnings" AutoReadOnly Hidden
-String Property SUKEY_LOG_INFOS = "APPS.InfoManager.LogInfos" AutoReadOnly Hidden
-String Property SUKEY_REGISTERED_MODS = "APPS.RegisteredMods" AutoReadOnly Hidden
-String Property SUKEY_MENU_OPTIONS = "APPS.MCM.RegisteredMods" AutoReadOnly Hidden
-String Property SUKEY_INIT_MODS = "APPS.InitMods" AutoReadOnly Hidden
-String Property SUKEY_INIT_MODS_TOOLTIP = "APPS.InitMods.Tooltip" AutoReadOnly Hidden
-String Property SUKEY_UNINSTALL_MODS = "APPS.UninstallMods" AutoReadOnly Hidden
+Int USE_MOD_USER_LOG = 0
+Int USE_FRAMEWORK_LOG = 1
+Int USE_PAPYRUS_LOG = 2
+Int MOD_NOT_FOUND = -1
+Int MOVE_TOP = 0
+Int MOVE_UP = 1
+Int MOVE_DOWN = 3
+Int MOVE_BOTTOM = 4
+Int INITIALIZE_MOD = 6
+String FW_LOG = "APPS - Framework"
+String SUKEY_EXCEPTIONS_LOGFILE = "APPS.InfoManager.LogFile"
+String SUKEY_EXCEPTIONS_LOGNAME = "APPS.InfoManager.LogName"
+String SUKEY_DISPLAY_ERRORS = "APPS.InfoManager.DisplayErrors"
+String SUKEY_DISPLAY_WARNINGS = "APPS.InfoManager.DisplayWarnings"
+String SUKEY_DISPLAY_INFOS = "APPS.InfoManager.DisplayInfos"
+String SUKEY_LOG_ERRORS = "APPS.InfoManager.LogErrors"
+String SUKEY_LOG_WARNINGS = "APPS.InfoManager.LogWarnings"
+String SUKEY_LOG_INFOS = "APPS.InfoManager.LogInfos"
+String SUKEY_REGISTERED_MODS = "APPS.RegisteredMods"
+String SUKEY_MENU_OPTIONS = "APPS.MCM.RegisteredMods"
+String SUKEY_INIT_MODS = "APPS.InitMods"
+String SUKEY_INIT_MODS_TOOLTIP = "APPS.InitMods.Tooltip"
+String SUKEY_UNINSTALL_MODS = "APPS.UninstallMods"
 Int InitControlFlags 
 Int UninstallControlFlags 
 Float TimeToNextInit = 1.0
