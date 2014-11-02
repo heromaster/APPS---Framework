@@ -637,6 +637,11 @@ Bool Function UninstallMod(String asModName, Bool abSafetyLock = true)
 EndFunction
 
 ;/
+DROPPED:
+	All tabs:
+	- Update ModIndex-related functions to use new Core helper functions
+		* reason: would create an unnecessary dependency on APPS_FW_Core.psc (need Heromaster's opinion)
+------------------------------------------------------------------------------------------------------------------------
 DONE:
 All tabs:
 	- Switch from using UNINSTALL naming to INIT for functions and keys
@@ -659,6 +664,7 @@ Tab: Initialization Manager
 	- Disable above menu point if initialize Manager is initializing or if list is empty
 	- Tooltips of every mod (will contain for some mods messages, in which order they need to be placed)
 	- remove failed mods from the registry
+	- Take advantage of tooltip functionality by heromaster
 Tab: Uninstall Manager
 	- Shows a list of all registered mods which have an uninstall quest	
 	- ShowMessage(If mod will be uninstalled, it will uninstall completely)
@@ -672,8 +678,5 @@ All tabs
 ------------------------------------------------------------------------------------------------------------------------
 TODO:
 All tabs:
-	- Update ModIndex-related functions to use new Core helper functions
-	- Max array size & MCM menu sice: 128
-Tab: Init Manager
-	- Take advantage of tooltip functionality by heromaster
+	- Max array size & MCM menu sice: 128	
 /;
