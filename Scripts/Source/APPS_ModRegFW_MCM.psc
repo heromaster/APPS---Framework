@@ -195,13 +195,12 @@ State InfoManagerModsList
 	Event OnMenuOpenST()
 		SetMenuDialogOptions(InfoManagerModsListOptions)
 		SetMenuDialogStartIndex(InfoManagerModsListSelection)
-		;SetMenuDialogDefaultIndex
 	EndEvent
 
 	Event OnMenuAcceptST(int aiSelectedOption)
 		Int OptionFlag = OPTION_FLAG_NONE
 		Utility.WaitMenuMode(0.5)
-		;ShowMessage(aiSelectedOption)
+		
 		InfoManagerToken = FormListGet(None, SUKEY_REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
 
 		;fetching the Int contents of SUKEY_EXCEPTIONS_LOGFILE array and converting them to strings
