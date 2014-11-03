@@ -1,4 +1,4 @@
-ScriptName APPS_ModRegFW_MCM Extends SKI_ConfigBase
+ScriptName APPS_Framework_MCM Extends SKI_ConfigBase
 Import StorageUtil
 Int FileLogLevel
 String[] Ordering

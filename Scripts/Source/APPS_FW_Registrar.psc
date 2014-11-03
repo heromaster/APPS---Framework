@@ -1,4 +1,4 @@
-ScriptName APPS_ModRegFW_Functions Extends APPS_FW_Core
+ScriptName APPS_FW_Registrar Extends APPS_FW_Core
 Import StorageUtil
 
 Int Property USE_MOD_USER_LOG = 0 AutoReadOnly Hidden
@@ -7,18 +7,6 @@ Int Property USE_PAPYRUS_LOG = 2 AutoReadOnly Hidden
 Int Property MOD_NOT_FOUND = -1 AutoReadOnly Hidden
 String Property ModName Auto
 String Property FW_LOG = "APPS - Framework" AutoReadOnly Hidden
-String Property SUKEY_LOGFILE = "APPS.InfoManager.LogFile" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_ERRORS = "APPS.InfoManager.DisplayErrors" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_WARNINGS = "APPS.InfoManager.DisplayWarnings" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_INFOS = "APPS.InfoManager.DisplayInfos" AutoReadOnly Hidden
-String Property SUKEY_LOG_ERRORS = "APPS.InfoManager.LogErrors" AutoReadOnly Hidden
-String Property SUKEY_LOG_WARNINGS = "APPS.InfoManager.LogWarnings" AutoReadOnly Hidden
-String Property SUKEY_LOG_INFOS = "APPS.InfoManager.LogInfos" AutoReadOnly Hidden
-String Property SUKEY_REGISTERED_MODS = "APPS.RegisteredMods" AutoReadOnly Hidden
-String Property SUKEY_INIT_MODS = "APPS.InitMods" AutoReadOnly Hidden
-String Property SUKEY_INIT_MODS_TOOLTIP = "APPS.InitMods.Tooltip" AutoReadOnly Hidden
-String Property SUKEY_UNINSTALL_MODS = "APPS.UninstallMods" AutoReadOnly Hidden
-String Property SUKEY_LOGNAME = "APPS.InfoManager.LogName" AutoReadOnly Hidden
 String Property IS_EMPTY = "" AutoReadOnly Hidden
 
 ;/ |------------------------------------------------------------------------------------------------------------|
@@ -97,15 +85,25 @@ Bool Function RegisterInitQuest(Quest akInitQuest = None, Int aiSetStage = 0, St
 		InitQuest = akInitQuest
 	EndIf
 
-	FormListAdd(None, SUKEY_INIT_MODS, InitQuest)
-	IntListAdd(None, SUKEY_INIT_MODS, aiSetStage)
-	StringListAdd(None, SUKEY_INIT_MODS, ModName)
+	If(FormListAdd(None, SUKEY_INIT_MODS, InitQuest, False) > -1)
+		IntListAdd(None, SUKEY_INIT_MODS, aiSetStage)
+
+		If(StringListAdd(None, SUKEY_INIT_MODS, ModName) == -1)
+			Exception.Throw(FW_LOG, ModName + " tried to register another init quest but there is already one registered. Reverting changes", "Two init quests are not allowed")
+			IntListRemoveAt(None, SUKEY_INIT_MODS, IntListCount(None, SUKEY_INIT_MODS) - 1)
+			FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
+			Return False
+		EndIf
+	Else
+		Exception.Warn(FW_LOG, "Init quest already registered for " + ModName + ". Nothing will be changed.")
+		Return False
+	EndIf
 
 	If(asTooltip != IS_EMPTY)
 		SetStringValue(Self, SUKEY_INIT_MODS_TOOLTIP, asTooltip)
 	EndIf
 
-	Exception.Notify(FW_LOG, ModName + " registered an initialization quest.")
+	Exception.Notify(FW_LOG, ModName + " registered an initialization quest.", True, False)
 	Return True
 EndFunction
 
@@ -126,10 +124,15 @@ Bool Function RegisterUninstallQuest(Quest akUninstallQuest = None, Int aiSetSta
 		UninstallQuest = akUninstallQuest
 	EndIf
 
-	FormListAdd(None, SUKEY_UNINSTALL_MODS, UninstallQuest)
-	IntListAdd(None, SUKEY_UNINSTALL_MODS, aiSetStage)
-	StringListAdd(None, SUKEY_UNINSTALL_MODS, ModName)
-	Exception.Notify(FW_LOG, "Quest registered an uninstallation quest.")
+	If(FormListAdd(None, SUKEY_UNINSTALL_MODS, UninstallQuest, False) > -1)
+		IntListAdd(None, SUKEY_UNINSTALL_MODS, aiSetStage)
+		StringListAdd(None, SUKEY_UNINSTALL_MODS, ModName)
+	Else
+		Exception.Warn(FW_LOG, "Uninstall quest already registered for " + ModName +". Nothing will be changed.")
+	EndIf
+
+	Exception.Notify(FW_LOG, "Quest registered an uninstallation quest.", False)
+
 	Return True
 EndFunction
 
@@ -185,20 +188,13 @@ Function SetErrorHandling(Bool abLogErrors = True, Bool abDisplayErrors = True)
 	EndIf
 EndFunction
 
-;/ |------------------------------------------------------------------------------------------------------------|
-   |Checks if the mod is registered with the framework.															|
-   |------------------------------------------------------------------------------------------------------------|
-   |Parameter: asModName																						|
-   |The name of the mod to look up.																				|
-   |------------------------------------------------------------------------------------------------------------|
-   |Return value: Bool																							|
-   |Returns True if the specified mod is registered with the framework.											|
-   |Returns False if the specified mod was not found in the registration list.									|
-   |------------------------------------------------------------------------------------------------------------| /;
-Bool Function IsModRegistered(String asModName)
-	If(_GetModIndexFromString(asModName, SUKEY_REGISTERED_MODS) > -1)
+Bool Function RegisterForRelationshipModule()
+	If(FormListAdd(None, SUKEY_REGISTERED_RS, Self, False) > -1)
+		Exception.Notify(FW_LOG, ModName + " is now registered for the relationship module.", False)
+		StringListAdd(None, SUKEY_REGISTERED_RS, ModName, False)
 		Return True
 	Else
+		Exception.Warn(FW_LOG, ModName + " is already registered for the relationship module.")
 		Return False
 	EndIf
 EndFunction
