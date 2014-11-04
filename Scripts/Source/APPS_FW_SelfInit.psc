@@ -1,6 +1,9 @@
 ScriptName APPS_FW_SelfInit Extends Quest
 Import StorageUtil
 
+Faction Property PotentialFollowerFaction Auto
+Faction Property PotentialHireling Auto
+
 Event OnInit()
 	SetIntValue(Self, "APPS.InfoManager.DisplayErrors", 1)
 	SetIntValue(Self, "APPS.InfoManager.DisplayWarnings", 1)
@@ -33,5 +36,7 @@ Event OnInit()
 	SetFloatValue(None, "APPS.RelationshipModS-2_-1", 0.25)
 	SetFloatValue(None, "APPS.RelationshipModS-1_0", 0.125)
 	SetIntValue(None, "APPS.Relationship.SyncMode", 3)
+	FormListAdd(None, "APPS.Relationship.BlockedFactions", PotentialFollowerFaction)
+	FormListAdd(None, "APPS.Relationship.BlockedFactions", PotentialHireling)
 	Exception.Notify("APPS - Framework", "APPS - Framework initialized")
 EndEvent
