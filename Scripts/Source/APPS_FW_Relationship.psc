@@ -2,8 +2,8 @@ Scriptname APPS_FW_Relationship Extends APPS_FW_Core
 Import StorageUtil
 Import Exception
 
-Faction Property RelationshipPointsFaction  Auto  
-Faction Property RelationshipRankFaction  Auto 
+Faction Property RelationshipPointsFaction Auto
+Faction Property RelationshipRankFaction Auto
 ReferenceAlias Property Alias_PC Auto
 
 Bool IsUninstallingAll = False
@@ -975,7 +975,7 @@ Float Function GetRelationshipPoints(Actor akNPC)
 	Return GetFloatValue(akNPC, RSP)
 EndFunction
 
-Float Function ModRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, Bool abIsSurplusCarryingOver = True) ;RP = 40
+Float Function ModRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, Bool abIsSurplusCarryingOver = True) ;RP = 480 ;RP = - 480
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
 		Return 0.0
@@ -992,12 +992,13 @@ Float Function ModRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, B
 
 	Float NewRP
 	Float CurrentRP = GetRelationshipPoints(akNPC)
-	Int CurrentRank = Math.Ceiling(CurrentRP / 100)
-	Int BreakPoint = 0
+	Int CurrentRank = Math.Floor(CurrentRP / 100)
+	Bool Break
 
 	If(auiRelationshipPoints > 0)
-		While(BreakPoint == 0)
-			Float CleanedRP = auiRelationshipPoints * GetRelationshipMulti(akNPC, CurrentRank, CurrentRank + 1); CleanedRP = 10 ; EndResult = 30
+		While(!Break)
+			Float CurrentMulti = GetRelationshipMulti(akNPC, CurrentRank, CurrentRank + 1)
+			Float CleanedRP = auiRelationshipPoints * CurrentMulti
 			Float RPLeft = CurrentRP + CleanedRP
 			Float RequiredRP
 
@@ -1010,37 +1011,40 @@ Float Function ModRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, B
 
 			NewRP = CurrentRP + RPLeft
 
-			If(RPLeft < RequiredRP || RPLeft == RequiredRP)
-				BreakPoint = 1
-			ElseIf(RPLeft > RequiredRP && !abIsSurplusCarryingOver)
-				BreakPoint = 1
+			If(RPLeft <= RequiredRP)
+				Break = True
+			ElseIf(RPLeft >= RequiredRP && !abIsSurplusCarryingOver)
+				Break = True
 			ElseIf(RPLeft > RequiredRP && abIsSurplusCarryingOver)
 				CurrentRank += 1
 				CurrentRP = NewRP
-				auiRelationshipPoints = CleanedRP - RequiredRP
+				auiRelationshipPoints = (CleanedRP - RequiredRP) / CurrentMulti
 			EndIf
 		EndWhile
 	Else
-		While(BreakPoint == 0)
-			Float CleanedRP = auiRelationshipPoints * GetRelationshipMulti(akNPC, CurrentRank, CurrentRank - 1)
-			Float RPLeft = CurrentRP - CleanedRP
+		While(!Break)
+			Float CurrentMulti = GetRelationshipMulti(akNPC, CurrentRank, CurrentRank - 1) ;1.0
+			Float CleanedRP = auiRelationshipPoints * CurrentMulti ;480
+			Float RPLeft = CurrentRP - CleanedRP ;0 - 480 = 480
 			Float RequiredRP
 
 			If(CurrentRP > -400)
-				RequiredRP = GetRPForPreviousRank(akNPC)
+				RequiredRP = GetRPForPreviousRank(akNPC) ;-100
 			Else
 				RequiredRP = -499 - CurrentRP
 				abIsSurplusCarryingOver = False
 			EndIf
 
-			If(RPLeft > RequiredRP || RPLeft == RequiredRP)
-				BreakPoint = 1
+			NewRP = CurrentRP - RPLeft
+
+			If(RPLeft >= RequiredRP)
+				Break = True
 			ElseIf(RPLeft < RequiredRP && !abIsSurplusCarryingOver)
-				BreakPoint = 1
+				Break = True
 			ElseIf(RPLeft < RequiredRP && abIsSurplusCarryingOver)
 				CurrentRank -= 1
 				CurrentRP -= RequiredRP
-				auiRelationshipPoints = CleanedRP + RequiredRP
+				auiRelationshipPoints = (CleanedRP + RequiredRP) / CurrentMulti
 			EndIf
 		EndWhile
 	EndIf
@@ -1055,36 +1059,41 @@ Bool Function SetRelationshipPoints(Actor akNPC, Float auiRelationshipPoints)
 	Else
 		SetFloatValue(akNPC, RSP, auiRelationshipPoints)
 
-		If(GetSyncMode(akNPC) > 1)
+		If(GetSyncMode(akNPC) > 1 && !HasIntValue(akNPC, "APPS.Framework.Relationship.IgnoreRankChange"))
+			SetIntValue(akNPC, "APPS.Framework.Relationship.IgnoreRankChange", 1)
 			akNPC.SetRelationshipRank(Alias_PC.GetActorRef(), Math.Ceiling(auiRelationshipPoints / 100))
 		EndIf
 
+		UnsetIntValue(akNPC, "APPS.Framework.Relationship.IgnoreRankChange")
 		Return True
 	EndIf
 EndFunction
 
 Float Function GetRPForNextRank(Actor akNPC)
 	Float RP = GetRelationshipPoints(akNPC)
-	Int RelationshipRank = Math.Ceiling(RP / 100)
-	Float ThisRankRP = RP - RelationshipRank * 100
-	Float ThisRankMultiplier = GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank + 1) 
+	Int RelationshipRank = akNPC.GetFactionRank(RelationshipRankFaction)
 
-	If(RP > 0)
-		Return (100 - ThisRankRP) / ThisRankMultiplier
+	If(RelationshipRank == 4)
+		Return (RelationshipRank * 100 - RP - 1) * GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank + 1)
+	EndIf
+	If(RP < 0)
+		Return (RelationshipRank * 100 - RP) * GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank + 1) + 0.0001
 	Else
-		Return (ThisRankRP * -2) / ThisRankMultiplier
+		Return (RelationshipRank * 100 - RP) * GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank + 1)
 	EndIf
 EndFunction
 
 Float Function GetRPForPreviousRank(Actor akNPC)
 	Float RP = GetRelationshipPoints(akNPC)
-	Int RelationshipRank = Math.Ceiling(RP / 100)
-	Float ThisRankRP = RP - RelationshipRank * 100
-	Float ThisRankMultiplier = GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank - 1)
+	Int RelationshipRank = akNPC.GetFactionRank(RelationshipRankFaction)
+
+	If(RelationshipRank == -4)
+		Return -((RelationshipRank * 100 + RP + 1) * GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank - 1) - 0.0001)
+	EndIf
 
 	If(RP > 0)
-		Return ThisRankRP / ThisRankMultiplier
+		Return -((RelationshipRank * 100 + RP) * GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank - 1) - 0.0001)
 	Else
-		Return (-100 - ThisRankRP) / ThisRankMultiplier
+		Return -(RelationshipRank * 100 + RP) * GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank - 1)
 	EndIf
 EndFunction
