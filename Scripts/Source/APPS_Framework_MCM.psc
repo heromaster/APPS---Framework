@@ -38,11 +38,17 @@ Bool InitSafetyLock = False
 Bool UninstSafetyLock = False 
 
 Event OnConfigInit()
-	Pages = new String[4]
+	Pages = new String[9]
 	Pages[0] = "$REGISTRY"
 	Pages[1] = "$INFO_MANAGER"
 	Pages[2] = "$INITIALIZATION_MANAGER"
 	Pages[3] = "$UNINSTALL_MANAGER"
+;Just adding a pile of work you ;)
+	Pages[4] = "RS - Main"
+	Pages[5] = "RS - Global Sync Mode changes"
+	Pages[6] = "RS - Local Sync Mode changes"
+	Pages[7] = "RS - Global RS Multiplier"
+	Pages[8] = "RS - Local RS Multiplier"
 
 	Ordering = New String[7]
 	Ordering[0] = "$MOVE_TOP"
