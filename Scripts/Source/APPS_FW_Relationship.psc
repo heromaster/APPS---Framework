@@ -51,6 +51,7 @@ String Property RS_MULTI_SM3_SM2_CHANGELIST = "APPS.Framework.Relationship.Relat
 String Property RS_MULTI_SM2_SM1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-2_S-1.ChangeList" AutoReadOnly Hidden
 String Property RS_MULTI_SM1_S0_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-1_S0.ChangeList" AutoReadOnly Hidden
 String Property RSP = "APPS.Framework.Relationship.RelationshipPoints" AutoReadOnly Hidden
+String Property IGNORE_CHANGES = "APPS.Framework.Relationship.IgnoreRankChange" AutoReadOnly Hidden
 String Property FW_LOG = "APPS - Framework" AutoReadOnly Hidden
 
 Int Function GetGlobalSyncMode()
@@ -1016,7 +1017,8 @@ Float Function ModRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, B
 				auiRelationshipPoints -= RequiredRP
 				CurrentRP = CurrentRank * 100
 				akNPC.ModFactionRank(RelationshipRankFaction, 1)
-				SetRelationshipPoints(akNPC, CurrentRP, True)
+				SetIntValue(akNPC, IGNORE_CHANGES, 1)
+				SetRelationshipPoints(akNPC, CurrentRP)
 			EndIf
 		EndWhile
 	Else
@@ -1040,7 +1042,8 @@ Float Function ModRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, B
 				auiRelationshipPoints -= RequiredRP
 				CurrentRP = CurrentRank * 100
 				akNPC.ModFactionRank(RelationshipRankFaction, -1)
-				SetRelationshipPoints(akNPC, CurrentRP, True)
+				SetIntValue(akNPC, IGNORE_CHANGES, 1)
+				SetRelationshipPoints(akNPC, CurrentRP)
 			EndIf
 		EndWhile
 	EndIf
@@ -1049,19 +1052,19 @@ Float Function ModRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, B
 	Return NewRP
 EndFunction
 
-Bool Function SetRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, Bool IsNoSync = False)
+Bool Function SetRelationshipPoints(Actor akNPC, Float auiRelationshipPoints)
 	If(akNPC == None || auiRelationshipPoints < -499 || auiRelationshipPoints > 499)
 		Return False
 	EndIf
 
 	SetFloatValue(akNPC, RSP, auiRelationshipPoints)
 
-	If(GetSyncMode(akNPC) > 1 && !IsNoSync)
-		SetIntValue(akNPC, "APPS.Framework.Relationship.IgnoreRankChange", 1)
+	If(GetSyncMode(akNPC) > 1 && !HasIntValue(akNPC, IGNORE_CHANGES))
+		SetIntValue(akNPC, IGNORE_CHANGES, 1)
 		akNPC.SetRelationshipRank(Alias_PC.GetActorRef(), Math.Ceiling(auiRelationshipPoints / 100))
 	EndIf
 
-	UnsetIntValue(akNPC, "APPS.Framework.Relationship.IgnoreRankChange")
+	UnsetIntValue(akNPC, IGNORE_CHANGES)
 	Return True
 EndFunction
 
