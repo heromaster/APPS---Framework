@@ -31,6 +31,7 @@ String SUKEY_MENU_OPTIONS = "APPS.MCM.RegisteredMods"
 String SUKEY_INIT_MODS = "APPS.InitMods"
 String SUKEY_INIT_MODS_TOOLTIP = "APPS.InitMods.Tooltip"
 String SUKEY_UNINSTALL_MODS = "APPS.UninstallMods"
+String SUKEY_REGISTERED_RS = "APPS.Relationship.RegisteredMods"
 Int InitControlFlags 
 Int UninstallControlFlags 
 Float TimeToNextInit = 1.0
@@ -44,7 +45,7 @@ Event OnConfigInit()
 	Pages[2] = "$INITIALIZATION_MANAGER"
 	Pages[3] = "$UNINSTALL_MANAGER"
 ;Just adding a pile of work you ;)
-	Pages[4] = "RS - Main"
+	Pages[4] = "RS - Priority"
 	Pages[5] = "RS - Global Sync Mode changes"
 	Pages[6] = "RS - Local Sync Mode changes"
 	Pages[7] = "RS - Global RS Multiplier"
@@ -173,6 +174,19 @@ Event OnPageReset(String asPage)
 		While (i < FormListCount(None, SUKEY_UNINSTALL_MODS))
 			IntListAdd(None, SUKEY_MENU_OPTIONS, AddTextOption(StringListGet(None, SUKEY_UNINSTALL_MODS, i), "", UninstallControlFlags))
 			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_UNINSTALL_MODS, i))
+			i += 1
+		EndWhile
+	ElseIf (asPage == Pages[4])	;RS - Priority
+		SetCursorFillMode(TOP_TO_BOTTOM)
+		
+		AddHeaderOption("$PRIORITY_ORDER")
+		AddEmptyOption()
+		
+		Int i
+
+		While (i < FormListCount(None, SUKEY_REGISTERED_RS))
+			IntListAdd(None, SUKEY_MENU_OPTIONS, AddMenuOption(StringListGet(None, SUKEY_REGISTERED_RS, i), "#" + (i + 1) As String + ": "))
+			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_REGISTERED_RS, i))
 			i += 1
 		EndWhile
 	EndIf
@@ -427,6 +441,7 @@ State StartInitialization
 EndState
 
 Event OnOptionHighlight(Int aiOption)
+	If (CurrentPage == Pages[2])
 		Int i
 
 		While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
@@ -440,61 +455,68 @@ Event OnOptionHighlight(Int aiOption)
 				i += 1
 			EndIf
 		EndWhile
+	EndIf
 EndEvent
 
 Event OnOptionMenuOpen(Int aiOption)
-	Int i
+	If (CurrentPage == Pages[2])
+		Int i
 
-	While(i < IntListCount(None, SUKEY_MENU_OPTIONS))
-		If(aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
-			SetMenuDialogDefaultIndex(2)
-			SetMenuDialogStartIndex(2)
-			SetMenuDialogOptions(Ordering)
-			i = IntListCount(None, SUKEY_MENU_OPTIONS)
-		Else
-			i += 1
-		EndIf
-	EndWhile
+		While(i < IntListCount(None, SUKEY_MENU_OPTIONS))
+			If(aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
+				SetMenuDialogDefaultIndex(2)
+				SetMenuDialogStartIndex(2)
+				SetMenuDialogOptions(Ordering)
+				i = IntListCount(None, SUKEY_MENU_OPTIONS)
+			Else
+				i += 1
+			EndIf
+		EndWhile
+	EndIf
 EndEvent
 
 Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
-	Int i
+	If (CurrentPage == Pages[2])
+		Int i
 
-	While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
-		If(aiOpenedMenu == IntListGet(None, SUKEY_MENU_OPTIONS, i))
-			If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
-				ChangeInitOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), aiSelectedOption)
-				i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
-			ElseIf (aiSelectedOption == INITIALIZE_MOD)
-				If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == true)
-					ShowMessage("$CLOSE_MCM", false, "$OK")
-					String ModToInit = StringListGet(None, SUKEY_MENU_OPTIONS, i)
-					Utility.Wait(0.1)	;forces the user to close the menu
-
-					InitializeMod(ModToInit)
-
+		While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
+			If(aiOpenedMenu == IntListGet(None, SUKEY_MENU_OPTIONS, i))
+				If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
+					ChangeInitOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), aiSelectedOption)
 					i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
+				ElseIf (aiSelectedOption == INITIALIZE_MOD)
+					If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == true)
+						ShowMessage("$CLOSE_MCM", false, "$OK")
+						String ModToInit = StringListGet(None, SUKEY_MENU_OPTIONS, i)
+						Utility.Wait(0.1)	;forces the user to close the menu
+
+						InitializeMod(ModToInit)
+
+						i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
+					EndIf
 				EndIf
+			Else
+				i += 1
 			EndIf
-		Else
-			i += 1
-		EndIf
-	EndWhile
+		EndWhile
+	EndIf
 EndEvent
 
 Event OnOptionSelect(Int aiOption)
-	Int i
+	If (CurrentPage == Pages[2])
+		Int i
 
-	While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
-		If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
-			If (ShowMessage("$UNINSTALL_MOD_CONFIRMATION") == true)
-				UninstallMod(StringListGet(None, SUKEY_MENU_OPTIONS, i))
-				i = IntListCount(None, SUKEY_MENU_OPTIONS)
+		While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
+			If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
+				If (ShowMessage("$UNINSTALL_MOD_CONFIRMATION") == true)
+					UninstallMod(StringListGet(None, SUKEY_MENU_OPTIONS, i))
+					i = IntListCount(None, SUKEY_MENU_OPTIONS)
+				EndIf
+			Else
+				i += 1
 			EndIf
-		Else
-			i += 1
-		EndIf
-	EndWhile
+		EndWhile
+	EndIf
 EndEvent
 
 Function ChangeInitOrder(String asModName, Int aiPositionChange)
@@ -645,11 +667,6 @@ Bool Function UninstallMod(String asModName, Bool abSafetyLock = true)
 EndFunction
 
 ;/
-DROPPED:
-	All tabs:
-	- Update ModIndex-related functions to use new Core helper functions
-		* reason: would create an unnecessary dependency on APPS_FW_Core.psc (need Heromaster's opinion)
-------------------------------------------------------------------------------------------------------------------------
 DONE:
 All tabs:
 	- Switch from using UNINSTALL naming to INIT for functions and keys
