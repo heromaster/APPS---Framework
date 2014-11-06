@@ -432,7 +432,9 @@ Event OnOptionHighlight(Int aiOption)
 		While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
 			If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
 				Form InitQuest = FormListGet(None, SUKEY_INIT_MODS, i)
-				SetInfoText(StringListGet(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
+				If (HasStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
+					SetInfoText(GetStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
+				EndIf
 				i = IntListCount(None, SUKEY_MENU_OPTIONS)
 			Else
 				i += 1

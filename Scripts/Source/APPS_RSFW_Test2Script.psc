@@ -1,4 +1,4 @@
-Scriptname APPS_RSFW_Test2Script Extends APPS_ModRegFW_Functions
+Scriptname APPS_RSFW_Test2Script Extends APPS_FW_Registrar
 Quest Property InitQuest Auto
 
 Event OnInit()
