@@ -7,4 +7,5 @@ Event OnInit()
 	RegisterInitQuest(InitQuest, 0, "Uses a different quest for init which has no stages!")
 	RegisterUninstallQuest(UninstallQuest)
 	RegisterForExceptionModule("APPS_Test1")
+	RegisterForRelationshipModule()
 EndEvent

@@ -6,6 +6,7 @@ String[] InitOrdering
 String[] LogLevel
 String[] InfoManagerModsListOptions
 String[] LoggingMethod
+String[] RS_PriorityOrdering
 Int InfoManagerModsListSelection
 Quest InfoManagerToken
 Int USE_MOD_USER_LOG = 0
@@ -487,13 +488,16 @@ Event OnOptionMenuOpen(Int aiOption)
 EndEvent
 
 Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
-	If (CurrentPage == Pages[2])
 		Int i
 
 		While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
 			If(aiOpenedMenu == IntListGet(None, SUKEY_MENU_OPTIONS, i))
 				If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
-					ChangeInitOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), aiSelectedOption)
+					If (CurrentPage == Pages[2])
+						ChangeOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), SUKEY_INIT_MODS, aiSelectedOption)
+					ElseIf (CurrentPage == Pages[4])
+						ChangeOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), SUKEY_REGISTERED_RS, aiSelectedOption)
+					EndIf
 					i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
 				ElseIf (aiSelectedOption == INITIALIZE_MOD)
 					If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == true)
@@ -510,7 +514,6 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 				i += 1
 			EndIf
 		EndWhile
-	EndIf
 EndEvent
 
 Event OnOptionSelect(Int aiOption)
@@ -530,74 +533,93 @@ Event OnOptionSelect(Int aiOption)
 	EndIf
 EndEvent
 
-Function ChangeInitOrder(String asModName, Int aiPositionChange)
-	Int ModIndex = StringListFind(None, SUKEY_INIT_MODS, asModName)
-	Form InitQuest = FormListGet(None, SUKEY_INIT_MODS, ModIndex)
-	Int iSetStage = IntListGet(None, SUKEY_INIT_MODS, ModIndex)
+Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
+	
+	If (aiArray != SUKEY_INIT_MODS && aiArray != SUKEY_REGISTERED_RS)
+		Return
+	EndIf
+	
+	Int ModIndex = StringListFind(None, aiArray, asModName)
+	Form kQuest = FormListGet(None, aiArray, ModIndex)
+	Int iSetStage
+	
+	If (aiArray == SUKEY_INIT_MODS)
+		iSetStage = IntListGet(None, aiArray, ModIndex)
+	EndIf
 
 	If(aiPositionChange == MOVE_TOP)
 		If(ModIndex == 0)
 			Return
 		EndIf
 
-		FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
-		FormListInsert(None, SUKEY_INIT_MODS, 0, InitQuest)
+		FormListRemove(None, aiArray, kQuest)
+		FormListInsert(None, aiArray, 0, kQuest)
 
-		StringListRemove(None, SUKEY_INIT_MODS, asModName)
-		StringListInsert(None, SUKEY_INIT_MODS, 0, asModName)
-
-		IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
-		IntListInsert(None, SUKEY_INIT_MODS, 0, iSetStage)
+		StringListRemove(None, aiArray, asModName)
+		StringListInsert(None, aiArray, 0, asModName)
+		
+		If (aiArray == SUKEY_INIT_MODS)
+			IntListRemove(None, aiArray, iSetStage)
+			IntListInsert(None, aiArray, 0, iSetStage)
+		EndIf
 	ElseIf(aiPositionChange == MOVE_UP)
 		If(ModIndex == 0)
 			Return
 		EndIf
 
-		FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
-		FormListInsert(None, SUKEY_INIT_MODS, (ModIndex - 1), InitQuest)
+		FormListRemove(None, aiArray, kQuest)
+		FormListInsert(None, aiArray, (ModIndex - 1), kQuest)
 
-		StringListRemove(None, SUKEY_INIT_MODS, asModName)
-		StringListInsert(None, SUKEY_INIT_MODS, (ModIndex - 1), asModName)
-
-		IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
-		IntListInsert(None, SUKEY_INIT_MODS, (ModIndex - 1), iSetStage)
+		StringListRemove(None, aiArray, asModName)
+		StringListInsert(None, aiArray, (ModIndex - 1), asModName)
+		
+		If (aiArray == SUKEY_INIT_MODS)
+			IntListRemove(None, aiArray, iSetStage)
+			IntListInsert(None, aiArray, (ModIndex - 1), iSetStage)
+		EndIf
 	ElseIf(aiPositionChange == MOVE_DOWN)
-		If(ModIndex == (StringListCount(None, SUKEY_INIT_MODS) - 1))
+		If(ModIndex == (StringListCount(None, aiArray) - 1))
 			Return
 		EndIf
 
 		If(ModIndex == (StringListCount(None, SUKEY_REGISTERED_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
-			FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
-			FormListAdd(None, SUKEY_INIT_MODS, InitQuest)
+			FormListRemove(None, aiArray, kQuest)
+			FormListAdd(None, aiArray, kQuest)
 
-			StringListRemove(None, SUKEY_INIT_MODS, asModName)
-			StringListAdd(None, SUKEY_INIT_MODS, asModName)
-
-			IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
-			IntListAdd(None, SUKEY_INIT_MODS, iSetStage)
+			StringListRemove(None, aiArray, asModName)
+			StringListAdd(None, aiArray, asModName)
+			
+			If (aiArray == SUKEY_INIT_MODS)
+				IntListRemove(None, aiArray, iSetStage)
+				IntListAdd(None, aiArray, iSetStage)
+			EndIf
 		Else
-			FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
-			FormListInsert(None, SUKEY_INIT_MODS, (ModIndex + 1), InitQuest)
+			FormListRemove(None, aiArray, kQuest)
+			FormListInsert(None, aiArray, (ModIndex + 1), kQuest)
 
-			StringListRemove(None, SUKEY_INIT_MODS, asModName)
-			StringListInsert(None, SUKEY_INIT_MODS, (ModIndex +1), asModName)
-
-			IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
-			IntListInsert(None, SUKEY_INIT_MODS, (ModIndex + 1), iSetStage)
+			StringListRemove(None, aiArray, asModName)
+			StringListInsert(None, aiArray, (ModIndex +1), asModName)
+			
+			If (aiArray == SUKEY_INIT_MODS)
+				IntListRemove(None, aiArray, iSetStage)
+				IntListInsert(None, aiArray, (ModIndex + 1), iSetStage)
+			EndIf
 		EndIf
 	ElseIf(aiPositionChange == MOVE_BOTTOM)
-		If(ModIndex == StringListCount(None, SUKEY_INIT_MODS) - 1)
+		If(ModIndex == StringListCount(None, aiArray) - 1)
 			Return
 		EndIf
 
-		FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
-		FormListAdd(None, SUKEY_INIT_MODS, InitQuest)
+		FormListRemove(None, aiArray, kQuest)
+		FormListAdd(None, aiArray, kQuest)
 
-		StringListRemove(None, SUKEY_INIT_MODS, asModName)
-		StringListAdd(None, SUKEY_INIT_MODS, asModName)
-
-		IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
-		IntListAdd(None, SUKEY_INIT_MODS, iSetStage)
+		StringListRemove(None, aiArray, asModName)
+		StringListAdd(None, aiArray, asModName)
+		
+		If (aiArray == SUKEY_INIT_MODS)
+			IntListRemove(None, aiArray, iSetStage)
+			IntListAdd(None, aiArray, iSetStage)
+		EndIf
 	EndIf
 EndFunction
 
