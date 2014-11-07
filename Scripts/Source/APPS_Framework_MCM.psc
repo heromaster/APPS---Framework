@@ -2,7 +2,7 @@ ScriptName APPS_Framework_MCM Extends SKI_ConfigBase
 Import StorageUtil
 
 Int FileLogLevel
-String[] Ordering
+String[] InitOrdering
 String[] LogLevel
 String[] InfoManagerModsListOptions
 String[] LoggingMethod
@@ -51,14 +51,21 @@ Event OnConfigInit()
 	Pages[7] = "RS - Global RS Multiplier"
 	Pages[8] = "RS - Local RS Multiplier"
 
-	Ordering = New String[7]
-	Ordering[0] = "$MOVE_TOP"
-	Ordering[1] = "$MOVE_UP"
-	Ordering[2] = "$CHANGE_NOTHING"
-	Ordering[3] = "$MOVE_DOWN"
-	Ordering[4] = "$MOVE_BOTTOM"
-	Ordering[5] = "--------------"
-	Ordering[6] = "$INITIALIZE_MOD"
+	InitOrdering = New String[7]
+	InitOrdering[0] = "$MOVE_TOP"
+	InitOrdering[1] = "$MOVE_UP"
+	InitOrdering[2] = "---------------"
+	InitOrdering[3] = "$MOVE_DOWN"
+	InitOrdering[4] = "$MOVE_BOTTOM"
+	InitOrdering[5] = "---------------"
+	InitOrdering[6] = "$INITIALIZE_MOD"
+	
+	RS_PriorityOrdering = New String[5]
+	InitOrdering[0] = "$MOVE_TOP"
+	InitOrdering[1] = "$MOVE_UP"
+	InitOrdering[2] = "---------------"
+	InitOrdering[3] = "$MOVE_DOWN"
+	InitOrdering[4] = "$MOVE_BOTTOM"
 
 	LogLevel = New String[4]
 	LogLevel[0] = "$EVERYTHING"
@@ -459,20 +466,24 @@ Event OnOptionHighlight(Int aiOption)
 EndEvent
 
 Event OnOptionMenuOpen(Int aiOption)
-	If (CurrentPage == Pages[2])
-		Int i
+	Int i
 
-		While(i < IntListCount(None, SUKEY_MENU_OPTIONS))
-			If(aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
-				SetMenuDialogDefaultIndex(2)
-				SetMenuDialogStartIndex(2)
-				SetMenuDialogOptions(Ordering)
-				i = IntListCount(None, SUKEY_MENU_OPTIONS)
-			Else
-				i += 1
+	While(i < IntListCount(None, SUKEY_MENU_OPTIONS))
+		If(aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
+			SetMenuDialogDefaultIndex(2)
+			SetMenuDialogStartIndex(2)
+			
+			If (CurrentPage == Pages[2])
+				SetMenuDialogOptions(InitOrdering)
+			ElseIf (CurrentPage == Pages[4])
+				SetMenuDialogOptions(RS_PriorityOrdering)
 			EndIf
-		EndWhile
-	EndIf
+			
+			i = IntListCount(None, SUKEY_MENU_OPTIONS)			
+		Else
+			i += 1
+		EndIf
+	EndWhile
 EndEvent
 
 Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
