@@ -457,6 +457,7 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 			If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
 				ChangeInitOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), aiSelectedOption)
 				i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
+				ForcePageReset()
 			ElseIf (aiSelectedOption == INITIALIZE_MOD)
 				If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == true)
 					ShowMessage("$CLOSE_MCM", false, "$OK")
@@ -466,7 +467,10 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 					InitializeMod(ModToInit)
 
 					i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
+					ForcePageReset()
 				EndIf
+			Else
+				i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
 			EndIf
 		Else
 			i += 1
@@ -525,7 +529,7 @@ Function ChangeInitOrder(String asModName, Int aiPositionChange)
 			Return
 		EndIf
 
-		If(ModIndex == (StringListCount(None, SUKEY_REGISTERED_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
+		If(ModIndex == (StringListCount(None, SUKEY_INIT_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
 			FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
 			FormListAdd(None, SUKEY_INIT_MODS, InitQuest)
 
@@ -539,6 +543,7 @@ Function ChangeInitOrder(String asModName, Int aiPositionChange)
 			FormListInsert(None, SUKEY_INIT_MODS, (ModIndex + 1), InitQuest)
 
 			StringListRemove(None, SUKEY_INIT_MODS, asModName)
+			
 			StringListInsert(None, SUKEY_INIT_MODS, (ModIndex +1), asModName)
 
 			IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
