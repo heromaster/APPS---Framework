@@ -1,6 +1,6 @@
 ;BEGIN FRAGMENT CODE - Do not edit anything between this and the end comment
 ;NEXT FRAGMENT INDEX 2
-Scriptname APPS_RSFW_Test3Script Extends APPS_ModRegFW_Functions Hidden
+Scriptname APPS_RSFW_Test3Script Extends APPS_FW_Registrar Hidden
 
 ;BEGIN FRAGMENT Fragment_0
 Function Fragment_0()
