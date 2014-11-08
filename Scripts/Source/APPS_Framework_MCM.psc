@@ -530,7 +530,7 @@ Function ChangeInitOrder(String asModName, Int aiPositionChange)
 			Return
 		EndIf
 
-		If(ModIndex == (StringListCount(None, SUKEY_REGISTERED_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
+		If(ModIndex == (StringListCount(None, SUKEY_INIT_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
 			FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
 			FormListAdd(None, SUKEY_INIT_MODS, InitQuest)
 
