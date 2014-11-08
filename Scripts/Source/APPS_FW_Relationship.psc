@@ -7,50 +7,51 @@ Faction Property RelationshipRankFaction Auto
 ReferenceAlias Property Alias_PC Auto
 
 Bool IsUninstallingAll = False
-String SYNC_MODE = "APPS.Relationship.SyncMode"
-String SYNC_MODE_CHANGELIST = "APPS.Relationship.SyncMode.ChangeList"
-String RS_MULTI_S0_S1 = "APPS.Relationship.RelationshipMulti.S0_S1"
-String RS_MULTI_S1_S2 = "APPS.Relationship.RelationshipMulti.S1_S2"
-String RS_MULTI_S2_S3 = "APPS.Relationship.RelationshipMulti.S2_S3"
-String RS_MULTI_S3_S4 = "APPS.Relationship.RelationshipMulti.S3_S4"
-String RS_MULTI_S4_S5 = "APPS.Relationship.RelationshipMulti.S4_S5"
-String RS_MULTI_S5_S4 = "APPS.Relationship.RelationshipMulti.S5_S4"
-String RS_MULTI_S4_S3 = "APPS.Relationship.RelationshipMulti.S4_S3"
-String RS_MULTI_S3_S2 = "APPS.Relationship.RelationshipMulti.S3_S2"
-String RS_MULTI_S2_S1 = "APPS.Relationship.RelationshipMulti.S2_S1"
-String RS_MULTI_S1_S0 = "APPS.Relationship.RelationshipMulti.S1_S0"
-String RS_MULTI_S0_SM1 = "APPS.Relationship.RelationshipMulti.S0_S-1"
-String RS_MULTI_SM1_SM2 = "APPS.Relationship.RelationshipMulti.S-1_S-2"
-String RS_MULTI_SM2_SM3 = "APPS.Relationship.RelationshipMulti.S-2_S-3"
-String RS_MULTI_SM3_SM4 = "APPS.Relationship.RelationshipMulti.S-3_S-4"
-String RS_MULTI_SM4_SM5 = "APPS.Relationship.RelationshipMulti.S-4_S-5"
-String RS_MULTI_SM5_SM4 = "APPS.Relationship.RelationshipMulti.S-5_S-4"
-String RS_MULTI_SM4_SM3 = "APPS.Relationship.RelationshipMulti.S-4_S-3"
-String RS_MULTI_SM3_SM2 = "APPS.Relationship.RelationshipMulti.S-3_S-2"
-String RS_MULTI_SM2_SM1 = "APPS.Relationship.RelationshipMulti.S-2_S-1"
-String RS_MULTI_SM1_S0 = "APPS.Relationship.RelationshipMulti.S-1_S0"
-String RS_MULTI_CHANGELIST = "APPS.Relationship.RelationshipMulti.Global.ChangeList"
-String RS_MULTI_S0_S1_CHANGELIST = "APPS.Relationship.RelationshipMulti.S0_S1.ChangeList"
-String RS_MULTI_S1_S2_CHANGELIST = "APPS.Relationship.RelationshipMulti.S1_S2.ChangeList"
-String RS_MULTI_S2_S3_CHANGELIST = "APPS.Relationship.RelationshipMulti.S2_S3.ChangeList"
-String RS_MULTI_S3_S4_CHANGELIST = "APPS.Relationship.RelationshipMulti.S3_S4.ChangeList"
-String RS_MULTI_S4_S5_CHANGELIST = "APPS.Relationship.RelationshipMulti.S4_S5.ChangeList"
-String RS_MULTI_S5_S4_CHANGELIST = "APPS.Relationship.RelationshipMulti.S5_S4.ChangeList"
-String RS_MULTI_S4_S3_CHANGELIST = "APPS.Relationship.RelationshipMulti.S4_S3.ChangeList"
-String RS_MULTI_S3_S2_CHANGELIST = "APPS.Relationship.RelationshipMulti.S3_S2.ChangeList"
-String RS_MULTI_S2_S1_CHANGELIST = "APPS.Relationship.RelationshipMulti.S2_S1.ChangeList"
-String RS_MULTI_S1_S0_CHANGELIST = "APPS.Relationship.RelationshipMulti.S1_S0.ChangeList"
-String RS_MULTI_S0_SM1_CHANGELIST = "APPS.Relationship.RelationshipMulti.S0_S-1.ChangeList"
-String RS_MULTI_SM1_SM2_CHANGELIST = "APPS.Relationship.RelationshipMulti.S-1_S-2.ChangeList"
-String RS_MULTI_SM2_SM3_CHANGELIST = "APPS.Relationship.RelationshipMulti.S-2_S-3.ChangeList"
-String RS_MULTI_SM3_SM4_CHANGELIST = "APPS.Relationship.RelationshipMulti.S-3_S-4.ChangeList"
-String RS_MULTI_SM4_SM5_CHANGELIST = "APPS.Relationship.RelationshipMulti.S-4_S-5.ChangeList"
-String RS_MULTI_SM5_SM4_CHANGELIST = "APPS.Relationship.RelationshipMulti.S-5_S-4.ChangeList"
-String RS_MULTI_SM4_SM3_CHANGELIST = "APPS.Relationship.RelationshipMulti.S-4_S-3.ChangeList"
-String RS_MULTI_SM3_SM2_CHANGELIST = "APPS.Relationship.RelationshipMulti.S-3_S-2.ChangeList"
-String RS_MULTI_SM2_SM1_CHANGELIST = "APPS.Relationship.RelationshipMulti.S-2_S-1.ChangeList"
-String RS_MULTI_SM1_S0_CHANGELIST = "APPS.Relationship.RelationshipMulti.S-1_S0.ChangeList"
-String RSP = "APPS.Relationship.RelationshipPoints"
+String Property SYNC_MODE = "APPS.Framework.Relationship.SyncMode" AutoReadOnly Hidden
+String Property SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S0_S1 = "APPS.Framework.Relationship.RelationshipMulti.S0_S1" AutoReadOnly Hidden
+String Property RS_MULTI_S1_S2 = "APPS.Framework.Relationship.RelationshipMulti.S1_S2" AutoReadOnly Hidden
+String Property RS_MULTI_S2_S3 = "APPS.Framework.Relationship.RelationshipMulti.S2_S3" AutoReadOnly Hidden
+String Property RS_MULTI_S3_S4 = "APPS.Framework.Relationship.RelationshipMulti.S3_S4" AutoReadOnly Hidden
+String Property RS_MULTI_S4_S5 = "APPS.Framework.Relationship.RelationshipMulti.S4_S5" AutoReadOnly Hidden
+String Property RS_MULTI_S5_S4 = "APPS.Framework.Relationship.RelationshipMulti.S5_S4" AutoReadOnly Hidden
+String Property RS_MULTI_S4_S3 = "APPS.Framework.Relationship.RelationshipMulti.S4_S3" AutoReadOnly Hidden
+String Property RS_MULTI_S3_S2 = "APPS.Framework.Relationship.RelationshipMulti.S3_S2" AutoReadOnly Hidden
+String Property RS_MULTI_S2_S1 = "APPS.Framework.Relationship.RelationshipMulti.S2_S1" AutoReadOnly Hidden
+String Property RS_MULTI_S1_S0 = "APPS.Framework.Relationship.RelationshipMulti.S1_S0" AutoReadOnly Hidden
+String Property RS_MULTI_S0_SM1 = "APPS.Framework.Relationship.RelationshipMulti.S0_S-1" AutoReadOnly Hidden
+String Property RS_MULTI_SM1_SM2 = "APPS.Framework.Relationship.RelationshipMulti.S-1_S-2" AutoReadOnly Hidden
+String Property RS_MULTI_SM2_SM3 = "APPS.Framework.Relationship.RelationshipMulti.S-2_S-3" AutoReadOnly Hidden
+String Property RS_MULTI_SM3_SM4 = "APPS.Framework.Relationship.RelationshipMulti.S-3_S-4" AutoReadOnly Hidden
+String Property RS_MULTI_SM4_SM5 = "APPS.Framework.Relationship.RelationshipMulti.S-4_S-5" AutoReadOnly Hidden
+String Property RS_MULTI_SM5_SM4 = "APPS.Framework.Relationship.RelationshipMulti.S-5_S-4" AutoReadOnly Hidden
+String Property RS_MULTI_SM4_SM3 = "APPS.Framework.Relationship.RelationshipMulti.S-4_S-3" AutoReadOnly Hidden
+String Property RS_MULTI_SM3_SM2 = "APPS.Framework.Relationship.RelationshipMulti.S-3_S-2" AutoReadOnly Hidden
+String Property RS_MULTI_SM2_SM1 = "APPS.Framework.Relationship.RelationshipMulti.S-2_S-1" AutoReadOnly Hidden
+String Property RS_MULTI_SM1_S0 = "APPS.Framework.Relationship.RelationshipMulti.S-1_S0" AutoReadOnly Hidden
+String Property RS_MULTI_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.Global.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S0_S1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S0_S1.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S1_S2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S1_S2.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S2_S3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S2_S3.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S3_S4_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S3_S4.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S4_S5_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S4_S5.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S5_S4_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S5_S4.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S4_S3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S4_S3.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S3_S2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S3_S2.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S2_S1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S2_S1.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S1_S0_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S1_S0.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_S0_SM1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S0_S-1.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_SM1_SM2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-1_S-2.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_SM2_SM3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-2_S-3.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_SM3_SM4_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-3_S-4.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_SM4_SM5_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-4_S-5.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_SM5_SM4_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-5_S-4.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_SM4_SM3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-4_S-3.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_SM3_SM2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-3_S-2.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_SM2_SM1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-2_S-1.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_SM1_S0_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-1_S0.ChangeList" AutoReadOnly Hidden
+String Property RSP = "APPS.Framework.Relationship.RelationshipPoints" AutoReadOnly Hidden
+String Property IGNORE_CHANGES = "APPS.Framework.Relationship.IgnoreRankChange" AutoReadOnly Hidden
 String Property FW_LOG = "APPS - Framework" AutoReadOnly Hidden
 
 Int Function GetGlobalSyncMode()
@@ -1016,7 +1017,8 @@ Float Function ModRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, B
 				auiRelationshipPoints -= RequiredRP
 				CurrentRP = CurrentRank * 100
 				akNPC.ModFactionRank(RelationshipRankFaction, 1)
-				SetRelationshipPoints(akNPC, CurrentRP, True)
+				SetIntValue(akNPC, IGNORE_CHANGES, 1)
+				SetRelationshipPoints(akNPC, CurrentRP)
 			EndIf
 		EndWhile
 	Else
@@ -1040,7 +1042,8 @@ Float Function ModRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, B
 				auiRelationshipPoints -= RequiredRP
 				CurrentRP = CurrentRank * 100
 				akNPC.ModFactionRank(RelationshipRankFaction, -1)
-				SetRelationshipPoints(akNPC, CurrentRP, True)
+				SetIntValue(akNPC, IGNORE_CHANGES, 1)
+				SetRelationshipPoints(akNPC, CurrentRP)
 			EndIf
 		EndWhile
 	EndIf
@@ -1049,19 +1052,19 @@ Float Function ModRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, B
 	Return NewRP
 EndFunction
 
-Bool Function SetRelationshipPoints(Actor akNPC, Float auiRelationshipPoints, Bool IsNoSync = False)
+Bool Function SetRelationshipPoints(Actor akNPC, Float auiRelationshipPoints)
 	If(akNPC == None || auiRelationshipPoints < -499 || auiRelationshipPoints > 499)
 		Return False
 	EndIf
 
 	SetFloatValue(akNPC, RSP, auiRelationshipPoints)
 
-	If(GetSyncMode(akNPC) > 1 && !IsNoSync)
-		SetIntValue(akNPC, "APPS.Framework.Relationship.IgnoreRankChange", 1)
+	If(GetSyncMode(akNPC) > 1 && !HasIntValue(akNPC, IGNORE_CHANGES))
+		SetIntValue(akNPC, IGNORE_CHANGES, 1)
 		akNPC.SetRelationshipRank(Alias_PC.GetActorRef(), Math.Ceiling(auiRelationshipPoints / 100))
 	EndIf
 
-	UnsetIntValue(akNPC, "APPS.Framework.Relationship.IgnoreRankChange")
+	UnsetIntValue(akNPC, IGNORE_CHANGES)
 	Return True
 EndFunction
 
