@@ -742,5 +742,7 @@ All tabs
 TODO:
 All tabs:
 	- Max array size & MCM menu sice: 128
-	- Update OptionsST functions to include the "state" argument
+	- Fix Exception $translations
+	- Rename SUKEY_MENU_OPTIONS and the corresponding string to a less confusing name
+	- Optimize "+" while loops
 /;
