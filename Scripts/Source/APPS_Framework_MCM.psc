@@ -34,6 +34,7 @@ String SUKEY_INIT_MODS_TOOLTIP = "APPS.Framework.InitMods.Tooltip"
 String SUKEY_UNINSTALL_MODS = "APPS.Framework.UninstallMods"
 String SUKEY_REGISTERED_RS = "APPS.Framework.Relationship.RegisteredMods"
 String SUKEY_SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList"
+String SUKEY_SYNC_MODE_NPC_CHANGELIST = "APPS.Framework.Relationship.SyncMode.NPC.ChangeList"
 Int InitControlFlags 
 Int UninstallControlFlags 
 Float TimeToNextInit = 1.0
@@ -49,7 +50,7 @@ Event OnConfigInit()
 ;Just adding a pile of work you ;)
 	Pages[4] = "RS - Priority"
 	Pages[5] = "RS - Global Sync Mode changes"
-	Pages[6] = "RS - Local Sync Mode changes"
+	Pages[6] = "RS - NPC Sync Mode changes"
 	Pages[7] = "RS - Global RS Multiplier"
 	Pages[8] = "RS - Local RS Multiplier"
 
@@ -229,6 +230,12 @@ Event OnPageReset(String asPage)
 			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_REGISTERED_RS, i))
 			i += 1
 		EndWhile
+		
+;/ANTONO RESUME WORK HERE
+	ElseIf (asPage == Pages[6])	;RS - NPC Sync Mode changes
+		SetCursorFillMode(TOP_TO_BOTTOM)
+/;
+		
 	EndIf
 EndEvent
 

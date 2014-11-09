@@ -9,6 +9,7 @@ ReferenceAlias Property Alias_PC Auto
 Bool IsUninstallingAll = False
 String Property SYNC_MODE = "APPS.Framework.Relationship.SyncMode" AutoReadOnly Hidden
 String Property SUKEY_SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList" AutoReadOnly Hidden
+String Property SUKEY_SYNC_MODE_NPC_CHANGELIST = "APPS.Framework.Relationship.SyncMode.NPC.ChangeList" AutoReadOnly Hidden
 String Property RS_MULTI_S0_S1 = "APPS.Framework.Relationship.RelationshipMulti.S0_S1" AutoReadOnly Hidden
 String Property RS_MULTI_S1_S2 = "APPS.Framework.Relationship.RelationshipMulti.S1_S2" AutoReadOnly Hidden
 String Property RS_MULTI_S2_S3 = "APPS.Framework.Relationship.RelationshipMulti.S2_S3" AutoReadOnly Hidden
@@ -30,6 +31,7 @@ String Property RS_MULTI_SM3_SM2 = "APPS.Framework.Relationship.RelationshipMult
 String Property RS_MULTI_SM2_SM1 = "APPS.Framework.Relationship.RelationshipMulti.S-2_S-1" AutoReadOnly Hidden
 String Property RS_MULTI_SM1_S0 = "APPS.Framework.Relationship.RelationshipMulti.S-1_S0" AutoReadOnly Hidden
 String Property RS_MULTI_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.Global.ChangeList" AutoReadOnly Hidden
+String Property RS_MULTI_NPC_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.NPC.ChangeList" AutoReadOnly Hidden
 String Property RS_MULTI_S0_S1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S0_S1.ChangeList" AutoReadOnly Hidden
 String Property RS_MULTI_S1_S2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S1_S2.ChangeList" AutoReadOnly Hidden
 String Property RS_MULTI_S2_S3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S2_S3.ChangeList" AutoReadOnly Hidden
@@ -259,7 +261,7 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	;No changes made to the function, so just add the value to it and apply the changes to the framework
 	FormListAdd(akNPC, SUKEY_SYNC_MODE_CHANGELIST, akToken)
 	IntListAdd(akNPC, SUKEY_SYNC_MODE_CHANGELIST, aiSyncMode) 
-	FormListAdd(None, SUKEY_SYNC_MODE_CHANGELIST, akNPC)
+	FormListAdd(None, SUKEY_SYNC_MODE_NPC_CHANGELIST, akNPC)
 	SetIntValue(akNPC, SYNC_MODE, aiSyncMode)
 	Return True
 EndFunction
@@ -971,7 +973,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int auiFromRelati
 		FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, aiMultiplier)
 	EndIf
 
-	FormListAdd(None, RS_MULTI_CHANGELIST, akNPC)
+	FormListAdd(None, RS_MULTI_NPC_CHANGELIST, akNPC)
 	Return True
 EndFunction
 
