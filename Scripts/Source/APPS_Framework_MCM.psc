@@ -486,17 +486,20 @@ EndEvent
 
 Event OnOptionSelect(Int aiOption)
 	Int i
+	Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
 
-	While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
+	While (i < MenuOptions)
 		If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
 			If (ShowMessage("$UNINSTALL_MOD_CONFIRMATION") == true)
 				UninstallMod(StringListGet(None, SUKEY_MENU_OPTIONS, i))
-				i = IntListCount(None, SUKEY_MENU_OPTIONS)
 			EndIf
+			i = MenuOptions
 		Else
 			i += 1
 		EndIf
 	EndWhile
+	
+	ForcePageReset()
 EndEvent
 
 Function ChangeInitOrder(String asModName, Int aiPositionChange)
