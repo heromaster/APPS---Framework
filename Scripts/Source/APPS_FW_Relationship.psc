@@ -8,7 +8,7 @@ ReferenceAlias Property Alias_PC Auto
 
 Bool IsUninstallingAll = False
 String Property SYNC_MODE = "APPS.Framework.Relationship.SyncMode" AutoReadOnly Hidden
-String Property SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList" AutoReadOnly Hidden
+String Property SUKEY_SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList" AutoReadOnly Hidden
 String Property RS_MULTI_S0_S1 = "APPS.Framework.Relationship.RelationshipMulti.S0_S1" AutoReadOnly Hidden
 String Property RS_MULTI_S1_S2 = "APPS.Framework.Relationship.RelationshipMulti.S1_S2" AutoReadOnly Hidden
 String Property RS_MULTI_S2_S3 = "APPS.Framework.Relationship.RelationshipMulti.S2_S3" AutoReadOnly Hidden
@@ -54,6 +54,14 @@ String Property RSP = "APPS.Framework.Relationship.RelationshipPoints" AutoReadO
 String Property IGNORE_CHANGES = "APPS.Framework.Relationship.IgnoreRankChange" AutoReadOnly Hidden
 String Property FW_LOG = "APPS - Framework" AutoReadOnly Hidden
 
+;/
+Global SyncMode convention:
+0 - disabled
+1 - from vanilla to rs
+2 - from rs to vanilla
+3 - both ways
+/;
+
 Int Function GetGlobalSyncMode()
 	Return GetIntValue(None, SYNC_MODE)
 EndFunction
@@ -80,12 +88,12 @@ Bool Function SetGlobalSyncMode(Quest akToken, Int aiSyncMode)
 	EndIf
 
 	String ModName = StringListGet(None, SUKEY_REGISTERED_RS, ModIndex)
-	Int ModIndex2 = _GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST) ; Get position of current mod in this list
-	Int SyncModeChanges = FormListCount(None, SYNC_MODE_CHANGELIST) ;Get the list of mods which do change the global sync mode
+	Int ModIndex2 = _GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST) ; Get position of current mod in this list
+	Int SyncModeChanges = FormListCount(None, SUKEY_SYNC_MODE_CHANGELIST) ;Get the list of mods which do change the global sync mode
 
 	;If the mod was found, update its new value
 	If(ModIndex2 >= 0)
-		IntListSet(None, SYNC_MODE_CHANGELIST, ModIndex2, aiSyncMode)
+		IntListSet(None, SUKEY_SYNC_MODE_CHANGELIST, ModIndex2, aiSyncMode)
 		Notify(FW_LOG, "Sync mode for " + ModName + " got updated.", False)
 
 		;If the mod is also on the last position then also update the global sync mode
@@ -102,15 +110,15 @@ Bool Function SetGlobalSyncMode(Quest akToken, Int aiSyncMode)
 
 		;Go through the list of changes to the global sync mode
 		While(i < SyncModeChanges)
-			Form ModToCmp = FormListGet(None, SYNC_MODE_CHANGELIST, i) ;Get mod at index i
+			Form ModToCmp = FormListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) ;Get mod at index i
 			Int ModToCmpIdx = FormListFind(None, SUKEY_REGISTERED_RS, ModToCmp) ;Get priority of this comparing mod
 
 			;If the actual mod has a higher priority then the comparing mod then continue cycling the list
 			If(ModIndex > ModToCmpIdx)
 				i += 1
 			Else
-				FormListInsert(None, SYNC_MODE_CHANGELIST, i, akToken) ;Insert the actual mod into the list before the comparing mod
-				IntListInsert(None, SYNC_MODE_CHANGELIST, i, aiSyncMode) ;Insert the sync mode value as well
+				FormListInsert(None, SUKEY_SYNC_MODE_CHANGELIST, i, akToken) ;Insert the actual mod into the list before the comparing mod
+				IntListInsert(None, SUKEY_SYNC_MODE_CHANGELIST, i, aiSyncMode) ;Insert the sync mode value as well
 				Notify(FW_Log, "Can't change the global sync mode because it is already set by a mod with higher priority. However, the value will be set, if " + ModName + " becomes the highest priority.", False)
 				Return True
 			EndIf
@@ -118,8 +126,8 @@ Bool Function SetGlobalSyncMode(Quest akToken, Int aiSyncMode)
 	EndIf
 
 	;No changes made to the function, so just add the value to it and apply the changes to the framework
-	FormListAdd(None, SYNC_MODE_CHANGELIST, akToken)
-	IntListAdd(None, SYNC_MODE_CHANGELIST, aiSyncMode)
+	FormListAdd(None, SUKEY_SYNC_MODE_CHANGELIST, akToken)
+	IntListAdd(None, SUKEY_SYNC_MODE_CHANGELIST, aiSyncMode)
 	SetIntValue(None, SYNC_MODE, aiSyncMode)
 	Return True
 EndFunction
@@ -128,23 +136,23 @@ Bool Function RemoveGlobalSyncMode(Quest akToken)
 	If(_GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS) == -1)
 		Warn(FW_LOG, "A mod tried to remove its changes to the global sync mode. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
-	ElseIf(_GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST) == -1)
+	ElseIf(_GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST) == -1)
 		Notify(FW_LOG, "A mod tried to remove its changes to the global sync mode. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	EndIf
 
-	Int ModIndex = _GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST)
+	Int ModIndex = _GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST)
 
 	;If the global sync mode changelist only contains one element, remove the sync mode completely
-	If(IntListCount(None, SYNC_MODE_CHANGELIST) == 1)
+	If(IntListCount(None, SUKEY_SYNC_MODE_CHANGELIST) == 1)
 		UnsetIntValue(None, SYNC_MODE)
 	;Else if the mod had the highest priority, do set the global sync mode to the value of the next mod
 	ElseIf(ModIndex > 0)
 		SetIntValue(None, SYNC_MODE, IntListGet(None, SYNC_MODE, ModIndex - 1))
 	EndIf
 
-	FormListRemove(None, SYNC_MODE_CHANGELIST, akToken)
-	IntListRemoveAt(None, SYNC_MODE_CHANGELIST, ModIndex)
+	FormListRemove(None, SUKEY_SYNC_MODE_CHANGELIST, akToken)
+	IntListRemoveAt(None, SUKEY_SYNC_MODE_CHANGELIST, ModIndex)
 	Return True
 EndFunction
 
@@ -211,12 +219,12 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	EndIf
 
 	
-	Int ModIndex2 = _GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST, akNPC) ; Get position of current mod in this list
-	Int SyncModeChanges = FormListCount(akNPC, SYNC_MODE_CHANGELIST) ;Get the list of mods which do change the sync mode on an actor
+	Int ModIndex2 = _GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST, akNPC) ; Get position of current mod in this list
+	Int SyncModeChanges = FormListCount(akNPC, SUKEY_SYNC_MODE_CHANGELIST) ;Get the list of mods which do change the sync mode on an actor
 
 	;If the mod was found, update its new value
 	If(ModIndex2 >= 0)
-		IntListSet(akNPC, SYNC_MODE_CHANGELIST, ModIndex2, aiSyncMode)
+		IntListSet(akNPC, SUKEY_SYNC_MODE_CHANGELIST, ModIndex2, aiSyncMode)
 		
 		Notify(FW_LOG, "Sync mode on " + akNPC.GetName() + " got updated by " + ModName + ".", False)
 
@@ -233,15 +241,15 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 
 		;Go through the list of changes to the global sync mode
 		While(i < SyncModeChanges)
-			Form ModToCmp = FormListGet(akNPC, SYNC_MODE_CHANGELIST, i) ;Get mod at index i
+			Form ModToCmp = FormListGet(akNPC, SUKEY_SYNC_MODE_CHANGELIST, i) ;Get mod at index i
 			Int ModToCmpIdx = FormListFind(None, SUKEY_REGISTERED_RS, ModToCmp) ;Get priority of this comparing mod
 
 			;If the actual mod has a higher priority then the comparing mod then continue cycling the list
 			If(ModIndex > ModToCmpIdx)
 				i += 1
 			Else
-				FormListInsert(akNPC, SYNC_MODE_CHANGELIST, i, akToken) ;Insert the actual mod into the list before the comparing mod
-				IntListInsert(akNPC, SYNC_MODE_CHANGELIST, i, aiSyncMode) ;Insert the sync mode value as well
+				FormListInsert(akNPC, SUKEY_SYNC_MODE_CHANGELIST, i, akToken) ;Insert the actual mod into the list before the comparing mod
+				IntListInsert(akNPC, SUKEY_SYNC_MODE_CHANGELIST, i, aiSyncMode) ;Insert the sync mode value as well
 				Notify(FW_LOG, "Can't change the sync mode on " + akNPC.GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
 				Return True
 			EndIf
@@ -249,9 +257,9 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	EndIf
 	
 	;No changes made to the function, so just add the value to it and apply the changes to the framework
-	FormListAdd(akNPC, SYNC_MODE_CHANGELIST, akToken)
-	IntListAdd(akNPC, SYNC_MODE_CHANGELIST, aiSyncMode) 
-	FormListAdd(None, SYNC_MODE_CHANGELIST, akNPC)
+	FormListAdd(akNPC, SUKEY_SYNC_MODE_CHANGELIST, akToken)
+	IntListAdd(akNPC, SUKEY_SYNC_MODE_CHANGELIST, aiSyncMode) 
+	FormListAdd(None, SUKEY_SYNC_MODE_CHANGELIST, akNPC)
 	SetIntValue(akNPC, SYNC_MODE, aiSyncMode)
 	Return True
 EndFunction
@@ -261,23 +269,23 @@ Bool Function RemoveSyncMode(Quest akToken)
 	If(_GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS) == -1)
 		Warn(FW_LOG, "A mod tried to remove its changes to the global sync mode. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
-	ElseIf(_GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST) == -1)
+	ElseIf(_GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST) == -1)
 		Notify(FW_LOG, "A mod tried to remove its changes to the global sync mode. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	EndIf
 
-	Int ModIndex = _GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST)
+	Int ModIndex = _GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST)
 
 	;If the global sync mode changelist only contains one element, remove the sync mode completely
-	If(IntListCount(None, SYNC_MODE_CHANGELIST) == 1)
+	If(IntListCount(None, SUKEY_SYNC_MODE_CHANGELIST) == 1)
 		UnsetIntValue(None, SYNC_MODE)
 	;Else if the mod had the highest priority, do set the global sync mode to the value of the next mod
 	ElseIf(ModIndex > 0)
 		SetIntValue(None, SYNC_MODE, IntListGet(None, SYNC_MODE, ModIndex - 1))
 	EndIf
 
-	FormListRemove(None, SYNC_MODE_CHANGELIST, akToken)
-	IntListRemoveAt(None, SYNC_MODE_CHANGELIST, ModIndex)
+	FormListRemove(None, SUKEY_SYNC_MODE_CHANGELIST, akToken)
+	IntListRemoveAt(None, SUKEY_SYNC_MODE_CHANGELIST, ModIndex)
 	Return True
 EndFunction
 /;

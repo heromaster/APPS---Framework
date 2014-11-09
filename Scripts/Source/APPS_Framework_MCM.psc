@@ -28,11 +28,12 @@ String SUKEY_LOG_ERRORS = "APPS.Framework.InfoManager.LogErrors"
 String SUKEY_LOG_WARNINGS = "APPS.Framework.InfoManager.LogWarnings"
 String SUKEY_LOG_INFOS = "APPS.Framework.InfoManager.LogInfos"
 String SUKEY_REGISTERED_MODS = "APPS.Framework.RegisteredMods"
-String SUKEY_MENU_OPTIONS = "APPS.Framework.MCM.RegisteredMods"
+String SUKEY_MENU_OPTIONS = "APPS.Framework.MCM.MenuOptions"
 String SUKEY_INIT_MODS = "APPS.Framework.InitMods"
 String SUKEY_INIT_MODS_TOOLTIP = "APPS.Framework.InitMods.Tooltip"
 String SUKEY_UNINSTALL_MODS = "APPS.Framework.UninstallMods"
 String SUKEY_REGISTERED_RS = "APPS.Framework.Relationship.RegisteredMods"
+String SUKEY_SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList"
 Int InitControlFlags 
 Int UninstallControlFlags 
 Float TimeToNextInit = 1.0
@@ -96,6 +97,7 @@ Event OnPageReset(String asPage)
 			AddTextOption(StringListGet(None, SUKEY_REGISTERED_MODS, i), "")
 			i += 1
 		EndWhile
+		
 	ElseIf (asPage == Pages[1])	;info manager
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		AddHeaderOption("$GENERAL_SETTINGS")
@@ -127,6 +129,7 @@ Event OnPageReset(String asPage)
 		AddHeaderOption("$ERRORS")
 		AddToggleOptionST("DisplayErrors", "$DISPLAY_ON_SCREEN", False, OPTION_FLAG_DISABLED)
 		AddToggleOptionST("LogErrors", "$LOG_TO_FILE", False, OPTION_FLAG_DISABLED)
+		
 	ElseIf (asPage == Pages[2])	;initialization manager
 		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, SUKEY_INIT_MODS) == 0) 
 			InitControlFlags = OPTION_FLAG_DISABLED
@@ -152,10 +155,11 @@ Event OnPageReset(String asPage)
 		Int i
 
 		While (i < FormListCount(None, SUKEY_INIT_MODS))
-			IntListAdd(None, SUKEY_MENU_OPTIONS, AddMenuOption(StringListGet(None, SUKEY_INIT_MODS, i), "#" + (i + 1) As String + ": ", InitControlFlags))
+			IntListAdd(None, SUKEY_MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", StringListGet(None, SUKEY_INIT_MODS, i), InitControlFlags))
 			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_INIT_MODS, i))
 			i += 1
 		EndWhile
+		
 	ElseIf (asPage == Pages[3])	;uninstall manager
 		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, SUKEY_UNINSTALL_MODS) == 0)
 			UninstallControlFlags = OPTION_FLAG_DISABLED
@@ -184,6 +188,7 @@ Event OnPageReset(String asPage)
 			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_UNINSTALL_MODS, i))
 			i += 1
 		EndWhile
+		
 	ElseIf (asPage == Pages[4])	;RS - Priority
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		
@@ -193,7 +198,34 @@ Event OnPageReset(String asPage)
 		Int i
 
 		While (i < FormListCount(None, SUKEY_REGISTERED_RS))
-			IntListAdd(None, SUKEY_MENU_OPTIONS, AddMenuOption(StringListGet(None, SUKEY_REGISTERED_RS, i), "#" + (i + 1) As String + ": "))
+			IntListAdd(None, SUKEY_MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", StringListGet(None, SUKEY_REGISTERED_RS, i)))
+			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_REGISTERED_RS, i))
+			i += 1
+		EndWhile
+		
+	ElseIf (asPage == Pages[5])	;RS - Global Sync Mode changes
+		SetCursorFillMode(TOP_TO_BOTTOM)
+		
+		AddHeaderOption("$RELATIONSHIP")
+		AddTextOption("", "$GLOBAL_SYNC_MODE_CHANGES")
+		AddEmptyOption()
+		
+		Int i
+		String GlobalSyncModeChange
+		
+		While (i < FormListCount(None, SUKEY_SYNC_MODE_CHANGELIST))
+			;convert GlobalSyncModeChange from Int to String
+			If (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 0)
+				GlobalSyncModeChange == "$DISABLE"
+			ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 1)
+				GlobalSyncModeChange == "$VANILLA_TO_RS"
+			ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 2)
+				GlobalSyncModeChange == "$RS_TO_VANILLA"
+			ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 3)
+				GlobalSyncModeChange == "$BOTH_WAYS"
+			EndIf
+			
+			IntListAdd(None, SUKEY_MENU_OPTIONS, AddTextOption(StringListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i), GlobalSyncModeChange))
 			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_REGISTERED_RS, i))
 			i += 1
 		EndWhile
@@ -448,7 +480,7 @@ State StartInitialization
 	EndEvent
 EndState
 
-Event OnOptionHighlight(Int aiOption)	
+Event OnOptionHighlight(Int aiOption)
 	Int i
 	Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
 
@@ -457,13 +489,15 @@ Event OnOptionHighlight(Int aiOption)
 			If (CurrentPage == Pages[2])
 				Form InitQuest = FormListGet(None, SUKEY_INIT_MODS, i)
 				If (HasStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
-					SetInfoText(GetStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))	
+					SetInfoText(GetStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
 				EndIf
 			
 			ElseIf (CurrentPage == Pages[3])
 				SetInfoText("$EXPLAIN_UNINSTALL")
 			ElseIf (CurrentPage == Pages[4])
-				SetInfoText("$EXPLAIN_RELATIONSHIP_PRIORITY")				
+				SetInfoText("$EXPLAIN_RELATIONSHIP_PRIORITY")
+			ElseIf (CurrentPage == Pages[3])
+				SetInfoText("$EXPLAIN_RS_GLOBAL_SYNC_MODE_CHANGES")
 			EndIf
 			
 			i = MenuOptions
@@ -757,4 +791,8 @@ All tabs:
 	- Max array size & MCM menu sice: 128
 	- Fix Exception $translations
 	- Rename SUKEY_MENU_OPTIONS and the corresponding string to a less confusing name
+	- Optimize all increasing WHILE loops
+Tab: Uninstall Manager
+	- Test manager
+	- Decide if AddTextOption should work with the Text or the Value, i.e. whether "" should be the text or the value
 /;
