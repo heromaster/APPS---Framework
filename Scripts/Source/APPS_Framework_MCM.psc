@@ -498,7 +498,6 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 						ChangeOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), SUKEY_REGISTERED_RS, aiSelectedOption)
 					EndIf
 					i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
-					ForcePageReset()
 				ElseIf (aiSelectedOption == INITIALIZE_MOD)
 					If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == true)
 						ShowMessage("$CLOSE_MCM", false, "$OK")
@@ -508,16 +507,16 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 						InitializeMod(ModToInit)
 
 						i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
-						ForcePageReset()
 					EndIf
 				Else
 					i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
-					ForcePageReset()
 				EndIf
 			Else
 				i += 1
 			EndIf
 		EndWhile
+
+	ForcePageReset()
 EndEvent
 
 Event OnOptionSelect(Int aiOption)
@@ -602,6 +601,7 @@ Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
 			FormListInsert(None, aiArray, (ModIndex + 1), kQuest)
 
 			StringListRemove(None, aiArray, asModName)
+			
 			StringListInsert(None, aiArray, (ModIndex +1), asModName)
 			
 			If (aiArray == SUKEY_INIT_MODS)
