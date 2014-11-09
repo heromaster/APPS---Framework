@@ -487,34 +487,32 @@ Event OnOptionMenuOpen(Int aiOption)
 EndEvent
 
 Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
-		Int i
+	Int i
+	Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
 
-		While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
-			If(aiOpenedMenu == IntListGet(None, SUKEY_MENU_OPTIONS, i))
-				If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
-					If (CurrentPage == Pages[2])
-						ChangeOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), SUKEY_INIT_MODS, aiSelectedOption)
-					ElseIf (CurrentPage == Pages[4])
-						ChangeOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), SUKEY_REGISTERED_RS, aiSelectedOption)
-					EndIf
-					i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
-				ElseIf (aiSelectedOption == INITIALIZE_MOD)
-					If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == true)
-						ShowMessage("$CLOSE_MCM", false, "$OK")
-						String ModToInit = StringListGet(None, SUKEY_MENU_OPTIONS, i)
-						Utility.Wait(0.1)	;forces the user to close the menu
-
-						InitializeMod(ModToInit)
-
-						i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
-					EndIf
-				Else
-					i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
+	While (i < MenuOptions)
+		If(aiOpenedMenu == IntListGet(None, SUKEY_MENU_OPTIONS, i))
+			If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
+				If (CurrentPage == Pages[2])
+					ChangeOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), SUKEY_INIT_MODS, aiSelectedOption)
+				ElseIf (CurrentPage == Pages[4])
+					ChangeOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), SUKEY_REGISTERED_RS, aiSelectedOption)
 				EndIf
-			Else
-				i += 1
+			ElseIf (aiSelectedOption == INITIALIZE_MOD)
+				If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == true)
+					ShowMessage("$CLOSE_MCM", false, "$OK")
+					String ModToInit = StringListGet(None, SUKEY_MENU_OPTIONS, i)
+					Utility.Wait(0.1)	;forces the user to close the menu
+
+					InitializeMod(ModToInit)
+				EndIf
+			i = MenuOptions	;stops the loop
 			EndIf
-		EndWhile
+		i = MenuOptions	;stops the loop
+		Else
+			i += 1
+		EndIf
+	EndWhile
 
 	ForcePageReset()
 EndEvent
@@ -522,18 +520,21 @@ EndEvent
 Event OnOptionSelect(Int aiOption)
 	If (CurrentPage == Pages[2])
 		Int i
+		Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
 
-		While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
+		While (i < MenuOptions)
 			If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
 				If (ShowMessage("$UNINSTALL_MOD_CONFIRMATION") == true)
 					UninstallMod(StringListGet(None, SUKEY_MENU_OPTIONS, i))
-					i = IntListCount(None, SUKEY_MENU_OPTIONS)
 				EndIf
+			i = MenuOptions
 			Else
 				i += 1
 			EndIf
 		EndWhile
 	EndIf
+	
+	ForcePageReset()
 EndEvent
 
 Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
@@ -741,4 +742,7 @@ All tabs
 TODO:
 All tabs:
 	- Max array size & MCM menu sice: 128	
+	- Fix Exception $translations
+	- Rename SUKEY_MENU_OPTIONS and the corresponding string to a less confusing name
+	- Optimize increasing while loops
 /;
