@@ -62,11 +62,11 @@ Event OnConfigInit()
 	InitOrdering[6] = "$INITIALIZE_MOD"
 	
 	RS_PriorityOrdering = New String[5]
-	InitOrdering[0] = "$MOVE_TOP"
-	InitOrdering[1] = "$MOVE_UP"
-	InitOrdering[2] = "---------------"
-	InitOrdering[3] = "$MOVE_DOWN"
-	InitOrdering[4] = "$MOVE_BOTTOM"
+	RS_PriorityOrdering[0] = "$MOVE_TOP"
+	RS_PriorityOrdering[1] = "$MOVE_UP"
+	RS_PriorityOrdering[2] = "---------------"
+	RS_PriorityOrdering[3] = "$MOVE_DOWN"
+	RS_PriorityOrdering[4] = "$MOVE_BOTTOM"
 
 	LogLevel = New String[4]
 	LogLevel[0] = "$EVERYTHING"
@@ -187,7 +187,7 @@ Event OnPageReset(String asPage)
 	ElseIf (asPage == Pages[4])	;RS - Priority
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		
-		AddHeaderOption("$PRIORITY_ORDER")
+		AddHeaderOption("$RELATIONSHIP_PRIORITY")
 		AddEmptyOption()
 		
 		Int i
@@ -425,9 +425,9 @@ State StartInitialization
 	EndEvent
 
 	Event OnSelectST()
-		If (ShowMessage("$START_INITIALIZATION_CONFIRMATION") == true)
-			ShowMessage("$CLOSE_MCM", false, "$OK")
-			InitSafetyLock = true
+		If (ShowMessage("$START_INITIALIZATION_CONFIRMATION") == True)
+			ShowMessage("$CLOSE_MCM", False, "$OK")
+			InitSafetyLock = True
 			SetTextOptionValueST("$INITIALIZING", False, "StartInitialization")
 			ForcePageReset()	;this ensures install order is displayed again with OPTION_FLAG_DISABLED			
 			Utility.Wait(0.1)	;forces the user to close the menu
@@ -435,41 +435,49 @@ State StartInitialization
 			While (StringListCount(None, SUKEY_INIT_MODS) > 0)
 				String ModToInit = StringListGet(None, SUKEY_INIT_MODS, 0)
 				Exception.Notify(FW_LOG, ModToInit)
-				InitializeMod(ModToInit, abSafetyLock = false) ;SafetyLock is handled by line InitSafetyLock = true
+				InitializeMod(ModToInit, abSafetyLock = False) ;SafetyLock is handled by line InitSafetyLock = True
 				Utility.Wait(TimeToNextInit)
 			EndWhile
 
 			Exception.Notify(FW_LOG, "$INITIALIZATION_SEQUENCE_COMPLETE")
 
-			InitSafetyLock = false
+			InitSafetyLock = False
 			SetTextOptionValueST("$GO", False, "StartInitialization")
 			ForcePageReset()
 		EndIf
 	EndEvent
 EndState
 
-Event OnOptionHighlight(Int aiOption)
-	If (CurrentPage == Pages[2])
-		Int i
+Event OnOptionHighlight(Int aiOption)	
+	Int i
+	Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
 
-		While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
-			If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
+	While (i < MenuOptions)
+		If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
+			If (CurrentPage == Pages[2])
 				Form InitQuest = FormListGet(None, SUKEY_INIT_MODS, i)
 				If (HasStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
-					SetInfoText(GetStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
+					SetInfoText(GetStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))	
 				EndIf
-				i = IntListCount(None, SUKEY_MENU_OPTIONS)
-			Else
-				i += 1
+			
+			ElseIf (CurrentPage == Pages[3])
+				SetInfoText("$EXPLAIN_UNINSTALL")
+			ElseIf (CurrentPage == Pages[4])
+				SetInfoText("$EXPLAIN_RELATIONSHIP_PRIORITY")				
 			EndIf
-		EndWhile
-	EndIf
+			
+			i = MenuOptions
+		Else
+			i += 1
+		EndIf
+	EndWhile
 EndEvent
 
 Event OnOptionMenuOpen(Int aiOption)
 	Int i
+	Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
 
-	While(i < IntListCount(None, SUKEY_MENU_OPTIONS))
+	While(i < MenuOptions)
 		If(aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
 			SetMenuDialogDefaultIndex(2)
 			SetMenuDialogStartIndex(2)
@@ -480,7 +488,7 @@ Event OnOptionMenuOpen(Int aiOption)
 				SetMenuDialogOptions(RS_PriorityOrdering)
 			EndIf
 			
-			i = IntListCount(None, SUKEY_MENU_OPTIONS)			
+			i = MenuOptions
 		Else
 			i += 1
 		EndIf
@@ -499,16 +507,19 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 				ElseIf (CurrentPage == Pages[4])
 					ChangeOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), SUKEY_REGISTERED_RS, aiSelectedOption)
 				EndIf
+				
 			ElseIf (aiSelectedOption == INITIALIZE_MOD)
-				If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == true)
-					ShowMessage("$CLOSE_MCM", false, "$OK")
+				If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == True)
+					ShowMessage("$CLOSE_MCM", False, "$OK")
 					String ModToInit = StringListGet(None, SUKEY_MENU_OPTIONS, i)
 					Utility.Wait(0.1)	;forces the user to close the menu
 
 					InitializeMod(ModToInit)
 				EndIf
+				
 			i = MenuOptions	;stops the loop
 			EndIf
+			
 		i = MenuOptions	;stops the loop
 		Else
 			i += 1
@@ -519,13 +530,13 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 EndEvent
 
 Event OnOptionSelect(Int aiOption)
-	If (CurrentPage == Pages[2])
+	If (CurrentPage == Pages[3])
 		Int i
 		Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
 
 		While (i < MenuOptions)
 			If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
-				If (ShowMessage("$UNINSTALL_MOD_CONFIRMATION") == true)
+				If (ShowMessage("$UNINSTALL_MOD_CONFIRMATION") == True)
 					UninstallMod(StringListGet(None, SUKEY_MENU_OPTIONS, i))
 				EndIf
 			i = MenuOptions
@@ -533,6 +544,7 @@ Event OnOptionSelect(Int aiOption)
 				i += 1
 			EndIf
 		EndWhile
+		
 	EndIf
 	
 	ForcePageReset()
@@ -636,7 +648,7 @@ Bool Function InitializeMod(String asModName, Bool abSafetyLock = True)
 	Bool result = True
 
 	If (abSafetyLock)
-		InitSafetyLock = true
+		InitSafetyLock = True
 	EndIf
 
 	If(iSetStage == 0)
@@ -659,7 +671,7 @@ Bool Function InitializeMod(String asModName, Bool abSafetyLock = True)
 	EndIf
 
 	If (abSafetyLock)
-		InitSafetyLock = false
+		InitSafetyLock = False
 	EndIf
 
 	StringListRemove(None, SUKEY_INIT_MODS, asModName)
@@ -669,30 +681,30 @@ Bool Function InitializeMod(String asModName, Bool abSafetyLock = True)
 	Return result
 EndFunction
 
-Bool Function UninstallMod(String asModName, Bool abSafetyLock = true)
+Bool Function UninstallMod(String asModName, Bool abSafetyLock = True)
 	Int ModIndex = StringListFind(None, SUKEY_UNINSTALL_MODS, asModName)
 	Quest UninstallQuest = FormListGet(None, SUKEY_UNINSTALL_MODS, ModIndex) as Quest
 	Int iSetStage = IntListGet(None, SUKEY_UNINSTALL_MODS, ModIndex)
-	Bool result = true
+	Bool result = True
 
 	If (abSafetyLock)
-		UninstSafetyLock = true
+		UninstSafetyLock = True
 	EndIf
 
 	If(iSetStage == 0)
 		If (!UninstallQuest.Start())
 			Exception.Throw(FW_LOG, "Uninstallation failed", asModName + "$FAILED_TO_UNINSTALL")
-			result = false
+			result = False
 		EndIf
 	Else
 		If(!UninstallQuest.SetStage(iSetStage))
 			Exception.Throw(FW_LOG, "Uninstallation failed", asModName + "$FAILED_TO_UNINSTALL")
-			result = false
+			result = False
 		EndIf
 	EndIf
 
 	If (abSafetyLock)
-		UninstSafetyLock = false
+		UninstSafetyLock = False
 	EndIf
 
 	StringListRemove(None, SUKEY_UNINSTALL_MODS, asModName)
