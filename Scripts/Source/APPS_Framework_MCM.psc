@@ -462,7 +462,6 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 			If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
 				ChangeInitOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), aiSelectedOption)
 				i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
-				ForcePageReset()
 			ElseIf (aiSelectedOption == INITIALIZE_MOD)
 				If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == true)
 					ShowMessage("$CLOSE_MCM", false, "$OK")
@@ -472,7 +471,6 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 					InitializeMod(ModToInit)
 
 					i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
-					ForcePageReset()
 				EndIf
 			Else
 				i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
@@ -481,6 +479,8 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 			i += 1
 		EndIf
 	EndWhile
+
+	ForcePageReset()
 EndEvent
 
 Event OnOptionSelect(Int aiOption)
