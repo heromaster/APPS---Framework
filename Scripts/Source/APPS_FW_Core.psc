@@ -1,17 +1,17 @@
 ScriptName APPS_FW_Core Extends Quest
-String Property SUKEY_DISPLAY_ERRORS = "APPS.InfoManager.DisplayErrors" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_INFOS = "APPS.InfoManager.DisplayInfos" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_WARNINGS = "APPS.InfoManager.DisplayWarnings" AutoReadOnly Hidden
-String Property SUKEY_INIT_MODS = "APPS.InitMods" AutoReadOnly Hidden
-String Property SUKEY_INIT_MODS_TOOLTIP = "APPS.InitMods.Tooltip" AutoReadOnly Hidden
-String Property SUKEY_LOG_ERRORS = "APPS.InfoManager.LogErrors" AutoReadOnly Hidden
-String Property SUKEY_LOG_INFOS = "APPS.InfoManager.LogInfos" AutoReadOnly Hidden
-String Property SUKEY_LOG_WARNINGS = "APPS.InfoManager.LogWarnings" AutoReadOnly Hidden
-String Property SUKEY_LOGFILE = "APPS.InfoManager.LogFile" AutoReadOnly Hidden
-String Property SUKEY_LOGNAME = "APPS.InfoManager.LogName" AutoReadOnly Hidden
-String Property SUKEY_REGISTERED_MODS = "APPS.RegisteredMods" AutoReadOnly Hidden
-String Property SUKEY_REGISTERED_RS = "APPS.Relationship.RegisteredMods" AutoReadOnly Hidden
-String Property SUKEY_UNINSTALL_MODS = "APPS.UninstallMods" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_ERRORS = "APPS.Framework.InfoManager.DisplayErrors" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_INFOS = "APPS.Framework.InfoManager.DisplayInfos" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_WARNINGS = "APPS.Framework.InfoManager.DisplayWarnings" AutoReadOnly Hidden
+String Property SUKEY_INIT_MODS = "APPS.Framework.InitMods" AutoReadOnly Hidden
+String Property SUKEY_INIT_MODS_TOOLTIP = "APPS.Framework.InitMods.Tooltip" AutoReadOnly Hidden
+String Property SUKEY_LOG_ERRORS = "APPS.Framework.InfoManager.LogErrors" AutoReadOnly Hidden
+String Property SUKEY_LOG_INFOS = "APPS.Framework.InfoManager.LogInfos" AutoReadOnly Hidden
+String Property SUKEY_LOG_WARNINGS = "APPS.Framework.InfoManager.LogWarnings" AutoReadOnly Hidden
+String Property SUKEY_LOGFILE = "APPS.Framework.InfoManager.LogFile" AutoReadOnly Hidden
+String Property SUKEY_LOGNAME = "APPS.Framework.InfoManager.LogName" AutoReadOnly Hidden
+String Property SUKEY_REGISTERED_MODS = "APPS.Framework.RegisteredMods" AutoReadOnly Hidden
+String Property SUKEY_REGISTERED_RS = "APPS.Framework.Relationship.RegisteredMods" AutoReadOnly Hidden
+String Property SUKEY_UNINSTALL_MODS = "APPS.Framework.UninstallMods" AutoReadOnly Hidden
 
 ;/ |------------------------------------------------------------------------------------------------------------|
    |Checks if the mod is registered with the framework.															|
