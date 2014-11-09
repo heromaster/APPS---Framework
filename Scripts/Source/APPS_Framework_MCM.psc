@@ -32,6 +32,7 @@ String SUKEY_MENU_OPTIONS = "APPS.Framework.MCM.RegisteredMods"
 String SUKEY_INIT_MODS = "APPS.Framework.InitMods"
 String SUKEY_INIT_MODS_TOOLTIP = "APPS.Framework.InitMods.Tooltip"
 String SUKEY_UNINSTALL_MODS = "APPS.Framework.UninstallMods"
+String SUKEY_REGISTERED_RS = "APPS.Framework.Relationship.RegisteredMods"
 Int InitControlFlags 
 Int UninstallControlFlags 
 Float TimeToNextInit = 1.0
@@ -427,7 +428,7 @@ State StartInitialization
 		If (ShowMessage("$START_INITIALIZATION_CONFIRMATION") == true)
 			ShowMessage("$CLOSE_MCM", false, "$OK")
 			InitSafetyLock = true
-			SetTextOptionValueST("$INITIALIZING")
+			SetTextOptionValueST("$INITIALIZING", False, "StartInitialization")
 			ForcePageReset()	;this ensures install order is displayed again with OPTION_FLAG_DISABLED			
 			Utility.Wait(0.1)	;forces the user to close the menu
 
@@ -740,5 +741,6 @@ All tabs
 ------------------------------------------------------------------------------------------------------------------------
 TODO:
 All tabs:
-	- Max array size & MCM menu sice: 128	
+	- Max array size & MCM menu sice: 128
+	- Update OptionsST functions to include the "state" argument
 /;
