@@ -431,7 +431,10 @@ Event OnOptionHighlight(Int aiOption)
 
 		While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
 			If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
-				SetInfoText(StringListGet(None, SUKEY_INIT_MODS_TOOLTIP, i))
+				Form InitQuest = FormListGet(None, SUKEY_INIT_MODS, i)
+				If (HasStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
+					SetInfoText(GetStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
+				EndIf
 				i = IntListCount(None, SUKEY_MENU_OPTIONS)
 			Else
 				i += 1
@@ -548,6 +551,7 @@ Function ChangeInitOrder(String asModName, Int aiPositionChange)
 			FormListInsert(None, SUKEY_INIT_MODS, (ModIndex + 1), InitQuest)
 
 			StringListRemove(None, SUKEY_INIT_MODS, asModName)
+			
 			StringListInsert(None, SUKEY_INIT_MODS, (ModIndex +1), asModName)
 
 			IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
