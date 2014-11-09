@@ -1,4 +1,4 @@
-Scriptname APPS_RSFW_Test1Script Extends APPS_ModRegFW_Functions
+Scriptname APPS_RSFW_Test1Script Extends APPS_FW_Registrar
 Quest Property InitQuest Auto
 Quest Property UninstallQuest Auto
 

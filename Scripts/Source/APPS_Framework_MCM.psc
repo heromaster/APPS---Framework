@@ -1,5 +1,6 @@
-ScriptName APPS_ModRegFW_MCM Extends SKI_ConfigBase
+ScriptName APPS_Framework_MCM Extends SKI_ConfigBase
 Import StorageUtil
+
 Int FileLogLevel
 String[] Ordering
 String[] LogLevel
@@ -7,42 +8,47 @@ String[] InfoManagerModsListOptions
 String[] LoggingMethod
 Int InfoManagerModsListSelection
 Quest InfoManagerToken
-Int Property USE_MOD_USER_LOG = 0 AutoReadOnly Hidden
-Int Property USE_FRAMEWORK_LOG = 1 AutoReadOnly Hidden
-Int Property USE_PAPYRUS_LOG = 2 AutoReadOnly Hidden
-Int Property MOD_NOT_FOUND = -1 AutoReadOnly Hidden
-Int Property MOVE_TOP = 0 AutoReadOnly Hidden
-Int Property MOVE_UP = 1 AutoReadOnly Hidden
-Int Property MOVE_DOWN = 3 AutoReadOnly Hidden
-Int Property MOVE_BOTTOM = 4 AutoReadOnly Hidden
-Int Property INITIALIZE_MOD = 6 AutoReadOnly Hidden
-String Property FW_LOG = "APPS - Framework" AutoReadOnly Hidden
-String Property SUKEY_EXCEPTIONS_LOGFILE = "APPS.InfoManager.LogFile" AutoReadOnly Hidden
-String Property SUKEY_EXCEPTIONS_LOGNAME = "APPS.InfoManager.LogName" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_ERRORS = "APPS.InfoManager.DisplayErrors" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_WARNINGS = "APPS.InfoManager.DisplayWarnings" AutoReadOnly Hidden
-String Property SUKEY_DISPLAY_INFOS = "APPS.InfoManager.DisplayInfos" AutoReadOnly Hidden
-String Property SUKEY_LOG_ERRORS = "APPS.InfoManager.LogErrors" AutoReadOnly Hidden
-String Property SUKEY_LOG_WARNINGS = "APPS.InfoManager.LogWarnings" AutoReadOnly Hidden
-String Property SUKEY_LOG_INFOS = "APPS.InfoManager.LogInfos" AutoReadOnly Hidden
-String Property SUKEY_REGISTERED_MODS = "APPS.RegisteredMods" AutoReadOnly Hidden
-String Property SUKEY_MENU_OPTIONS = "APPS.MCM.RegisteredMods" AutoReadOnly Hidden
-String Property SUKEY_INIT_MODS = "APPS.InitMods" AutoReadOnly Hidden
-String Property SUKEY_INIT_MODS_TOOLTIP = "APPS.InitMods.Tooltip" AutoReadOnly Hidden
-String Property SUKEY_UNINSTALL_MODS = "APPS.UninstallMods" AutoReadOnly Hidden
-
+Int USE_MOD_USER_LOG = 0
+Int USE_FRAMEWORK_LOG = 1
+Int USE_PAPYRUS_LOG = 2
+Int MOD_NOT_FOUND = -1
+Int MOVE_TOP = 0
+Int MOVE_UP = 1
+Int MOVE_DOWN = 3
+Int MOVE_BOTTOM = 4
+Int INITIALIZE_MOD = 6
+String FW_LOG = "APPS - Framework"
+String SUKEY_EXCEPTIONS_LOGFILE = "APPS.Framework.InfoManager.LogFile"
+String SUKEY_EXCEPTIONS_LOGNAME = "APPS.Framework.InfoManager.LogName"
+String SUKEY_DISPLAY_ERRORS = "APPS.Framework.InfoManager.DisplayErrors"
+String SUKEY_DISPLAY_WARNINGS = "APPS.Framework.InfoManager.DisplayWarnings"
+String SUKEY_DISPLAY_INFOS = "APPS.Framework.InfoManager.DisplayInfos"
+String SUKEY_LOG_ERRORS = "APPS.Framework.InfoManager.LogErrors"
+String SUKEY_LOG_WARNINGS = "APPS.Framework.InfoManager.LogWarnings"
+String SUKEY_LOG_INFOS = "APPS.Framework.InfoManager.LogInfos"
+String SUKEY_REGISTERED_MODS = "APPS.Framework.RegisteredMods"
+String SUKEY_MENU_OPTIONS = "APPS.Framework.MCM.RegisteredMods"
+String SUKEY_INIT_MODS = "APPS.Framework.InitMods"
+String SUKEY_INIT_MODS_TOOLTIP = "APPS.Framework.InitMods.Tooltip"
+String SUKEY_UNINSTALL_MODS = "APPS.Framework.UninstallMods"
 Int InitControlFlags 
 Int UninstallControlFlags 
-Float Property TimeToNextInit = 1.0 Auto Hidden
+Float TimeToNextInit = 1.0
 Bool InitSafetyLock = False 
 Bool UninstSafetyLock = False 
 
 Event OnConfigInit()
-	Pages = new String[4]
+	Pages = new String[9]
 	Pages[0] = "$REGISTRY"
 	Pages[1] = "$INFO_MANAGER"
 	Pages[2] = "$INITIALIZATION_MANAGER"
 	Pages[3] = "$UNINSTALL_MANAGER"
+;Just adding a pile of work you ;)
+	Pages[4] = "RS - Main"
+	Pages[5] = "RS - Global Sync Mode changes"
+	Pages[6] = "RS - Local Sync Mode changes"
+	Pages[7] = "RS - Global RS Multiplier"
+	Pages[8] = "RS - Local RS Multiplier"
 
 	Ordering = New String[7]
 	Ordering[0] = "$MOVE_TOP"
@@ -75,11 +81,11 @@ Event OnPageReset(String asPage)
 		AddEmptyOption()
 		
 		Int RegisteredMods = StringListCount(None, SUKEY_REGISTERED_MODS)
-		Int i = RegisteredMods
+		Int i
 
-		While (i > 0)
-			AddTextOption(StringListGet(None, SUKEY_REGISTERED_MODS, i - 1), "")
-			i -= 1
+		While (i < RegisteredMods)
+			AddTextOption(StringListGet(None, SUKEY_REGISTERED_MODS, i), "")
+			i += 1
 		EndWhile
 	ElseIf (asPage == Pages[1])	;info manager
 		SetCursorFillMode(TOP_TO_BOTTOM)
@@ -87,7 +93,10 @@ Event OnPageReset(String asPage)
 		AddToggleOptionST("EnableLogging", "$ENABLE_LOGGING", Utility.GetINIBool("bEnableLogging:Papyrus"))
 		AddEmptyOption()
 		AddHeaderOption("$MOD_SPECIFIC_SETTINGS")
-		AddMenuOptionST("InfoManagerModsList", "$FOR", "$SELECT")
+		AddMenuOptionST("InfoManagerModsList", "", "$SELECT")
+		AddEmptyOption()
+		AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", "", OPTION_FLAG_DISABLED)
+		AddTextOptionST("LogName", "Log Name", "", OPTION_FLAG_DISABLED)
 		
 		;filling up the InfoManagerModsListOptions array with the names of the registered mods, to be shown as a menu later
 		Int RegisteredMods = StringListCount(None, SUKEY_REGISTERED_MODS)
@@ -98,11 +107,8 @@ Event OnPageReset(String asPage)
 				InfoManagerModsListOptions[i] = StringListGet(None, SUKEY_REGISTERED_MODS, i)
 				i += 1
 			EndWhile
-
+		
 		SetCursorPosition(1)	;go to top of right column
-		AddTextOptionST("ModSettings", "$NO_MOD_SELECTED", "", OPTION_FLAG_DISABLED)
-		AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", "", OPTION_FLAG_DISABLED)
-		AddTextOptionST("LogName", "Log Name", "", OPTION_FLAG_DISABLED)
 		AddHeaderOption("$INFOS")
 		AddToggleOptionST("DisplayInfos", "$DISPLAY_ON_SCREEN", False, OPTION_FLAG_DISABLED)
 		AddToggleOptionST("LogInfos", "$LOG_TO_FILE", False, OPTION_FLAG_DISABLED)
@@ -195,13 +201,12 @@ State InfoManagerModsList
 	Event OnMenuOpenST()
 		SetMenuDialogOptions(InfoManagerModsListOptions)
 		SetMenuDialogStartIndex(InfoManagerModsListSelection)
-		;SetMenuDialogDefaultIndex
 	EndEvent
 
 	Event OnMenuAcceptST(int aiSelectedOption)
 		Int OptionFlag = OPTION_FLAG_NONE
 		Utility.WaitMenuMode(0.5)
-		;ShowMessage(aiSelectedOption)
+		
 		InfoManagerToken = FormListGet(None, SUKEY_REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
 
 		;fetching the Int contents of SUKEY_EXCEPTIONS_LOGFILE array and converting them to strings
@@ -377,11 +382,11 @@ State WaitingTimeBetweenInits
 		SetSliderDialogInterval(0.1)
 	EndEvent
 
-	Event OnSliderAcceptST(float a_value)
-		If (a_value < 0.5)	;waiting times < 0.5 seconds are prone to errors (Heromaster)
+	Event OnSliderAcceptST(float afSelectedValue)
+		If (0.0 < afSelectedValue && afSelectedValue < 0.5)	;waiting times < 0.5 seconds are prone to errors (Heromaster)
 			TimeToNextInit = 0.5
 		Else
-			TimeToNextInit = a_value
+			TimeToNextInit = afSelectedValue
 		EndIf
 
 		SetSliderOptionValueST(TimeToNextInit, "{1} sec")
@@ -426,7 +431,10 @@ Event OnOptionHighlight(Int aiOption)
 
 		While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
 			If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
-				SetInfoText(StringListGet(None, SUKEY_INIT_MODS_TOOLTIP, i))
+				Form InitQuest = FormListGet(None, SUKEY_INIT_MODS, i)
+				If (HasStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
+					SetInfoText(GetStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
+				EndIf
 				i = IntListCount(None, SUKEY_MENU_OPTIONS)
 			Else
 				i += 1
@@ -642,6 +650,11 @@ Bool Function UninstallMod(String asModName, Bool abSafetyLock = true)
 EndFunction
 
 ;/
+DROPPED:
+	All tabs:
+	- Update ModIndex-related functions to use new Core helper functions
+		* reason: would create an unnecessary dependency on APPS_FW_Core.psc (need Heromaster's opinion)
+------------------------------------------------------------------------------------------------------------------------
 DONE:
 All tabs:
 	- Switch from using UNINSTALL naming to INIT for functions and keys
@@ -664,6 +677,7 @@ Tab: Initialization Manager
 	- Disable above menu point if initialize Manager is initializing or if list is empty
 	- Tooltips of every mod (will contain for some mods messages, in which order they need to be placed)
 	- remove failed mods from the registry
+	- Take advantage of tooltip functionality by heromaster
 Tab: Uninstall Manager
 	- Shows a list of all registered mods which have an uninstall quest	
 	- ShowMessage(If mod will be uninstalled, it will uninstall completely)
@@ -677,8 +691,5 @@ All tabs
 ------------------------------------------------------------------------------------------------------------------------
 TODO:
 All tabs:
-	- Update ModIndex-related functions to use new Core helper functions
-	- Max array size & MCM menu sice: 128
-Tab: Init Manager
-	- Take advantage of tooltip functionality by heromaster
+	- Max array size & MCM menu sice: 128	
 /;

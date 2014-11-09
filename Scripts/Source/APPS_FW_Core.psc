@@ -1,4 +1,35 @@
 ScriptName APPS_FW_Core Extends Quest
+String Property SUKEY_DISPLAY_ERRORS = "APPS.Framework.InfoManager.DisplayErrors" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_INFOS = "APPS.Framework.InfoManager.DisplayInfos" AutoReadOnly Hidden
+String Property SUKEY_DISPLAY_WARNINGS = "APPS.Framework.InfoManager.DisplayWarnings" AutoReadOnly Hidden
+String Property SUKEY_INIT_MODS = "APPS.Framework.InitMods" AutoReadOnly Hidden
+String Property SUKEY_INIT_MODS_TOOLTIP = "APPS.Framework.InitMods.Tooltip" AutoReadOnly Hidden
+String Property SUKEY_LOG_ERRORS = "APPS.Framework.InfoManager.LogErrors" AutoReadOnly Hidden
+String Property SUKEY_LOG_INFOS = "APPS.Framework.InfoManager.LogInfos" AutoReadOnly Hidden
+String Property SUKEY_LOG_WARNINGS = "APPS.Framework.InfoManager.LogWarnings" AutoReadOnly Hidden
+String Property SUKEY_LOGFILE = "APPS.Framework.InfoManager.LogFile" AutoReadOnly Hidden
+String Property SUKEY_LOGNAME = "APPS.Framework.InfoManager.LogName" AutoReadOnly Hidden
+String Property SUKEY_REGISTERED_MODS = "APPS.Framework.RegisteredMods" AutoReadOnly Hidden
+String Property SUKEY_REGISTERED_RS = "APPS.Framework.Relationship.RegisteredMods" AutoReadOnly Hidden
+String Property SUKEY_UNINSTALL_MODS = "APPS.Framework.UninstallMods" AutoReadOnly Hidden
+
+;/ |------------------------------------------------------------------------------------------------------------|
+   |Checks if the mod is registered with the framework.															|
+   |------------------------------------------------------------------------------------------------------------|
+   |Parameter: asModName																						|
+   |The name of the mod to look up.																				|
+   |------------------------------------------------------------------------------------------------------------|
+   |Return value: Bool																							|
+   |Returns True if the specified mod is registered with the framework.											|
+   |Returns False if the specified mod was not found in the registration list.									|
+   |------------------------------------------------------------------------------------------------------------| /;
+Bool Function IsModRegistered(String asModName)
+	If(_GetModIndexFromString(asModName, SUKEY_REGISTERED_MODS) > -1)
+		Return True
+	Else
+		Return False
+	EndIf
+EndFunction
 
 ;/ |------------------------------------------------------------------------------------------------------------|
    |Private functions below. Unless you know what you are doing, don't use them.								|
