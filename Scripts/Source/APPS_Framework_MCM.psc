@@ -459,12 +459,12 @@ EndEvent
 
 Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 	Int i
+	Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
 
-	While (i < IntListCount(None, SUKEY_MENU_OPTIONS))
+	While (i < MenuOptions)
 		If(aiOpenedMenu == IntListGet(None, SUKEY_MENU_OPTIONS, i))
 			If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
 				ChangeInitOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), aiSelectedOption)
-				i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
 			ElseIf (aiSelectedOption == INITIALIZE_MOD)
 				If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == true)
 					ShowMessage("$CLOSE_MCM", false, "$OK")
@@ -472,12 +472,10 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 					Utility.Wait(0.1)	;forces the user to close the menu
 
 					InitializeMod(ModToInit)
-
-					i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
 				EndIf
-			Else
-				i = IntListCount(None, SUKEY_MENU_OPTIONS)	;stops the loop
+				i = MenuOptions	;stops the loop
 			EndIf
+			i = MenuOptions	;stops the loop
 		Else
 			i += 1
 		EndIf
@@ -692,4 +690,7 @@ All tabs
 TODO:
 All tabs:
 	- Max array size & MCM menu sice: 128	
+	- Fix Exception $translations
+	- Rename SUKEY_MENU_OPTIONS and the corresponding string to a less confusing name
+	- Optimize "+" while loops
 /;
