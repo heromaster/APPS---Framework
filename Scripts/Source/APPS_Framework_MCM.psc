@@ -551,6 +551,7 @@ Function ChangeInitOrder(String asModName, Int aiPositionChange)
 			FormListInsert(None, SUKEY_INIT_MODS, (ModIndex + 1), InitQuest)
 
 			StringListRemove(None, SUKEY_INIT_MODS, asModName)
+			
 			StringListInsert(None, SUKEY_INIT_MODS, (ModIndex +1), asModName)
 
 			IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
