@@ -149,7 +149,7 @@ Bool Function RemoveGlobalSyncMode(Quest akToken)
 	If(IntListCount(None, SUKEY_SYNC_MODE_CHANGELIST) == 1)
 		UnsetIntValue(None, SYNC_MODE)
 	;Else if the mod had the highest priority, do set the global sync mode to the value of the next mod
-	ElseIf(ModIndex > 0)
+	ElseIf (ModIndex == IntListCount(None, SUKEY_SYNC_MODE_CHANGELIST) - 1)
 		SetIntValue(None, SYNC_MODE, IntListGet(None, SYNC_MODE, ModIndex - 1))
 	EndIf
 
@@ -266,31 +266,42 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	Return True
 EndFunction
 
-;/
-Bool Function RemoveSyncMode(Quest akToken)
+
+Bool Function RemoveSyncMode(Quest akToken, Actor akNPC)
 	If(_GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS) == -1)
-		Warn(FW_LOG, "A mod tried to remove its changes to the global sync mode. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
-		Return False
-	ElseIf(_GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST) == -1)
-		Notify(FW_LOG, "A mod tried to remove its changes to the global sync mode. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Warn(FW_LOG, "A mod tried to remove its changes to the actor " + akNPC.GetName() + ". It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	EndIf
+	
+	If (FormListFind(None, SUKEY_SYNC_MODE_NPC_CHANGELIST, akNPC) == -1)
+		Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	ElseIf (_GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST, akNPC) == -1)
+		Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetName() + ", but there had been no changes made to this actor by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	EndIf
+	
+	Int ModIndex = _GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST, akNPC)
 
-	Int ModIndex = _GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST)
-
-	;If the global sync mode changelist only contains one element, remove the sync mode completely
-	If(IntListCount(None, SUKEY_SYNC_MODE_CHANGELIST) == 1)
-		UnsetIntValue(None, SYNC_MODE)
-	;Else if the mod had the highest priority, do set the global sync mode to the value of the next mod
-	ElseIf(ModIndex > 0)
-		SetIntValue(None, SYNC_MODE, IntListGet(None, SYNC_MODE, ModIndex - 1))
+	;If the npc sync mode changelist only contains one element, remove the sync mode completely from that npc and remove him from the list of npc's with local changelists
+	If(IntListCount(akNPC, SUKEY_SYNC_MODE_CHANGELIST) == 1)
+		UnsetIntValue(akNPC, SYNC_MODE)
+		FormListRemove(None, SUKEY_SYNC_MODE_NPC_CHANGELIST, akNPC)
+	;Else if the mod had the highest priority on the npc, do set the global sync mode to the value of the next mod on that npc
+	ElseIf (ModIndex == IntListCount(akNPC, SUKEY_SYNC_MODE_CHANGELIST) - 1)
+		SetIntValue(akNPC, SYNC_MODE, IntListGet(akNPC, SYNC_MODE, ModIndex - 1))
 	EndIf
 
-	FormListRemove(None, SUKEY_SYNC_MODE_CHANGELIST, akToken)
-	IntListRemoveAt(None, SUKEY_SYNC_MODE_CHANGELIST, ModIndex)
+	FormListRemove(akNPC, SUKEY_SYNC_MODE_CHANGELIST, akToken)
+	IntListRemoveAt(akNPC, SUKEY_SYNC_MODE_CHANGELIST, ModIndex)
+	
+	If (IntListCount(None, SUKEY_SYNC_MODE_NPC_CHANGELIST) == 0)
+		IntListClear(None, SUKEY_SYNC_MODE_NPC_CHANGELIST)
+	EndIf
+	
 	Return True
 EndFunction
-/;
+
 
 Float Function GetGlobalRelationshipMulti(Int auiFromRelationshipRank, Int auiToRelationshipRank)
 	If(auiFromRelationshipRank < -5 || auiFromRelationshipRank > 5)
@@ -468,6 +479,7 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipR
 			Else
 				FormListInsert(None, RS_MULTI_CHANGELIST, i, akToken) ;Insert the actual mod into the list before the comparing mod
 				IntListInsert(None, RS_MULTI_CHANGELIST, i, 1) ;Insert the the marker for global relationship multiplier as well
+				FloatListInsert(None, RS_MULTI_S0_S1_CHANGELIST, i, 1.0)
 				FloatListInsert(None, RS_MULTI_S1_S2_CHANGELIST, i, 0.5)
 				FloatListInsert(None, RS_MULTI_S2_S3_CHANGELIST, i, 0.25)
 				FloatListInsert(None, RS_MULTI_S3_S4_CHANGELIST, i, 0.125)
@@ -539,6 +551,7 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipR
 	;No changes made to the function, so just add the value to it and apply the changes to the framework
 	FormListAdd(None, RS_MULTI_CHANGELIST, akToken)
 	IntListAdd(None, RS_MULTI_CHANGELIST, 1)
+	FloatListAdd(None, RS_MULTI_S0_S1_CHANGELIST, 1.0)
 	FloatListAdd(None, RS_MULTI_S1_S2_CHANGELIST, 0.5)
 	FloatListAdd(None, RS_MULTI_S2_S3_CHANGELIST, 0.25)
 	FloatListAdd(None, RS_MULTI_S3_S4_CHANGELIST, 0.125)
@@ -819,6 +832,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int auiFromRelati
 			Else
 				FormListInsert(akNPC, RS_MULTI_CHANGELIST, i, akToken) ;Insert the actual mod into the list before the comparing mod
 				IntListInsert(akNPC, RS_MULTI_CHANGELIST, i, 1) ;Insert the the marker for relationship multiplier as well
+				FloatListInsert(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, 1.0)
 				FloatListInsert(akNPC, RS_MULTI_S1_S2_CHANGELIST, i, 0.5)
 				FloatListInsert(akNPC, RS_MULTI_S2_S3_CHANGELIST, i, 0.25)
 				FloatListInsert(akNPC, RS_MULTI_S3_S4_CHANGELIST, i, 0.125)
@@ -891,6 +905,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int auiFromRelati
 	;No changes made to the function, so just add the value to it and apply the changes to the framework
 	FormListAdd(akNPC, RS_MULTI_CHANGELIST, akToken)
 	IntListAdd(akNPC, RS_MULTI_CHANGELIST, 1)
+	FloatListAdd(akNPC, RS_MULTI_S0_S1_CHANGELIST, 1.0)
 	FloatListAdd(akNPC, RS_MULTI_S1_S2_CHANGELIST, 0.5)
 	FloatListAdd(akNPC, RS_MULTI_S2_S3_CHANGELIST, 0.25)
 	FloatListAdd(akNPC, RS_MULTI_S3_S4_CHANGELIST, 0.125)
