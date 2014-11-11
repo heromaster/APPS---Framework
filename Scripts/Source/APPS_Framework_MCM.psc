@@ -5,11 +5,12 @@ Int FileLogLevel
 String[] InitOrdering
 String[] LogLevel
 String[] InfoManagerModsListOptions
-String[] NPCsWithLocalRSChangesList
+String[] SyncModeNPCListOptions
 String[] LoggingMethod
 String[] RS_PriorityOrdering
 Int InfoManagerModsListSelection
 Quest InfoManagerToken
+Actor SyncModeNPC
 Int USE_MOD_USER_LOG = 0
 Int USE_FRAMEWORK_LOG = 1
 Int USE_PAPYRUS_LOG = 2
@@ -38,6 +39,7 @@ String SUKEY_SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.Change
 String SUKEY_SYNC_MODE_NPC_CHANGELIST = "APPS.Framework.Relationship.SyncMode.NPC.ChangeList"
 Int InitControlFlags 
 Int UninstallControlFlags 
+Int NPCSyncModeOptionFlag
 Float TimeToNextInit = 1.0
 Bool InitSafetyLock = False 
 Bool UninstSafetyLock = False 
@@ -236,11 +238,29 @@ Event OnPageReset(String asPage)
 	ElseIf (asPage == Pages[6])	;RS - NPC Sync Mode changes
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		AddHeaderOption("$NPCs_WITH_SPECIAL_CHANGES")
-		AddMenuOptionST("NPCsWithLocalRSChangesList", "", "$SELECT")
+		AddMenuOptionST("SyncModeNPCList", "", "$SELECT")
 		
 		;filling up the NPCsWithLocalRSChangesList array with the names of the NPCs, to be shown as a menu later.
+		Int iSyncModeNPCs = FormListCount(None, SUKEY_SYNC_MODE_NPC_CHANGELIST)
+		SyncModeNPCListOptions = PapyrusUtil.StringArray(iSyncModeNPCs)
+		Int i
 		
+			While (i < iSyncModeNPCs)
+				SyncModeNPCListOptions[i] = FormListGet(None, SUKEY_SYNC_MODE_NPC_CHANGELIST, i).GetName()
+				i += 1
+			EndWhile
 		
+		SetCursorPosition(1)	;go to top of right column
+		AddHeaderOption("$MODS_AFFECTING_SELECTED_ACTOR")
+		
+		NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
+		Int ModsAffectingSyncModeNPC = FormListCount(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST)
+		Int j
+		
+			While (j < ModsAffectingSyncModeNPC)
+				AddTextOption(StringListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i), "", NPCSyncModeOptionFlag)
+				j += 1
+			EndWhile
 	EndIf
 EndEvent
 
