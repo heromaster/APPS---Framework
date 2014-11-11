@@ -5,6 +5,7 @@ Int FileLogLevel
 String[] InitOrdering
 String[] LogLevel
 String[] InfoManagerModsListOptions
+String[] NPCsWithLocalRSChangesList
 String[] LoggingMethod
 String[] RS_PriorityOrdering
 Int InfoManagerModsListSelection
@@ -231,10 +232,14 @@ Event OnPageReset(String asPage)
 			i += 1
 		EndWhile
 		
-;/ANTONO RESUME WORK HERE
+	
 	ElseIf (asPage == Pages[6])	;RS - NPC Sync Mode changes
 		SetCursorFillMode(TOP_TO_BOTTOM)
-/;
+		AddHeaderOption("$NPCs_WITH_SPECIAL_CHANGES")
+		AddMenuOptionST("NPCsWithLocalRSChangesList", "", "$SELECT")
+		
+		;filling up the NPCsWithLocalRSChangesList array with the names of the NPCs, to be shown as a menu later.
+		
 		
 	EndIf
 EndEvent
@@ -268,14 +273,14 @@ State InfoManagerModsList
 		Int OptionFlag = OPTION_FLAG_NONE
 		Utility.WaitMenuMode(0.5)
 		
+		If(!Utility.GetINIBool("bEnableLogging:Papyrus"))
+			OptionFlag = OPTION_FLAG_DISABLED
+		EndIf
+		
 		InfoManagerToken = FormListGet(None, SUKEY_REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
 
 		;fetching the Int contents of SUKEY_EXCEPTIONS_LOGFILE array and converting them to strings
 		String TokenLoggingMethod
-
-		If(!Utility.GetINIBool("bEnableLogging:Papyrus"))
-			OptionFlag = OPTION_FLAG_DISABLED
-		EndIf
 
 		If (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
 			TokenLoggingMethod = LoggingMethod[0]
