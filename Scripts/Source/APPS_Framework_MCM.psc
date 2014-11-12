@@ -9,6 +9,7 @@ String[] SyncModeNPCListOptions
 String[] LoggingMethod
 String[] RS_PriorityOrdering
 Int InfoManagerModsListSelection
+Int SyncModeNPCListSelection
 Quest InfoManagerToken
 Actor SyncModeNPC
 Int USE_MOD_USER_LOG = 0
@@ -83,6 +84,8 @@ Event OnConfigInit()
 	LoggingMethod[0] = "$USE_MOD_USER_LOG"
 	LoggingMethod[1] = "$USE_FRAMEWORK_LOG"
 	LoggingMethod[2] = "$USE_PAPYRUS_LOG"
+	
+	NPCSyncModeOptionFlag = OPTION_FLAG_HIDDEN
 EndEvent
 
 Event OnPageReset(String asPage)
@@ -108,7 +111,7 @@ Event OnPageReset(String asPage)
 		AddToggleOptionST("EnableLogging", "$ENABLE_LOGGING", Utility.GetINIBool("bEnableLogging:Papyrus"))
 		AddEmptyOption()
 		AddHeaderOption("$MOD_SPECIFIC_SETTINGS")
-		AddMenuOptionST("InfoManagerModsList", "", "$SELECT")
+		AddMenuOptionST("InfoManagerModsList", "", "$SELECT_MOD")
 		AddEmptyOption()
 		AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", "", OPTION_FLAG_DISABLED)
 		AddTextOptionST("LogName", "Log Name", "", OPTION_FLAG_DISABLED)
@@ -237,8 +240,9 @@ Event OnPageReset(String asPage)
 	
 	ElseIf (asPage == Pages[6])	;RS - NPC Sync Mode changes
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		AddHeaderOption("$NPCs_WITH_SPECIAL_CHANGES")
-		AddMenuOptionST("SyncModeNPCList", "", "$SELECT")
+		AddHeaderOption("$NPCs_WITH_SPECIAL_SYNCMODE")
+		AddEmptyOption()
+		AddMenuOptionST("SyncModeNPCList", "", "$SELECT_NPC")
 		
 		;filling up the NPCsWithLocalRSChangesList array with the names of the NPCs, to be shown as a menu later.
 		Int iSyncModeNPCs = FormListCount(None, SUKEY_SYNC_MODE_NPC_CHANGELIST)
@@ -251,7 +255,7 @@ Event OnPageReset(String asPage)
 			EndWhile
 		
 		SetCursorPosition(1)	;go to top of right column
-		AddHeaderOption("$MODS_AFFECTING_SELECTED_ACTOR")
+		AddHeaderOption("$MODS_AFFECTING_ACTOR")
 		AddEmptyOption()
 		
 		NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
@@ -263,11 +267,11 @@ Event OnPageReset(String asPage)
 				;convert SyncMode from Int to String
 				If (IntListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i) == 0)
 					SyncMode == "$DISABLE"
-				ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 1)
+				ElseIf (IntListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i) == 1)
 					SyncMode == "$VANILLA_TO_RS"
-				ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 2)
+				ElseIf (IntListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i) == 2)
 					SyncMode == "$RS_TO_VANILLA"
-				ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 3)
+				ElseIf (IntListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i) == 3)
 					SyncMode == "$BOTH_WAYS"
 				EndIf
 				
@@ -304,6 +308,7 @@ State InfoManagerModsList
 
 	Event OnMenuAcceptST(int aiSelectedOption)
 		Int OptionFlag = OPTION_FLAG_NONE
+		InfoManagerModsListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
 		Utility.WaitMenuMode(0.5)
 		
 		If(!Utility.GetINIBool("bEnableLogging:Papyrus"))
@@ -343,7 +348,6 @@ State InfoManagerModsList
 		SetOptionFlagsST(OptionFlag, True, "DisplayErrors")
 		SetOptionFlagsST(OptionFlag, False, "LogErrors")
 		
-		InfoManagerModsListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
 	EndEvent
 
 	Event OnHighlightST()
@@ -522,6 +526,27 @@ State StartInitialization
 			SetTextOptionValueST("$GO", False, "StartInitialization")
 			ForcePageReset()
 		EndIf
+	EndEvent
+EndState
+
+State SyncModeNPCList
+	Event OnMenuOpenST()
+		SetMenuDialogOptions(SyncModeNPCListOptions)
+		SetMenuDialogStartIndex(SyncModeNPCListSelection)
+	EndEvent
+	
+	Event OnMenuAcceptST(Int aiSelectedOption)
+		SyncModeNPCListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
+		
+		;set the NPC, remove the disabled flag and let the OnPageReset() handle the rest
+		NPCSyncModeOptionFlag = OPTION_FLAG_NONE		
+		SyncModeNPC = FormListGet(None, SUKEY_SYNC_MODE_NPC_CHANGELIST, aiSelectedOption) as Actor
+		
+		ForcePageReset()
+	EndEvent
+	
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_SYNCMODE_NPC_LIST")
 	EndEvent
 EndState
 
