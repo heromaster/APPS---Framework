@@ -215,22 +215,22 @@ Event OnPageReset(String asPage)
 		AddEmptyOption()
 		
 		Int i
-		String GlobalSyncModeChange
+		String SyncMode
 		
 		While (i < FormListCount(None, SUKEY_SYNC_MODE_CHANGELIST))
-			;convert GlobalSyncModeChange from Int to String
+			;convert SyncMode from Int to String
 			If (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 0)
-				GlobalSyncModeChange == "$DISABLE"
+				SyncMode == "$DISABLE"
 			ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 1)
-				GlobalSyncModeChange == "$VANILLA_TO_RS"
+				SyncMode == "$VANILLA_TO_RS"
 			ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 2)
-				GlobalSyncModeChange == "$RS_TO_VANILLA"
+				SyncMode == "$RS_TO_VANILLA"
 			ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 3)
-				GlobalSyncModeChange == "$BOTH_WAYS"
+				SyncMode == "$BOTH_WAYS"
 			EndIf
 			
-			IntListAdd(None, SUKEY_MENU_OPTIONS, AddTextOption(StringListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i), GlobalSyncModeChange))
-			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_REGISTERED_RS, i))
+			AddTextOption(StringListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i), SyncMode)
+			
 			i += 1
 		EndWhile
 		
@@ -252,13 +252,26 @@ Event OnPageReset(String asPage)
 		
 		SetCursorPosition(1)	;go to top of right column
 		AddHeaderOption("$MODS_AFFECTING_SELECTED_ACTOR")
+		AddEmptyOption()
 		
 		NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
 		Int ModsAffectingSyncModeNPC = FormListCount(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST)
+		String SyncMode
 		Int j
 		
 			While (j < ModsAffectingSyncModeNPC)
-				AddTextOption(StringListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i), "", NPCSyncModeOptionFlag)
+				;convert SyncMode from Int to String
+				If (IntListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i) == 0)
+					SyncMode == "$DISABLE"
+				ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 1)
+					SyncMode == "$VANILLA_TO_RS"
+				ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 2)
+					SyncMode == "$RS_TO_VANILLA"
+				ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 3)
+					SyncMode == "$BOTH_WAYS"
+				EndIf
+				
+				AddTextOption(StringListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i), SyncMode, NPCSyncModeOptionFlag)
 				j += 1
 			EndWhile
 	EndIf
