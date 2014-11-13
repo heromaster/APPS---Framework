@@ -155,6 +155,13 @@ Bool Function RemoveGlobalSyncMode(Quest akToken)
 
 	FormListRemove(None, SUKEY_SYNC_MODE_CHANGELIST, akToken)
 	IntListRemoveAt(None, SUKEY_SYNC_MODE_CHANGELIST, ModIndex)
+	
+	;;if the changelists are now empty (e.g. the framework has been removed), clear them
+	If (FormListCount(None, SUKEY_SYNC_MODE_CHANGELIST) == 0)
+		FormListClear(None, SUKEY_SYNC_MODE_CHANGELIST)
+		IntListClear(None, SUKEY_SYNC_MODE_CHANGELIST)
+	EndIf
+	
 	Return True
 EndFunction
 
@@ -295,43 +302,50 @@ Bool Function RemoveSyncMode(Quest akToken, Actor akNPC)
 	FormListRemove(akNPC, SUKEY_SYNC_MODE_CHANGELIST, akToken)
 	IntListRemoveAt(akNPC, SUKEY_SYNC_MODE_CHANGELIST, ModIndex)
 	
-	If (IntListCount(None, SUKEY_SYNC_MODE_NPC_CHANGELIST) == 0)
-		IntListClear(None, SUKEY_SYNC_MODE_NPC_CHANGELIST)
+	;if no NPC with local changes remains, clear the arrays
+	If (FormListCount(None, SUKEY_SYNC_MODE_NPC_CHANGELIST) == 0)
+		FormListClear(None, SUKEY_SYNC_MODE_NPC_CHANGELIST)
+	EndIf
+	
+	;if the changelists are now empty (e.g. the framework has been removed), clear them
+	If (FormListCount(akNPC, SUKEY_SYNC_MODE_CHANGELIST) == 0)
+		FormListClear(akNPC, SUKEY_SYNC_MODE_CHANGELIST)
+		IntListClear(akNPC, SUKEY_SYNC_MODE_CHANGELIST)
 	EndIf
 	
 	Return True
 EndFunction
 
 
-Float Function GetGlobalRelationshipMulti(Int auiFromRelationshipRank, Int auiToRelationshipRank)
-	If(auiFromRelationshipRank < -5 || auiFromRelationshipRank > 5)
-		Throw(FW_LOG, "Argument auiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+Float Function GetGlobalRelationshipMulti(Int aiFromRelationshipRank, Int aiToRelationshipRank)
+	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
-	If(auiToRelationshipRank < -5 || auiToRelationshipRank > 5)
-		Throw(FW_LOG, "Argument auiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
-	If(auiFromRelationshipRank == auiToRelationshipRank)
-		Throw(FW_LOG, "Argument auiToRelationshipRank can not be the same value as auiFromRelationshipRank.", "Invalid arguments")
+	If(aiFromRelationshipRank == aiToRelationshipRank)
+		Throw(FW_LOG, "Argument aiToRelationshipRank can not be the same value as aiFromRelationshipRank.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
-	If(auiFromRelationshipRank < auiToRelationshipRank && auiToRelationshipRank - auiFromRelationshipRank != 1)
-		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + auiFromRelationshipRank + " to Rank " + auiToRelationshipRank + " is incorrect.", "Invalid arguments")
+	If(aiFromRelationshipRank < aiToRelationshipRank && aiToRelationshipRank - aiFromRelationshipRank != 1)
+		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
 		Return -1.0
-	ElseIf(auiToRelationshipRank < auiFromRelationshipRank && auiFromRelationshipRank - auiToRelationshipRank != 1)
-		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + auiFromRelationshipRank + " to Rank " + auiToRelationshipRank + " is incorrect.", "Invalid arguments")
+	ElseIf(aiToRelationshipRank < aiFromRelationshipRank && aiFromRelationshipRank - aiToRelationshipRank != 1)
+		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
-	String MultiplierString = "APPS.Relationship.RelationshipMulti.S" + auiFromRelationshipRank As String + "_" + "S" + auiToRelationshipRank As String
+	String MultiplierString = "APPS.Relationship.RelationshipMulti.S" + aiFromRelationshipRank As String + "_" + "S" + aiToRelationshipRank As String
 	Return GetFloatValue(None, MultiplierString)
 EndFunction
 
-Bool Function SetGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipRank, Int auiToRelationshipRank, Float aiMultiplier)
+Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRank, Int aiToRelationshipRank, Float aiMultiplier)
 	Int ModIndex = _GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS)
 
 	If(ModIndex == -1)
@@ -339,26 +353,26 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipR
 		Return False
 	EndIf
 
-	If(auiFromRelationshipRank < -5 || auiFromRelationshipRank > 5)
-		Throw(FW_LOG, "Argument auiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
-	If(auiToRelationshipRank < -5 || auiToRelationshipRank > 5)
-		Throw(FW_LOG, "Argument auiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return False
 	EndIf
 
-	If(auiFromRelationshipRank == auiToRelationshipRank)
-		Throw(FW_LOG, "Argument auiToRelationshipRank can not be the same value as auiFromRelationshipRank.", "Invalid arguments")
+	If(aiFromRelationshipRank == aiToRelationshipRank)
+		Throw(FW_LOG, "Argument aiToRelationshipRank can not be the same value as aiFromRelationshipRank.", "Invalid arguments")
 		Return False
 	EndIf
 
-	If(auiFromRelationshipRank < auiToRelationshipRank && auiToRelationshipRank - auiFromRelationshipRank != 1)
-		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + auiFromRelationshipRank + " to Rank " + auiToRelationshipRank + " is incorrect.", "Invalid arguments")
+	If(aiFromRelationshipRank < aiToRelationshipRank && aiToRelationshipRank - aiFromRelationshipRank != 1)
+		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
 		Return False
-	ElseIf(auiToRelationshipRank < auiFromRelationshipRank && auiFromRelationshipRank - auiToRelationshipRank != 1)
-		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + auiFromRelationshipRank + " to Rank " + auiToRelationshipRank + " is incorrect.", "Invalid arguments")
+	ElseIf(aiToRelationshipRank < aiFromRelationshipRank && aiFromRelationshipRank - aiToRelationshipRank != 1)
+		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
 		Return False
 	EndIf
 
@@ -370,7 +384,7 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipR
 	String ModName = StringListGet(None, SUKEY_REGISTERED_RS, ModIndex)
 	Int ModIndex2 = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST) ; Get position of current mod in this list
 	Int RSMultiChanges = FormListCount(None, RS_MULTI_CHANGELIST) ;Get the list of mods which do change the sync mode on an actor
-	String MultiplierString = "S" + auiFromRelationshipRank As String + "_S" + auiToRelationshipRank As String
+	String MultiplierString = "S" + aiFromRelationshipRank As String + "_S" + aiToRelationshipRank As String
 
 	;If the mod was found, update its new value
 	If(ModIndex2 >= 0)
@@ -416,7 +430,7 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipR
 			FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, aiMultiplier)
 		EndIf
 
-		Notify(FW_LOG, "Global multiplier for rank " + auiFromRelationshipRank + " to " + auiToRelationshipRank + " got updated by " + ModName + ".", False)
+		Notify(FW_LOG, "Global multiplier for rank " + aiFromRelationshipRank + " to " + aiToRelationshipRank + " got updated by " + ModName + ".", False)
 
 		;If the mod is also on the last position then also update the global relationship multiplier
 		If(ModIndex2 == RSMultiChanges - 1)
@@ -637,7 +651,9 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipR
 	Return True
 EndFunction
 
-Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipRank, Int auiToRelationshipRank)
+Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRank, Int aiToRelationshipRank)
+;ANTONO resume work here
+;ANTONO TODO: Various GetModPosition, RemoveAllGlobalRelationshipMulti
 	If(_GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS) == -1)
 		Warn(FW_LOG, "A mod tried to remove its changes to the global relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
@@ -646,77 +662,74 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int auiFromRelationsh
 		Return False
 	EndIf
 
-	If(auiFromRelationshipRank < -5 || auiFromRelationshipRank > 5)
-		Throw(FW_LOG, "Argument auiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
-	If(auiToRelationshipRank < -5 || auiToRelationshipRank > 5)
-		Throw(FW_LOG, "Argument auiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return False
 	EndIf
 
-	If(auiFromRelationshipRank == auiToRelationshipRank)
-		Throw(FW_LOG, "Argument auiToRelationshipRank can not be the same value as auiFromRelationshipRank.", "Invalid arguments")
+	If(aiFromRelationshipRank == aiToRelationshipRank)
+		Throw(FW_LOG, "Argument aiToRelationshipRank can not be the same value as aiFromRelationshipRank.", "Invalid arguments")
 		Return False
 	EndIf
 	
-	If(auiFromRelationshipRank - auiToRelationshipRank != 1 && auiFromRelationshipRank - auiToRelationshipRank != -1)
-		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + auiFromRelationshipRank + " to Rank " + auiToRelationshipRank + " is incorrect.", "Invalid arguments")
+	If(aiFromRelationshipRank - aiToRelationshipRank != 1 && aiFromRelationshipRank - aiToRelationshipRank != -1)
+		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
 		Return False
 	EndIf
 	
 	Int ModIndex = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST)
-	String MultiplierString = "S" + auiFromRelationshipRank As String + "_S" + auiToRelationshipRank As String
+	String MultiplierString = "S" + aiFromRelationshipRank As String + "_S" + aiToRelationshipRank As String
 	
-	;ANTONO QUESTION: what does it mean when you do UnsetIntValue for the GlobalSync and what UnsetFloatValue for the RelationshipMulti
-	
-	EndIf
 EndFunction
 
-Float Function GetRelationshipMulti(Actor akNPC, Int auiFromRelationshipRank, Int auiToRelationshipRank, Bool abIsGetGlobalIfNotFound = True)
+Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abIsGetGlobalIfNotFound = True)
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC for function GetRelationshipMulti() is None!", "Invalid arguments")
 		Return -1.0
 	EndIf
 	
-	If(auiFromRelationshipRank < -5 || auiFromRelationshipRank > 5)
-		Throw(FW_LOG, "Argument auiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
-	If(auiToRelationshipRank < -5 || auiToRelationshipRank > 5)
-		Throw(FW_LOG, "Argument auiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
-	If(auiFromRelationshipRank == auiToRelationshipRank)
-		Throw(FW_LOG, "Argument auiToRelationshipRank can not be the same value as auiFromRelationshipRank.", "Invalid arguments")
+	If(aiFromRelationshipRank == aiToRelationshipRank)
+		Throw(FW_LOG, "Argument aiToRelationshipRank can not be the same value as aiFromRelationshipRank.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
-	If(auiFromRelationshipRank < auiToRelationshipRank && auiToRelationshipRank - auiFromRelationshipRank != 1)
-		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + auiFromRelationshipRank + " to Rank " + auiToRelationshipRank + " is incorrect.", "Invalid arguments")
+	If(aiFromRelationshipRank < aiToRelationshipRank && aiToRelationshipRank - aiFromRelationshipRank != 1)
+		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
 		Return -1.0
-	ElseIf(auiToRelationshipRank < auiFromRelationshipRank && auiFromRelationshipRank - auiToRelationshipRank != 1)
-		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + auiFromRelationshipRank + " to Rank " + auiToRelationshipRank + " is incorrect.", "Invalid arguments")
+	ElseIf(aiToRelationshipRank < aiFromRelationshipRank && aiFromRelationshipRank - aiToRelationshipRank != 1)
+		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
-	String MultiplierString = "APPS.Relationship.RelationshipMulti.S" + auiFromRelationshipRank As String + "_" + "S" + auiToRelationshipRank As String
+	String MultiplierString = "APPS.Relationship.RelationshipMulti.S" + aiFromRelationshipRank As String + "_" + "S" + aiToRelationshipRank As String
 
 	If(HasFloatValue(akNPC, MultiplierString))
 		Return GetFloatValue(akNPC, MultiplierString)
 	Else
 		If(abIsGetGlobalIfNotFound)
-			Return GetGlobalRelationshipMulti(auiFromRelationshipRank, auiToRelationshipRank)
+			Return GetGlobalRelationshipMulti(aiFromRelationshipRank, aiToRelationshipRank)
 		Else
 			Return -1.0
 		EndIf
 	EndIf
 EndFunction
 
-Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int auiFromRelationshipRank, Int auiToRelationshipRank, Float aiMultiplier)
+Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Float aiMultiplier)
 	Int ModIndex = _GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS)
 
 	If(ModIndex == -1)
@@ -729,26 +742,26 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int auiFromRelati
 		Return False
 	EndIf
 
-	If(auiFromRelationshipRank < -5 || auiFromRelationshipRank > 5)
-		Throw(FW_LOG, "Argument auiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
-	If(auiToRelationshipRank < -5 || auiToRelationshipRank > 5)
-		Throw(FW_LOG, "Argument auiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return False
 	EndIf
 
-	If(auiFromRelationshipRank == auiToRelationshipRank)
-		Throw(FW_LOG, "Argument auiToRelationshipRank can not be the same value as auiFromRelationshipRank.", "Invalid arguments")
+	If(aiFromRelationshipRank == aiToRelationshipRank)
+		Throw(FW_LOG, "Argument aiToRelationshipRank can not be the same value as aiFromRelationshipRank.", "Invalid arguments")
 		Return False
 	EndIf
 
-	If(auiFromRelationshipRank < auiToRelationshipRank && auiToRelationshipRank - auiFromRelationshipRank != 1)
-		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + auiFromRelationshipRank + " to Rank " + auiToRelationshipRank + " is incorrect.", "Invalid arguments")
+	If(aiFromRelationshipRank < aiToRelationshipRank && aiToRelationshipRank - aiFromRelationshipRank != 1)
+		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
 		Return False
-	ElseIf(auiToRelationshipRank < auiFromRelationshipRank && auiFromRelationshipRank - auiToRelationshipRank != 1)
-		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + auiFromRelationshipRank + " to Rank " + auiToRelationshipRank + " is incorrect.", "Invalid arguments")
+	ElseIf(aiToRelationshipRank < aiFromRelationshipRank && aiFromRelationshipRank - aiToRelationshipRank != 1)
+		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
 		Return False
 	EndIf
 
@@ -760,7 +773,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int auiFromRelati
 	String ModName = StringListGet(None, SUKEY_REGISTERED_RS, ModIndex)
 	Int ModIndex2 = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) ; Get position of current mod in this list
 	Int RSMultiChanges = FormListCount(akNPC, RS_MULTI_CHANGELIST) ;Get the list of mods which do change the sync mode on an actor
-	String MultiplierString = "S" + auiFromRelationshipRank As String + "_S" + auiToRelationshipRank As String
+	String MultiplierString = "S" + aiFromRelationshipRank As String + "_S" + aiToRelationshipRank As String
 
 	;If the mod was found, update its new value
 	If(ModIndex2 >= 0)
@@ -806,7 +819,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int auiFromRelati
 			FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, aiMultiplier)
 		EndIf
 
-		Notify(FW_LOG, "Global multiplier for rank " + auiFromRelationshipRank + " to " + auiToRelationshipRank + " got updated by " + ModName + ".", False)
+		Notify(FW_LOG, "Global multiplier for rank " + aiFromRelationshipRank + " to " + aiToRelationshipRank + " got updated by " + ModName + ".", False)
 
 		;If the mod is also on the last position then also update the relationship multiplier
 		If(ModIndex2 == RSMultiChanges - 1)
