@@ -80,7 +80,7 @@ Bool Function SetGlobalSyncMode(Quest akToken, Int aiSyncMode)
 	Int ModIndex = _GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS)
 
 	If(ModIndex == -1)
-		Throw(FW_LOG, " A mod, which is not registered or sent an invalid Token, tried to access SetGlobalSyncMod(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Throw(FW_LOG, " A mod, which is not registered or sent an invalid Token, tried to access SetGlobalSyncMode(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Return False
 	EndIf
 
@@ -115,7 +115,7 @@ Bool Function SetGlobalSyncMode(Quest akToken, Int aiSyncMode)
 			Form ModToCmp = FormListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) ;Get mod at index i
 			Int ModToCmpIdx = FormListFind(None, SUKEY_REGISTERED_RS, ModToCmp) ;Get priority of this comparing mod
 
-			;If the actual mod has a higher priority then the comparing mod then continue cycling the list
+			;If the actual mod has a higher priority than the comparing mod then continue cycling the list
 			If(ModIndex > ModToCmpIdx)
 				i += 1
 			Else
@@ -127,7 +127,7 @@ Bool Function SetGlobalSyncMode(Quest akToken, Int aiSyncMode)
 		EndWhile
 	EndIf
 
-	;No changes made to the function, so just add the value to it and apply the changes to the framework
+	;No changes made to the array, so just add the value to it and apply the changes to the framework
 	FormListAdd(None, SUKEY_SYNC_MODE_CHANGELIST, akToken)
 	IntListAdd(None, SUKEY_SYNC_MODE_CHANGELIST, aiSyncMode)
 	SetIntValue(None, SYNC_MODE, aiSyncMode)
@@ -246,7 +246,7 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 			Form ModToCmp = FormListGet(akNPC, SUKEY_SYNC_MODE_CHANGELIST, i) ;Get mod at index i
 			Int ModToCmpIdx = FormListFind(None, SUKEY_REGISTERED_RS, ModToCmp) ;Get priority of this comparing mod
 
-			;If the actual mod has a higher priority then the comparing mod then continue cycling the list
+			;If the actual mod has a higher priority than the comparing mod then continue cycling the list
 			If(ModIndex > ModToCmpIdx)
 				i += 1
 			Else
@@ -258,7 +258,7 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 		EndWhile
 	EndIf
 	
-	;No changes made to the function, so just add the value to it and apply the changes to the framework
+	;No changes made to the array, so just add the value to it and apply the changes to the framework
 	FormListAdd(akNPC, SUKEY_SYNC_MODE_CHANGELIST, akToken)
 	IntListAdd(akNPC, SUKEY_SYNC_MODE_CHANGELIST, aiSyncMode) 
 	FormListAdd(None, SUKEY_SYNC_MODE_NPC_CHANGELIST, akNPC)
@@ -473,7 +473,7 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipR
 			Form ModToCmp = FormListGet(None, RS_MULTI_CHANGELIST, i) ;Get mod at index i
 			Int ModToCmpIdx = FormListFind(None, SUKEY_REGISTERED_RS, ModToCmp) ;Get priority of this comparing mod
 
-			;If the actual mod has a higher priority then the comparing mod then continue cycling the list
+			;If the actual mod has a higher priority than the comparing mod then continue cycling the list
 			If(ModIndex > ModToCmpIdx)
 				i += 1
 			Else
@@ -548,7 +548,7 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipR
 		EndWhile
 	EndIf
 
-	;No changes made to the function, so just add the value to it and apply the changes to the framework
+	;No changes made to the array, so just add the value to it and apply the changes to the framework
 	FormListAdd(None, RS_MULTI_CHANGELIST, akToken)
 	IntListAdd(None, RS_MULTI_CHANGELIST, 1)
 	FloatListAdd(None, RS_MULTI_S0_S1_CHANGELIST, 1.0)
@@ -635,6 +635,43 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipR
 	EndIf
 
 	Return True
+EndFunction
+
+Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int auiFromRelationshipRank, Int auiToRelationshipRank)
+	If(_GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS) == -1)
+		Warn(FW_LOG, "A mod tried to remove its changes to the global relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	ElseIf(_GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST) == -1)
+		Notify(FW_LOG, "A mod tried to remove its changes to the global relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	EndIf
+
+	If(auiFromRelationshipRank < -5 || auiFromRelationshipRank > 5)
+		Throw(FW_LOG, "Argument auiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+		Return -1.0
+	EndIf
+
+	If(auiToRelationshipRank < -5 || auiToRelationshipRank > 5)
+		Throw(FW_LOG, "Argument auiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(auiFromRelationshipRank == auiToRelationshipRank)
+		Throw(FW_LOG, "Argument auiToRelationshipRank can not be the same value as auiFromRelationshipRank.", "Invalid arguments")
+		Return False
+	EndIf
+	
+	If(auiFromRelationshipRank - auiToRelationshipRank != 1 && auiFromRelationshipRank - auiToRelationshipRank != -1)
+		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + auiFromRelationshipRank + " to Rank " + auiToRelationshipRank + " is incorrect.", "Invalid arguments")
+		Return False
+	EndIf
+	
+	Int ModIndex = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST)
+	String MultiplierString = "S" + auiFromRelationshipRank As String + "_S" + auiToRelationshipRank As String
+	
+	;ANTONO QUESTION: what does it mean when you do UnsetIntValue for the GlobalSync and what UnsetFloatValue for the RelationshipMulti
+	
+	EndIf
 EndFunction
 
 Float Function GetRelationshipMulti(Actor akNPC, Int auiFromRelationshipRank, Int auiToRelationshipRank, Bool abIsGetGlobalIfNotFound = True)
@@ -826,7 +863,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int auiFromRelati
 			Form ModToCmp = FormListGet(akNPC, RS_MULTI_CHANGELIST, i) ;Get mod at index i
 			Int ModToCmpIdx = FormListFind(None, SUKEY_REGISTERED_RS, ModToCmp) ;Get priority of this comparing mod
 
-			;If the actual mod has a higher priority then the comparing mod then continue cycling the list
+			;If the actual mod has a higher priority than the comparing mod then continue cycling the list
 			If(ModIndex > ModToCmpIdx)
 				i += 1
 			Else
@@ -902,7 +939,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int auiFromRelati
 		EndWhile
 	EndIf
 
-	;No changes made to the function, so just add the value to it and apply the changes to the framework
+	;No changes made to the array, so just add the value to it and apply the changes to the framework
 	FormListAdd(akNPC, RS_MULTI_CHANGELIST, akToken)
 	IntListAdd(akNPC, RS_MULTI_CHANGELIST, 1)
 	FloatListAdd(akNPC, RS_MULTI_S0_S1_CHANGELIST, 1.0)
