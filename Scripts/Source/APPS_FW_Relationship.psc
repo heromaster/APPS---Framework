@@ -781,6 +781,132 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 	Int ModIndex = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST)
 	String MultiplierString = "S" + aiFromRelationshipRank As String + "_S" + aiToRelationshipRank As String
 	
+	;/
+	If(MultiplierString == "S0_S1")
+	ElseIf(MultiplierString == "S1_S2")
+	ElseIf(MultiplierString == "S2_S3")
+	ElseIf(MultiplierString == "S3_S4")
+	ElseIf(MultiplierString == "S4_S5")
+	ElseIf(MultiplierString == "S5_S4")
+	ElseIf(MultiplierString == "S4_S3")
+	ElseIf(MultiplierString == "S3_S2")
+	ElseIf(MultiplierString == "S2_S1")
+	ElseIf(MultiplierString == "S1_S0")
+	ElseIf(MultiplierString == "S0_S-1")
+	ElseIf(MultiplierString == "S-1_S-2")
+	ElseIf(MultiplierString == "S-2_S-3")
+	ElseIf(MultiplierString == "S-3_S-4")
+	ElseIf(MultiplierString == "S-4_S-5")
+	ElseIf(MultiplierString == "S-5_S-4")
+	ElseIf(MultiplierString == "S-4_S-3")
+	ElseIf(MultiplierString == "S-3_S-2")
+	ElseIf(MultiplierString == "S-2_S-1")
+	ElseIf(MultiplierString == "S-1_S0")
+	EndIf
+	/;
+	
+	;if this mod has not set custom multiplier for this stage, return false
+	If(MultiplierString == "S0_S1")
+		If (IntListGet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S1_S2")
+		If (IntListGet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S2_S3")
+		If (IntListGet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S3_S4")
+		If (IntListGet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S4_S5")
+		If (IntListGet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S5_S4")
+		If (IntListGet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S4_S3")
+		If (IntListGet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S3_S2")
+		If (IntListGet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S2_S1")
+		If (IntListGet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S1_S0")
+		If (IntListGet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S0_S-1")
+		If (IntListGet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-1_S-2")
+		If (IntListGet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-2_S-3")
+		If (IntListGet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-3_S-4")
+		If (IntListGet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-4_S-5")
+		If (IntListGet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-5_S-4")
+		If (IntListGet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-4_S-3")
+		If (IntListGet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-3_S-2")
+		If (IntListGet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-2_S-1")
+		If (IntListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-1_S0")
+		If (IntListGet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	EndIf
 EndFunction
 
 Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abIsGetGlobalIfNotFound = True)
