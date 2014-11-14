@@ -907,6 +907,210 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 			Return False
 		EndIf
 	EndIf
+	
+	;if the mod does not affect any other multipliers, remove it from the arrays after checking if it had highest priority
+	If ((IntListGet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex) + \
+		IntListGet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)) == 1)
+		
+		;if the mod had highest priority, then set the multiplier values to those specified by the previous mod
+		;ANTONO TODO: wrong array given. it has to SetFloatValue what was dictated by the ModIndex - 1 mod
+		If (ModIndex == FormListCount(None, RS_MULTI_CHANGELIST) - 1)
+			FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex - 1)
+			FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex - 1)
+		EndIf
+		
+		;remove the mod from the arrays
+		FloatListRemoveAt(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+		FloatListRemoveAt(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+		IntListRemoveAt(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+		
+		FormListRemoveAt(None, RS_MULTI_CHANGELIST, ModIndex)
+				
+	EndIf
+	
+	;if the mod had the highest priority, update the actual multiplier value to the default framework value
+	If (ModIndex == FormListCount(None, RS_MULTI_CHANGELIST) - 1)
+		If(MultiplierString == "S0_S1")
+			SetFloatValue(None, RS_MULTI_S0_S1_CHANGELIST, 1.0)
+		ElseIf(MultiplierString == "S1_S2")
+			SetFloatValue(None, RS_MULTI_S1_S2_CHANGELIST, 0.5)
+		ElseIf(MultiplierString == "S2_S3")
+			SetFloatValue(None, RS_MULTI_S2_S3_CHANGELIST, 0.25)
+		ElseIf(MultiplierString == "S3_S4")
+			SetFloatValue(None, RS_MULTI_S3_S4_CHANGELIST, 0.125)
+		ElseIf(MultiplierString == "S4_S5")
+			SetFloatValue(None, RS_MULTI_S4_S5_CHANGELIST, 0.0625)
+		ElseIf(MultiplierString == "S5_S4")
+			SetFloatValue(None, RS_MULTI_S5_S4_CHANGELIST, 0.125)
+		ElseIf(MultiplierString == "S4_S3")
+			SetFloatValue(None, RS_MULTI_S4_S3_CHANGELIST, 0.25)
+		ElseIf(MultiplierString == "S3_S2")
+			SetFloatValue(None, RS_MULTI_S3_S2_CHANGELIST, 0.5)
+		ElseIf(MultiplierString == "S2_S1")
+			SetFloatValue(None, RS_MULTI_S2_S1_CHANGELIST, 1.0)
+		ElseIf(MultiplierString == "S1_S0")
+			SetFloatValue(None, RS_MULTI_S1_S0_CHANGELIST, 2.0)
+		ElseIf(MultiplierString == "S0_S-1")
+			SetFloatValue(None, RS_MULTI_S0_SM1_CHANGELIST, 1.0)
+		ElseIf(MultiplierString == "S-1_S-2")
+			SetFloatValue(None, RS_MULTI_SM1_SM2_CHANGELIST, 0.5)
+		ElseIf(MultiplierString == "S-2_S-3")
+			SetFloatValue(None, RS_MULTI_SM2_SM3_CHANGELIST, 0.25)
+		ElseIf(MultiplierString == "S-3_S-4")
+			SetFloatValue(None, RS_MULTI_SM3_SM4_CHANGELIST, 0.125)
+		ElseIf(MultiplierString == "S-4_S-5")
+			SetFloatValue(None, RS_MULTI_SM4_SM5_CHANGELIST, 0.0625)
+		ElseIf(MultiplierString == "S-5_S-4")
+			SetFloatValue(None, RS_MULTI_SM5_SM4_CHANGELIST, 0.125)
+		ElseIf(MultiplierString == "S-4_S-3")
+			SetFloatValue(None, RS_MULTI_SM4_SM3_CHANGELIST, 0.25)
+		ElseIf(MultiplierString == "S-3_S-2")
+			SetFloatValue(None, RS_MULTI_SM3_SM2_CHANGELIST, 0.5)
+		ElseIf(MultiplierString == "S-2_S-1")
+			SetFloatValue(None, RS_MULTI_SM2_SM1_CHANGELIST, 1.0)
+		ElseIf(MultiplierString == "S-1_S0")
+			SetFloatValue(None, RS_MULTI_SM1_S0_CHANGELIST, 2.0)
+		EndIf
+	EndIf
+	
+	;if the mod has passed all validation checks, then update its changes
+	If(MultiplierString == "S0_S1")
+		FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex, 1.0)
+		IntListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S1_S2")
+		FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex, 0.5)
+		IntListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S2_S3")
+		FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex, 0.25)
+		IntListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S3_S4")
+		FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex, 0.125)
+		IntListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S4_S5")
+		FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex, 0.0625)
+		IntListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S5_S4")
+		FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex, 0.125)
+		IntListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S4_S3")
+		FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex, 0.25)
+		IntListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S3_S2")
+		FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex, 0.5)
+		IntListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S2_S1")
+		FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex, 1.0)
+		IntListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S1_S0")
+		FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex, 2.0)
+		IntListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S0_S-1")
+		FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex, 1.0)
+		IntListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S-1_S-2")
+		FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex, 0.5)
+		IntListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S-2_S-3")
+		FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex, 0.25)
+		IntListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S-3_S-4")
+		FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex, 0.125)
+		IntListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S-4_S-5")
+		FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex, 0.0625)
+		IntListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S-5_S-4")
+		FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex, 0.125)
+		IntListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S-4_S-3")
+		FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex, 0.25)
+		IntListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S-3_S-2")
+		FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex, 0.5)
+		IntListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S-2_S-1")
+		FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex, 1.0)
+		IntListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex, 0)
+	ElseIf(MultiplierString == "S-1_S0")
+		FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex, 2.0)
+		IntListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex, 0)
+	EndIf
+	
+	
+	
 EndFunction
 
 Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abIsGetGlobalIfNotFound = True)
