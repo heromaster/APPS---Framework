@@ -355,7 +355,7 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRa
 
 	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
 		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -1.0
+		Return False
 	EndIf
 
 	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
@@ -760,7 +760,7 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 
 	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
 		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -1.0
+		Return False
 	EndIf
 
 	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
@@ -930,7 +930,7 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 		IntListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex) + \
 		IntListGet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)) == 1)
 		
-		;if this is not the only mod remaining in the multipliers changelist
+		;if this is not the only mod in the multipliers changelist
 		If (FormListCount(None, RS_MULTI_CHANGELIST) > 1)
 			;if the mod had highest priority, then set the multiplier values to those specified by the next mod
 			If (ModIndex == FormListCount(None, RS_MULTI_CHANGELIST) - 1)
@@ -1069,7 +1069,8 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 		EndIf
 		
 		Return True
-	Else
+		
+	Else	;if the mod does affect other multipliers i.e. it will not be removed from the arrays
 		;if the mod had the highest priority, update the actual multiplier value to the default framework value
 		If (ModIndex == FormListCount(None, RS_MULTI_CHANGELIST) - 1)
 			If(MultiplierString == "S0_S1")
@@ -1115,7 +1116,7 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 			EndIf
 		EndIf
 		
-		;if the mod has passed all validation checks, then update its changes
+		;update all the mod's changes
 		If(MultiplierString == "S0_S1")
 			FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex, 1.0)
 			IntListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex, 0)
@@ -1239,7 +1240,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 
 	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
 		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -1.0
+		Return False
 	EndIf
 
 	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
