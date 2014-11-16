@@ -805,7 +805,7 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 	EndIf
 	/;
 	
-	;if this mod has not set custom multiplier for this stage, return false
+	;if this mod has not set a custom multiplier for this stage, return false (nothing to remove)
 	If(MultiplierString == "S0_S1")
 		If (IntListGet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex) == 0)
 			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
@@ -908,7 +908,7 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 		EndIf
 	EndIf
 	
-	;if the mod does not affect any other multipliers, remove it from the arrays after checking if it had highest priority
+	;if the mod does not affect any other multipliers, remove it from the arrays after checking in case it had highest priority
 	If ((IntListGet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex) + \
 		IntListGet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex) + \
 		IntListGet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex) + \
@@ -930,30 +930,31 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 		IntListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex) + \
 		IntListGet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)) == 1)
 		
-		;if the mod had highest priority, then set the multiplier values to those specified by the previous mod
-		;ANTONO TODO: wrong array given. it has to SetFloatValue what was dictated by the ModIndex - 1 mod
-		If (ModIndex == FormListCount(None, RS_MULTI_CHANGELIST) - 1)
-			FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex - 1)
-			FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex - 1)
-		EndIf
+		;if this is not the only mod remaining in the multipliers changelist
+		If (FormListCount(None, RS_MULTI_CHANGELIST) > 1)
+			;if the mod had highest priority, then set the multiplier values to those specified by the next mod
+			If (ModIndex == FormListCount(None, RS_MULTI_CHANGELIST) - 1)
+				SetFloatValue(None, RS_MULTI_S0_S1, FloatListGet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_S1_S2, FloatListGet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_S2_S3, FloatListGet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_S3_S4, FloatListGet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_S4_S5, FloatListGet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_S5_S4, FloatListGet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_S4_S3, FloatListGet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_S3_S2, FloatListGet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_S2_S1, FloatListGet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_S1_S0, FloatListGet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_S0_SM1, FloatListGet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_SM1_SM2, FloatListGet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_SM2_SM3, FloatListGet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_SM3_SM4, FloatListGet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_SM4_SM5, FloatListGet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_SM5_SM4, FloatListGet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_SM4_SM3, FloatListGet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_SM3_SM2, FloatListGet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_SM2_SM1, FloatListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex - 1))
+				SetFloatValue(None, RS_MULTI_SM1_S0, FloatListGet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex - 1))
+			EndIf
 		
 		;remove the mod from the arrays
 		FloatListRemoveAt(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
@@ -998,7 +999,75 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 		IntListRemoveAt(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
 		
 		FormListRemoveAt(None, RS_MULTI_CHANGELIST, ModIndex)
-				
+		
+		;if the arrays are now empty, clear them and unset the multipliers value
+		If (FormListCount(None, RS_MULTI_CHANGELIST) == 0)
+			FormListClear(None, RS_MULTI_CHANGELIST)
+			
+			FloatListClear(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+			FloatListClear(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+			IntListClear(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+			
+			UnSetFloatValue(None, RS_MULTI_S0_S1)
+			UnSetFloatValue(None, RS_MULTI_S1_S2)
+			UnSetFloatValue(None, RS_MULTI_S2_S3)
+			UnSetFloatValue(None, RS_MULTI_S3_S4)
+			UnSetFloatValue(None, RS_MULTI_S4_S5)
+			UnSetFloatValue(None, RS_MULTI_S5_S4)
+			UnSetFloatValue(None, RS_MULTI_S4_S3)
+			UnSetFloatValue(None, RS_MULTI_S3_S2)
+			UnSetFloatValue(None, RS_MULTI_S2_S1)
+			UnSetFloatValue(None, RS_MULTI_S1_S0)
+			UnSetFloatValue(None, RS_MULTI_S0_SM1)
+			UnSetFloatValue(None, RS_MULTI_SM1_SM2)
+			UnSetFloatValue(None, RS_MULTI_SM2_SM3)
+			UnSetFloatValue(None, RS_MULTI_SM3_SM4)
+			UnSetFloatValue(None, RS_MULTI_SM4_SM5)
+			UnSetFloatValue(None, RS_MULTI_SM5_SM4)
+			UnSetFloatValue(None, RS_MULTI_SM4_SM3)
+			UnSetFloatValue(None, RS_MULTI_SM3_SM2)
+			UnSetFloatValue(None, RS_MULTI_SM2_SM1)
+			UnSetFloatValue(None, RS_MULTI_SM1_S0)
+		EndIf
+		
+		Return True
 	EndIf
 	
 	;if the mod had the highest priority, update the actual multiplier value to the default framework value
@@ -1109,8 +1178,7 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 		IntListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex, 0)
 	EndIf
 	
-	
-	
+	Return True
 EndFunction
 
 Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abIsGetGlobalIfNotFound = True)
