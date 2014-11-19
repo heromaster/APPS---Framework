@@ -69,11 +69,11 @@ Int Function GetGlobalSyncMode()
 EndFunction
 
 Int Function GetGlobalSyncModeChanges()
-	Return FormListCount(None, SYNC_MODE)
+	Return FormListCount(None, SUKEY_SYNC_MODE_CHANGELIST)
 EndFunction
 
 Int Function GetGlobalSyncModePos(Quest akToken)
-	Return _GetModIndexFromForm(akToken, SYNC_MODE) + 1
+	Return _GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST) + 1
 EndFunction
 
 Bool Function SetGlobalSyncMode(Quest akToken, Int aiSyncMode)
@@ -190,7 +190,7 @@ Int Function GetSyncModeChanges(Actor akNPC)
 		Return -1
 	EndIf
 
-	Return FormListCount(akNPC, SYNC_MODE)
+	Return FormListCount(akNPC, SUKEY_SYNC_MODE_CHANGELIST)
 EndFunction
 
 Int Function GetSyncModePos(Quest akToken, Actor akNPC)
@@ -199,7 +199,7 @@ Int Function GetSyncModePos(Quest akToken, Actor akNPC)
 		Return -1
 	EndIf
 
-	Return _GetModIndexFromForm(akToken, SYNC_MODE, akNPC) + 1
+	Return _GetModIndexFromForm(akToken, SUKEY_SYNC_MODE_CHANGELIST, akNPC) + 1
 EndFunction
 
 Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)

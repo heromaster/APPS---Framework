@@ -38,6 +38,28 @@ String SUKEY_UNINSTALL_MODS = "APPS.Framework.UninstallMods"
 String SUKEY_REGISTERED_RS = "APPS.Framework.Relationship.RegisteredMods"
 String SUKEY_SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList"
 String SUKEY_SYNC_MODE_NPC_CHANGELIST = "APPS.Framework.Relationship.SyncMode.NPC.ChangeList"
+String RS_MULTI_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.Global.ChangeList"
+String RS_MULTI_NPC_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.NPC.ChangeList"
+String RS_MULTI_S0_S1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S0_S1.ChangeList"
+String RS_MULTI_S1_S2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S1_S2.ChangeList"
+String RS_MULTI_S2_S3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S2_S3.ChangeList"
+String RS_MULTI_S3_S4_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S3_S4.ChangeList"
+String RS_MULTI_S4_S5_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S4_S5.ChangeList"
+String RS_MULTI_S5_S4_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S5_S4.ChangeList"
+String RS_MULTI_S4_S3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S4_S3.ChangeList"
+String RS_MULTI_S3_S2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S3_S2.ChangeList"
+String RS_MULTI_S2_S1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S2_S1.ChangeList"
+String RS_MULTI_S1_S0_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S1_S0.ChangeList"
+String RS_MULTI_S0_SM1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S0_S-1.ChangeList"
+String RS_MULTI_SM1_SM2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-1_S-2.ChangeList"
+String RS_MULTI_SM2_SM3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-2_S-3.ChangeList"
+String RS_MULTI_SM3_SM4_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-3_S-4.ChangeList"
+String RS_MULTI_SM4_SM5_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-4_S-5.ChangeList"
+String RS_MULTI_SM5_SM4_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-5_S-4.ChangeList"
+String RS_MULTI_SM4_SM3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-4_S-3.ChangeList"
+String RS_MULTI_SM3_SM2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-3_S-2.ChangeList"
+String RS_MULTI_SM2_SM1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-2_S-1.ChangeList"
+String RS_MULTI_SM1_S0_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-1_S0.ChangeList"
 Int InitControlFlags 
 Int UninstallControlFlags 
 Int NPCSyncModeOptionFlag
@@ -53,8 +75,8 @@ Event OnConfigInit()
 	Pages[3] = "$UNINSTALL_MANAGER"
 ;Just adding a pile of work you ;)
 	Pages[4] = "RS - Priority"
-	Pages[5] = "RS - Global Sync Mode changes"
-	Pages[6] = "RS - NPC Sync Mode changes"
+	Pages[5] = "RS - Global Sync Mode"
+	Pages[6] = "RS - NPC Sync Mode"
 	Pages[7] = "RS - Global RS Multiplier"
 	Pages[8] = "RS - Local RS Multiplier"
 
@@ -217,10 +239,11 @@ Event OnPageReset(String asPage)
 		AddTextOption("", "$GLOBAL_SYNC_MODE_CHANGES")
 		AddEmptyOption()
 		
-		Int i
+		Int ModsAffectingSyncMode = FormListCount(None, SUKEY_SYNC_MODE_CHANGELIST)
 		String SyncMode
+		Int i
 		
-		While (i < FormListCount(None, SUKEY_SYNC_MODE_CHANGELIST))
+		While (i < ModsAffectingSyncMode)
 			;convert SyncMode from Int to String
 			If (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 0)
 				SyncMode == "$DISABLE"
@@ -232,19 +255,23 @@ Event OnPageReset(String asPage)
 				SyncMode == "$BOTH_WAYS"
 			EndIf
 			
-			AddTextOption(StringListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i), SyncMode)
+			Quest Token = FormListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) as Quest
+			Int ModIndex = FormListFind(None, SUKEY_REGISTERED_RS, Token)
+			String ModName = StringListGet(None, SUKEY_REGISTERED_RS, ModIndex)
+			
+			AddTextOption(ModName, SyncMode)
 			
 			i += 1
 		EndWhile
 		
-	
 	ElseIf (asPage == Pages[6])	;RS - NPC Sync Mode changes
 		SetCursorFillMode(TOP_TO_BOTTOM)
+		
 		AddHeaderOption("$NPCs_WITH_SPECIAL_SYNCMODE")
 		AddEmptyOption()
 		AddMenuOptionST("SyncModeNPCList", "", "$SELECT_NPC")
 		
-		;filling up the NPCsWithLocalRSChangesList array with the names of the NPCs, to be shown as a menu later.
+		;filling up the SyncModeNPCListOptions array with the names of the NPCs, to be shown as a menu later.
 		Int iSyncModeNPCs = FormListCount(None, SUKEY_SYNC_MODE_NPC_CHANGELIST)
 		SyncModeNPCListOptions = PapyrusUtil.StringArray(iSyncModeNPCs)
 		Int i
@@ -275,9 +302,26 @@ Event OnPageReset(String asPage)
 					SyncMode == "$BOTH_WAYS"
 				EndIf
 				
-				AddTextOption(StringListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i), SyncMode, NPCSyncModeOptionFlag)
+				Quest Token = FormListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i) as Quest
+				Int ModIndex = FormListFind(None, SUKEY_REGISTERED_RS, Token)
+				String ModName = StringListGet(None, SUKEY_REGISTERED_RS, ModIndex)
+				
+				AddTextOption(ModName, SyncMode, NPCSyncModeOptionFlag)
 				j += 1
 			EndWhile
+			
+;/	ElseIf (asPage == Pages[7])	;RS - Global RS Multiplier
+		SetCursorFillMode(TOP_TO_BOTTOM)
+		
+		AddHeaderOption("$RELATIONSHIP")
+		AddTextOption("", "$GLOBAL_RELATIONSHIP_MULTIPLIERS")
+		AddEmptyOption()
+		
+		;filling up the GlobalRSMultiModsListOptions array with the names of the mods, to be shown as a menu later.
+		Int iGlobalRSMultiMods = FormListCount(None, RS)
+		Int i
+		/;
+		
 	EndIf
 EndEvent
 
@@ -862,6 +906,7 @@ All tabs:
 	- Fix Exception $translations
 	- Rename SUKEY_MENU_OPTIONS and the corresponding string to a less confusing name
 	- Optimize all increasing WHILE loops
+	- Translate pages names
 Tab: Uninstall Manager
 	- Test manager
 	- Decide if AddTextOption should work with the Text or the Value, i.e. whether "" should be the text or the value
