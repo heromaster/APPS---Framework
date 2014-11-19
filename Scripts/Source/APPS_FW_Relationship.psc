@@ -343,6 +343,10 @@ Float Function GetGlobalRelationshipMulti(Int aiFromRelationshipRank, Int aiToRe
 	Return GetFloatValue(None, MultiplierString)
 EndFunction
 
+Int Function GetGlobalRelationshipMultiPos(Quest akToken)
+	Return _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST) + 1
+EndFunction
+
 Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRank, Int aiToRelationshipRank, Float aiMultiplier)
 	Int ModIndex = _GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS)
 
@@ -1349,6 +1353,15 @@ Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int
 			Return -1.0
 		EndIf
 	EndIf
+EndFunction
+
+Int Function GetRelationshipMultiPos(Quest akToken, Actor akNPC)
+	If(akNPC == None)
+		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
+		Return -1
+	EndIf
+
+	Return _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) + 1
 EndFunction
 
 Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Float aiMultiplier)
