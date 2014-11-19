@@ -273,7 +273,6 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	Return True
 EndFunction
 
-
 Bool Function RemoveSyncMode(Quest akToken, Actor akNPC)
 	If(_GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS) == -1)
 		Warn(FW_LOG, "A mod tried to remove its changes to the actor " + akNPC.GetName() + ". It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
@@ -315,7 +314,6 @@ Bool Function RemoveSyncMode(Quest akToken, Actor akNPC)
 	
 	Return True
 EndFunction
-
 
 Float Function GetGlobalRelationshipMulti(Int aiFromRelationshipRank, Int aiToRelationshipRank)
 	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
@@ -781,30 +779,6 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 	Int ModIndex = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST)
 	String MultiplierString = "S" + aiFromRelationshipRank As String + "_S" + aiToRelationshipRank As String
 	
-	;/
-	If(MultiplierString == "S0_S1")
-	ElseIf(MultiplierString == "S1_S2")
-	ElseIf(MultiplierString == "S2_S3")
-	ElseIf(MultiplierString == "S3_S4")
-	ElseIf(MultiplierString == "S4_S5")
-	ElseIf(MultiplierString == "S5_S4")
-	ElseIf(MultiplierString == "S4_S3")
-	ElseIf(MultiplierString == "S3_S2")
-	ElseIf(MultiplierString == "S2_S1")
-	ElseIf(MultiplierString == "S1_S0")
-	ElseIf(MultiplierString == "S0_S-1")
-	ElseIf(MultiplierString == "S-1_S-2")
-	ElseIf(MultiplierString == "S-2_S-3")
-	ElseIf(MultiplierString == "S-3_S-4")
-	ElseIf(MultiplierString == "S-4_S-5")
-	ElseIf(MultiplierString == "S-5_S-4")
-	ElseIf(MultiplierString == "S-4_S-3")
-	ElseIf(MultiplierString == "S-3_S-2")
-	ElseIf(MultiplierString == "S-2_S-1")
-	ElseIf(MultiplierString == "S-1_S0")
-	EndIf
-	/;
-	
 	;if this mod has not set a custom multiplier for this stage, return false (nothing to remove)
 	If(MultiplierString == "S0_S1")
 		If (IntListGet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex) == 0)
@@ -1181,6 +1155,158 @@ Bool Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshi
 		
 		Return True
 	EndIf
+EndFunction
+
+Bool Function RemoveAllGlobalRelationshipMulti(Quest akToken)
+	If(_GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS) == -1)
+		Warn(FW_LOG, "A mod tried to remove its changes to the global relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	ElseIf(_GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST) == -1)
+		Notify(FW_LOG, "A mod tried to remove its changes to the global relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	EndIf
+	
+	Int ModIndex = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST)
+	
+	;if this is not the only mod in the multipliers changelist
+	If (FormListCount(None, RS_MULTI_CHANGELIST) > 1)
+		;if the mod had highest priority, then set the multiplier values to those specified by the next mod
+		If (ModIndex == FormListCount(None, RS_MULTI_CHANGELIST) - 1)
+			SetFloatValue(None, RS_MULTI_S0_S1, FloatListGet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_S1_S2, FloatListGet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_S2_S3, FloatListGet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_S3_S4, FloatListGet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_S4_S5, FloatListGet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_S5_S4, FloatListGet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_S4_S3, FloatListGet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_S3_S2, FloatListGet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_S2_S1, FloatListGet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_S1_S0, FloatListGet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_S0_SM1, FloatListGet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_SM1_SM2, FloatListGet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_SM2_SM3, FloatListGet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_SM3_SM4, FloatListGet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_SM4_SM5, FloatListGet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_SM5_SM4, FloatListGet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_SM4_SM3, FloatListGet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_SM3_SM2, FloatListGet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_SM2_SM1, FloatListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex - 1))
+			SetFloatValue(None, RS_MULTI_SM1_S0, FloatListGet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex - 1))
+		EndIf
+	EndIf
+	
+	;remove the mod from the arrays
+	FloatListRemoveAt(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+	FloatListRemoveAt(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+	IntListRemoveAt(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+	
+	FormListRemoveAt(None, RS_MULTI_CHANGELIST, ModIndex)
+	
+	;if the arrays are now empty, clear them and unset the multipliers value
+	If (FormListCount(None, RS_MULTI_CHANGELIST) == 0)
+		FormListClear(None, RS_MULTI_CHANGELIST)
+		
+		FloatListClear(None, RS_MULTI_S0_S1_CHANGELIST)
+		IntListClear(None, RS_MULTI_S0_S1_CHANGELIST)
+		FloatListClear(None, RS_MULTI_S1_S2_CHANGELIST)
+		IntListClear(None, RS_MULTI_S1_S2_CHANGELIST)
+		FloatListClear(None, RS_MULTI_S2_S3_CHANGELIST)
+		IntListClear(None, RS_MULTI_S2_S3_CHANGELIST)
+		FloatListClear(None, RS_MULTI_S3_S4_CHANGELIST)
+		IntListClear(None, RS_MULTI_S3_S4_CHANGELIST)
+		FloatListClear(None, RS_MULTI_S4_S5_CHANGELIST)
+		IntListClear(None, RS_MULTI_S4_S5_CHANGELIST)
+		FloatListClear(None, RS_MULTI_S5_S4_CHANGELIST)
+		IntListClear(None, RS_MULTI_S5_S4_CHANGELIST)
+		FloatListClear(None, RS_MULTI_S4_S3_CHANGELIST)
+		IntListClear(None, RS_MULTI_S4_S3_CHANGELIST)
+		FloatListClear(None, RS_MULTI_S3_S2_CHANGELIST)
+		IntListClear(None, RS_MULTI_S3_S2_CHANGELIST)
+		FloatListClear(None, RS_MULTI_S2_S1_CHANGELIST)
+		IntListClear(None, RS_MULTI_S2_S1_CHANGELIST)
+		FloatListClear(None, RS_MULTI_S1_S0_CHANGELIST)
+		IntListClear(None, RS_MULTI_S1_S0_CHANGELIST)
+		FloatListClear(None, RS_MULTI_S0_SM1_CHANGELIST)
+		IntListClear(None, RS_MULTI_S0_SM1_CHANGELIST)
+		FloatListClear(None, RS_MULTI_SM1_SM2_CHANGELIST)
+		IntListClear(None, RS_MULTI_SM1_SM2_CHANGELIST)
+		FloatListClear(None, RS_MULTI_SM2_SM3_CHANGELIST)
+		IntListClear(None, RS_MULTI_SM2_SM3_CHANGELIST)
+		FloatListClear(None, RS_MULTI_SM3_SM4_CHANGELIST)
+		IntListClear(None, RS_MULTI_SM3_SM4_CHANGELIST)
+		FloatListClear(None, RS_MULTI_SM4_SM5_CHANGELIST)
+		IntListClear(None, RS_MULTI_SM4_SM5_CHANGELIST)
+		FloatListClear(None, RS_MULTI_SM5_SM4_CHANGELIST)
+		IntListClear(None, RS_MULTI_SM5_SM4_CHANGELIST)
+		FloatListClear(None, RS_MULTI_SM4_SM3_CHANGELIST)
+		IntListClear(None, RS_MULTI_SM4_SM3_CHANGELIST)
+		FloatListClear(None, RS_MULTI_SM3_SM2_CHANGELIST)
+		IntListClear(None, RS_MULTI_SM3_SM2_CHANGELIST)
+		FloatListClear(None, RS_MULTI_SM2_SM1_CHANGELIST)
+		IntListClear(None, RS_MULTI_SM2_SM1_CHANGELIST)
+		FloatListClear(None, RS_MULTI_SM1_S0_CHANGELIST)
+		IntListClear(None, RS_MULTI_SM1_S0_CHANGELIST)
+		
+		UnSetFloatValue(None, RS_MULTI_S0_S1)
+		UnSetFloatValue(None, RS_MULTI_S1_S2)
+		UnSetFloatValue(None, RS_MULTI_S2_S3)
+		UnSetFloatValue(None, RS_MULTI_S3_S4)
+		UnSetFloatValue(None, RS_MULTI_S4_S5)
+		UnSetFloatValue(None, RS_MULTI_S5_S4)
+		UnSetFloatValue(None, RS_MULTI_S4_S3)
+		UnSetFloatValue(None, RS_MULTI_S3_S2)
+		UnSetFloatValue(None, RS_MULTI_S2_S1)
+		UnSetFloatValue(None, RS_MULTI_S1_S0)
+		UnSetFloatValue(None, RS_MULTI_S0_SM1)
+		UnSetFloatValue(None, RS_MULTI_SM1_SM2)
+		UnSetFloatValue(None, RS_MULTI_SM2_SM3)
+		UnSetFloatValue(None, RS_MULTI_SM3_SM4)
+		UnSetFloatValue(None, RS_MULTI_SM4_SM5)
+		UnSetFloatValue(None, RS_MULTI_SM5_SM4)
+		UnSetFloatValue(None, RS_MULTI_SM4_SM3)
+		UnSetFloatValue(None, RS_MULTI_SM3_SM2)
+		UnSetFloatValue(None, RS_MULTI_SM2_SM1)
+		UnSetFloatValue(None, RS_MULTI_SM1_S0)
+	EndIf
+	
+	Return True
 EndFunction
 
 Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abIsGetGlobalIfNotFound = True)
@@ -1630,6 +1756,582 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 	EndIf
 
 	FormListAdd(None, RS_MULTI_NPC_CHANGELIST, akNPC)
+	Return True
+EndFunction
+
+Bool Function RemoveRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank)
+	If(_GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS) == -1)
+		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	ElseIf(_GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) == -1)
+		Notify(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetName() + "'s relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	EndIf
+
+	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
+		Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(aiFromRelationshipRank == aiToRelationshipRank)
+		Throw(FW_LOG, "Argument aiToRelationshipRank can not be the same value as aiFromRelationshipRank.", "Invalid arguments")
+		Return False
+	EndIf
+	
+	If(aiFromRelationshipRank - aiToRelationshipRank != 1 && aiFromRelationshipRank - aiToRelationshipRank != -1)
+		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
+		Return False
+	EndIf
+	
+	Int ModIndex = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC)
+	String MultiplierString = "S" + aiFromRelationshipRank As String + "_S" + aiToRelationshipRank As String
+	
+	;if this mod has not set a custom multiplier for this stage, return false (nothing to remove)
+	If(MultiplierString == "S0_S1")
+		If (IntListGet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S1_S2")
+		If (IntListGet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S2_S3")
+		If (IntListGet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S3_S4")
+		If (IntListGet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S4_S5")
+		If (IntListGet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S5_S4")
+		If (IntListGet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S4_S3")
+		If (IntListGet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S3_S2")
+		If (IntListGet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S2_S1")
+		If (IntListGet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S1_S0")
+		If (IntListGet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S0_S-1")
+		If (IntListGet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-1_S-2")
+		If (IntListGet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-2_S-3")
+		If (IntListGet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-3_S-4")
+		If (IntListGet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-4_S-5")
+		If (IntListGet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-5_S-4")
+		If (IntListGet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-4_S-3")
+		If (IntListGet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-3_S-2")
+		If (IntListGet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-2_S-1")
+		If (IntListGet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	ElseIf (MultiplierString == "S-1_S0")
+		If (IntListGet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex) == 0)
+			Warn(FW_Log, "A mod tried to remove its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + akToken.GetFormID() + ".")
+			Return False
+		EndIf
+	EndIf
+	
+	;if the mod does not affect any other multipliers, remove it from the arrays after checking in case it had highest priority
+	If ((IntListGet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex) + \
+		IntListGet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)) == 1)
+		
+		;if this is not the only mod in the multipliers changelist
+		If (FormListCount(akNPC, RS_MULTI_CHANGELIST) > 1)
+			;if the mod had highest priority, then set the multiplier values to those specified by the next mod
+			If (ModIndex == FormListCount(akNPC, RS_MULTI_CHANGELIST) - 1)
+				SetFloatValue(akNPC, RS_MULTI_S0_S1, FloatListGet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_S1_S2, FloatListGet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_S2_S3, FloatListGet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_S3_S4, FloatListGet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_S4_S5, FloatListGet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_S5_S4, FloatListGet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_S4_S3, FloatListGet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_S3_S2, FloatListGet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_S2_S1, FloatListGet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_S1_S0, FloatListGet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_S0_SM1, FloatListGet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_SM1_SM2, FloatListGet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_SM2_SM3, FloatListGet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_SM3_SM4, FloatListGet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_SM4_SM5, FloatListGet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_SM5_SM4, FloatListGet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_SM4_SM3, FloatListGet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_SM3_SM2, FloatListGet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_SM2_SM1, FloatListGet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex - 1))
+				SetFloatValue(akNPC, RS_MULTI_SM1_S0, FloatListGet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex - 1))
+			EndIf
+		EndIf
+		
+		;remove the mod from the arrays
+		FloatListRemoveAt(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+		FloatListRemoveAt(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+		IntListRemoveAt(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+		
+		FormListRemoveAt(akNPC, RS_MULTI_CHANGELIST, ModIndex)
+		
+		;if the arrays are now empty, clear them and unset the multipliers value
+		If (FormListCount(akNPC, RS_MULTI_CHANGELIST) == 0)
+			FormListClear(akNPC, RS_MULTI_CHANGELIST)
+			
+			FormListRemove(None, SUKEY_SYNC_MODE_NPC_CHANGELIST, akNPC) 	;remove the NPC from the list of NPC's with local relationship changes
+			
+			FloatListClear(akNPC, RS_MULTI_S0_S1_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_S0_S1_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_S1_S2_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_S1_S2_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_S2_S3_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_S2_S3_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_S3_S4_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_S3_S4_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_S4_S5_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_S4_S5_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_S5_S4_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_S5_S4_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_S4_S3_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_S4_S3_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_S3_S2_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_S3_S2_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_S2_S1_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_S2_S1_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_S1_S0_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_S1_S0_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_S0_SM1_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_S0_SM1_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_SM1_SM2_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_SM1_SM2_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_SM2_SM3_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_SM2_SM3_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_SM3_SM4_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_SM3_SM4_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_SM4_SM5_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_SM4_SM5_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_SM5_SM4_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_SM5_SM4_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_SM4_SM3_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_SM4_SM3_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_SM3_SM2_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_SM3_SM2_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_SM2_SM1_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_SM2_SM1_CHANGELIST)
+			FloatListClear(akNPC, RS_MULTI_SM1_S0_CHANGELIST)
+			IntListClear(akNPC, RS_MULTI_SM1_S0_CHANGELIST)
+			
+			UnSetFloatValue(akNPC, RS_MULTI_S0_S1)
+			UnSetFloatValue(akNPC, RS_MULTI_S1_S2)
+			UnSetFloatValue(akNPC, RS_MULTI_S2_S3)
+			UnSetFloatValue(akNPC, RS_MULTI_S3_S4)
+			UnSetFloatValue(akNPC, RS_MULTI_S4_S5)
+			UnSetFloatValue(akNPC, RS_MULTI_S5_S4)
+			UnSetFloatValue(akNPC, RS_MULTI_S4_S3)
+			UnSetFloatValue(akNPC, RS_MULTI_S3_S2)
+			UnSetFloatValue(akNPC, RS_MULTI_S2_S1)
+			UnSetFloatValue(akNPC, RS_MULTI_S1_S0)
+			UnSetFloatValue(akNPC, RS_MULTI_S0_SM1)
+			UnSetFloatValue(akNPC, RS_MULTI_SM1_SM2)
+			UnSetFloatValue(akNPC, RS_MULTI_SM2_SM3)
+			UnSetFloatValue(akNPC, RS_MULTI_SM3_SM4)
+			UnSetFloatValue(akNPC, RS_MULTI_SM4_SM5)
+			UnSetFloatValue(akNPC, RS_MULTI_SM5_SM4)
+			UnSetFloatValue(akNPC, RS_MULTI_SM4_SM3)
+			UnSetFloatValue(akNPC, RS_MULTI_SM3_SM2)
+			UnSetFloatValue(akNPC, RS_MULTI_SM2_SM1)
+			UnSetFloatValue(akNPC, RS_MULTI_SM1_S0)
+			
+			;if there is no other NPC with local relationship multiplier changes, clear the corresponding array
+			If (FormListCount(None, SUKEY_SYNC_MODE_NPC_CHANGELIST) == 0)
+				FormListClear(None, SUKEY_SYNC_MODE_NPC_CHANGELIST)
+			EndIf
+		EndIf
+		
+		Return True
+		
+	Else	;if the mod does affect other multipliers i.e. it will not be removed from the arrays
+		;if the mod had the highest priority, update the actual multiplier value to the default framework value
+		If (ModIndex == FormListCount(akNPC, RS_MULTI_CHANGELIST) - 1)
+			If(MultiplierString == "S0_S1")
+				SetFloatValue(akNPC, RS_MULTI_S0_S1_CHANGELIST, 1.0)
+			ElseIf(MultiplierString == "S1_S2")
+				SetFloatValue(akNPC, RS_MULTI_S1_S2_CHANGELIST, 0.5)
+			ElseIf(MultiplierString == "S2_S3")
+				SetFloatValue(akNPC, RS_MULTI_S2_S3_CHANGELIST, 0.25)
+			ElseIf(MultiplierString == "S3_S4")
+				SetFloatValue(akNPC, RS_MULTI_S3_S4_CHANGELIST, 0.125)
+			ElseIf(MultiplierString == "S4_S5")
+				SetFloatValue(akNPC, RS_MULTI_S4_S5_CHANGELIST, 0.0625)
+			ElseIf(MultiplierString == "S5_S4")
+				SetFloatValue(akNPC, RS_MULTI_S5_S4_CHANGELIST, 0.125)
+			ElseIf(MultiplierString == "S4_S3")
+				SetFloatValue(akNPC, RS_MULTI_S4_S3_CHANGELIST, 0.25)
+			ElseIf(MultiplierString == "S3_S2")
+				SetFloatValue(akNPC, RS_MULTI_S3_S2_CHANGELIST, 0.5)
+			ElseIf(MultiplierString == "S2_S1")
+				SetFloatValue(akNPC, RS_MULTI_S2_S1_CHANGELIST, 1.0)
+			ElseIf(MultiplierString == "S1_S0")
+				SetFloatValue(akNPC, RS_MULTI_S1_S0_CHANGELIST, 2.0)
+			ElseIf(MultiplierString == "S0_S-1")
+				SetFloatValue(akNPC, RS_MULTI_S0_SM1_CHANGELIST, 1.0)
+			ElseIf(MultiplierString == "S-1_S-2")
+				SetFloatValue(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, 0.5)
+			ElseIf(MultiplierString == "S-2_S-3")
+				SetFloatValue(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, 0.25)
+			ElseIf(MultiplierString == "S-3_S-4")
+				SetFloatValue(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, 0.125)
+			ElseIf(MultiplierString == "S-4_S-5")
+				SetFloatValue(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, 0.0625)
+			ElseIf(MultiplierString == "S-5_S-4")
+				SetFloatValue(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, 0.125)
+			ElseIf(MultiplierString == "S-4_S-3")
+				SetFloatValue(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, 0.25)
+			ElseIf(MultiplierString == "S-3_S-2")
+				SetFloatValue(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, 0.5)
+			ElseIf(MultiplierString == "S-2_S-1")
+				SetFloatValue(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, 1.0)
+			ElseIf(MultiplierString == "S-1_S0")
+				SetFloatValue(akNPC, RS_MULTI_SM1_S0_CHANGELIST, 2.0)
+			EndIf
+		EndIf
+		
+		;update all the mod's changes
+		If(MultiplierString == "S0_S1")
+			FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex, 1.0)
+			IntListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S1_S2")
+			FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex, 0.5)
+			IntListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S2_S3")
+			FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex, 0.25)
+			IntListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S3_S4")
+			FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex, 0.125)
+			IntListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S4_S5")
+			FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex, 0.0625)
+			IntListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S5_S4")
+			FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex, 0.125)
+			IntListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S4_S3")
+			FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex, 0.25)
+			IntListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S3_S2")
+			FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex, 0.5)
+			IntListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S2_S1")
+			FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex, 1.0)
+			IntListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S1_S0")
+			FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex, 2.0)
+			IntListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S0_S-1")
+			FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex, 1.0)
+			IntListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S-1_S-2")
+			FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex, 0.5)
+			IntListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S-2_S-3")
+			FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex, 0.25)
+			IntListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S-3_S-4")
+			FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex, 0.125)
+			IntListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S-4_S-5")
+			FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex, 0.0625)
+			IntListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S-5_S-4")
+			FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex, 0.125)
+			IntListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S-4_S-3")
+			FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex, 0.25)
+			IntListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S-3_S-2")
+			FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex, 0.5)
+			IntListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S-2_S-1")
+			FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex, 1.0)
+			IntListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex, 0)
+		ElseIf(MultiplierString == "S-1_S0")
+			FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex, 2.0)
+			IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex, 0)
+		EndIf
+		
+		Return True
+	EndIf
+EndFunction
+
+Bool Function RemoveAllRelationshipMulti(Quest akToken, Actor akNPC)
+	If(_GetModIndexFromForm(akToken, SUKEY_REGISTERED_RS) == -1)
+		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	ElseIf(_GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) == -1)
+		Notify(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetName() + "'s relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	EndIf
+	
+	Int ModIndex = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC)
+	
+	;if this is not the only mod in the multipliers changelist
+	If (FormListCount(akNPC, RS_MULTI_CHANGELIST) > 1)
+		;if the mod had highest priority, then set the multiplier values to those specified by the next mod
+		If (ModIndex == FormListCount(akNPC, RS_MULTI_CHANGELIST) - 1)
+			SetFloatValue(akNPC, RS_MULTI_S0_S1, FloatListGet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_S1_S2, FloatListGet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_S2_S3, FloatListGet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_S3_S4, FloatListGet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_S4_S5, FloatListGet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_S5_S4, FloatListGet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_S4_S3, FloatListGet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_S3_S2, FloatListGet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_S2_S1, FloatListGet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_S1_S0, FloatListGet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_S0_SM1, FloatListGet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_SM1_SM2, FloatListGet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_SM2_SM3, FloatListGet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_SM3_SM4, FloatListGet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_SM4_SM5, FloatListGet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_SM5_SM4, FloatListGet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_SM4_SM3, FloatListGet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_SM3_SM2, FloatListGet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_SM2_SM1, FloatListGet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex - 1))
+			SetFloatValue(akNPC, RS_MULTI_SM1_S0, FloatListGet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex - 1))
+		EndIf
+	EndIf
+		
+	;remove the mod from the arrays
+	FloatListRemoveAt(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+	FloatListRemoveAt(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+	IntListRemoveAt(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+	
+	FormListRemoveAt(akNPC, RS_MULTI_CHANGELIST, ModIndex)
+	
+	;if the arrays are now empty, clear them and unset the multipliers value
+	If (FormListCount(akNPC, RS_MULTI_CHANGELIST) == 0)
+		FormListClear(akNPC, RS_MULTI_CHANGELIST)
+		
+		FormListRemove(None, SUKEY_SYNC_MODE_NPC_CHANGELIST, akNPC) 	;remove the NPC from the list of NPC's with local relationship changes
+		
+		FloatListClear(akNPC, RS_MULTI_S0_S1_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_S0_S1_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_S1_S2_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_S1_S2_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_S2_S3_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_S2_S3_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_S3_S4_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_S3_S4_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_S4_S5_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_S4_S5_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_S5_S4_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_S5_S4_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_S4_S3_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_S4_S3_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_S3_S2_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_S3_S2_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_S2_S1_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_S2_S1_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_S1_S0_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_S1_S0_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_S0_SM1_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_S0_SM1_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_SM1_SM2_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_SM1_SM2_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_SM2_SM3_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_SM2_SM3_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_SM3_SM4_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_SM3_SM4_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_SM4_SM5_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_SM4_SM5_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_SM5_SM4_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_SM5_SM4_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_SM4_SM3_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_SM4_SM3_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_SM3_SM2_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_SM3_SM2_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_SM2_SM1_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_SM2_SM1_CHANGELIST)
+		FloatListClear(akNPC, RS_MULTI_SM1_S0_CHANGELIST)
+		IntListClear(akNPC, RS_MULTI_SM1_S0_CHANGELIST)
+		
+		UnSetFloatValue(akNPC, RS_MULTI_S0_S1)
+		UnSetFloatValue(akNPC, RS_MULTI_S1_S2)
+		UnSetFloatValue(akNPC, RS_MULTI_S2_S3)
+		UnSetFloatValue(akNPC, RS_MULTI_S3_S4)
+		UnSetFloatValue(akNPC, RS_MULTI_S4_S5)
+		UnSetFloatValue(akNPC, RS_MULTI_S5_S4)
+		UnSetFloatValue(akNPC, RS_MULTI_S4_S3)
+		UnSetFloatValue(akNPC, RS_MULTI_S3_S2)
+		UnSetFloatValue(akNPC, RS_MULTI_S2_S1)
+		UnSetFloatValue(akNPC, RS_MULTI_S1_S0)
+		UnSetFloatValue(akNPC, RS_MULTI_S0_SM1)
+		UnSetFloatValue(akNPC, RS_MULTI_SM1_SM2)
+		UnSetFloatValue(akNPC, RS_MULTI_SM2_SM3)
+		UnSetFloatValue(akNPC, RS_MULTI_SM3_SM4)
+		UnSetFloatValue(akNPC, RS_MULTI_SM4_SM5)
+		UnSetFloatValue(akNPC, RS_MULTI_SM5_SM4)
+		UnSetFloatValue(akNPC, RS_MULTI_SM4_SM3)
+		UnSetFloatValue(akNPC, RS_MULTI_SM3_SM2)
+		UnSetFloatValue(akNPC, RS_MULTI_SM2_SM1)
+		UnSetFloatValue(akNPC, RS_MULTI_SM1_S0)
+		
+		;if there is no other NPC with local relationship multiplier changes, clear the corresponding array
+		If (FormListCount(None, SUKEY_SYNC_MODE_NPC_CHANGELIST) == 0)
+			FormListClear(None, SUKEY_SYNC_MODE_NPC_CHANGELIST)
+		EndIf
+	EndIf
+	
 	Return True
 EndFunction
 
