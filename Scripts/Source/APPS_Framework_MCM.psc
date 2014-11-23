@@ -698,6 +698,11 @@ Event OnOptionSelect(Int aiOption)
 	ForcePageReset()
 EndEvent
 
+Event OnConfigClose()
+	IntListClear(None, MENU_OPTIONS)
+	StringListClear(None, MENU_OPTIONS)
+EndEvent
+
 Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
 	
 	If (aiArray != INIT_MODS && aiArray != REGISTERED_RS)
