@@ -29,20 +29,20 @@ Bool Function RegisterMod()
 		EndIf
 	EndIf
 
-	Int ModIndex = _GetModIndexFromString(ModName, SUKEY_REGISTERED_MODS) ;Look up if this mod is already registered with the framework
+	Int ModIndex = _GetModIndexFromString(ModName, REGISTERED_MODS) ;Look up if this mod is already registered with the framework
 
 	If(ModIndex > MOD_NOT_FOUND)
 		;Check if the token is the same one when the mod has been already registered
-		If(Self == FormListGet(None, SUKEY_REGISTERED_MODS, ModIndex))
+		If(Self == FormListGet(None, REGISTERED_MODS, ModIndex))
 			Exception.Warn(FW_LOG, "Mod " + ModName + " is already registered.")
 		;It's not the same token, so just update the entry with the new token
 		Else
-			FormListSet(None, SUKEY_REGISTERED_MODS, ModIndex, Self)
+			FormListSet(None, REGISTERED_MODS, ModIndex, Self)
 			Exception.Notify(FW_LOG, "Mod " + ModName + " found in registration list. Updated to new token.")
 		EndIf
 	Else
-		StringListInsert(None, SUKEY_REGISTERED_MODS, 0, ModName)
-		FormListInsert(None, SUKEY_REGISTERED_MODS, 0, Self)
+		StringListInsert(None, REGISTERED_MODS, 0, ModName)
+		FormListInsert(None, REGISTERED_MODS, 0, Self)
 		Exception.Notify(FW_LOG, "Mod " + ModName + " is registered.")
 	EndIf
 
@@ -85,13 +85,13 @@ Bool Function RegisterInitQuest(Quest akInitQuest = None, Int aiSetStage = 0, St
 		InitQuest = akInitQuest
 	EndIf
 
-	If(FormListAdd(None, SUKEY_INIT_MODS, InitQuest, False) > -1)
-		IntListAdd(None, SUKEY_INIT_MODS, aiSetStage)
+	If(FormListAdd(None, INIT_MODS, InitQuest, False) > -1)
+		IntListAdd(None, INIT_MODS, aiSetStage)
 
-		If(StringListAdd(None, SUKEY_INIT_MODS, ModName) == -1)
+		If(StringListAdd(None, INIT_MODS, ModName) == -1)
 			Exception.Throw(FW_LOG, ModName + " tried to register another init quest but there is already one registered. Reverting changes", "Two init quests are not allowed")
-			IntListRemoveAt(None, SUKEY_INIT_MODS, IntListCount(None, SUKEY_INIT_MODS) - 1)
-			FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
+			IntListRemoveAt(None, INIT_MODS, IntListCount(None, INIT_MODS) - 1)
+			FormListRemove(None, INIT_MODS, InitQuest)
 			Return False
 		EndIf
 	Else
@@ -100,7 +100,7 @@ Bool Function RegisterInitQuest(Quest akInitQuest = None, Int aiSetStage = 0, St
 	EndIf
 
 	If(asTooltip != IS_EMPTY)
-		SetStringValue(Self, SUKEY_INIT_MODS_TOOLTIP, asTooltip)
+		SetStringValue(Self, INIT_MODS_TOOLTIP, asTooltip)
 	EndIf
 
 	Exception.Notify(FW_LOG, ModName + " registered an initialization quest.", True, False)
@@ -124,9 +124,9 @@ Bool Function RegisterUninstallQuest(Quest akUninstallQuest = None, Int aiSetSta
 		UninstallQuest = akUninstallQuest
 	EndIf
 
-	If(FormListAdd(None, SUKEY_UNINSTALL_MODS, UninstallQuest, False) > -1)
-		IntListAdd(None, SUKEY_UNINSTALL_MODS, aiSetStage)
-		StringListAdd(None, SUKEY_UNINSTALL_MODS, ModName)
+	If(FormListAdd(None, UNINSTALL_MODS, UninstallQuest, False) > -1)
+		IntListAdd(None, UNINSTALL_MODS, aiSetStage)
+		StringListAdd(None, UNINSTALL_MODS, ModName)
 	Else
 		Exception.Warn(FW_LOG, "Uninstall quest already registered for " + ModName +". Nothing will be changed.")
 	EndIf
@@ -137,61 +137,61 @@ Bool Function RegisterUninstallQuest(Quest akUninstallQuest = None, Int aiSetSta
 EndFunction
 
 Function RegisterForExceptionModule(String asLogName)
-	SetStringValue(Self, SUKEY_LOGNAME, asLogName)
-	SetIntValue(Self, SUKEY_LOGFILE, USE_MOD_USER_LOG)
-	SetIntValue(Self, SUKEY_DISPLAY_WARNINGS, 1)
-	SetIntValue(Self, SUKEY_DISPLAY_ERRORS, 1)
-	SetIntValue(Self, SUKEY_LOG_INFOS, 1)
-	SetIntValue(Self, SUKEY_LOG_WARNINGS, 1)
-	SetIntValue(Self, SUKEY_LOG_ERRORS, 1)
+	SetStringValue(Self, LOGNAME, asLogName)
+	SetIntValue(Self, LOGFILE, USE_MOD_USER_LOG)
+	SetIntValue(Self, DISPLAY_WARNINGS, 1)
+	SetIntValue(Self, DISPLAY_ERRORS, 1)
+	SetIntValue(Self, LOG_INFOS, 1)
+	SetIntValue(Self, LOG_WARNINGS, 1)
+	SetIntValue(Self, LOG_ERRORS, 1)
 EndFunction
 
 Function SetInfoHandling(Bool abLogInfos = True, Bool abDisplayInfos = False)
 	If(abLogInfos)
-		SetIntValue(Self, SUKEY_LOG_INFOS, 1)
+		SetIntValue(Self, LOG_INFOS, 1)
 	Else
-		UnsetIntValue(Self, SUKEY_LOG_INFOS)
+		UnsetIntValue(Self, LOG_INFOS)
 	EndIf
 
 	If(abDisplayInfos)
-		SetIntValue(Self, SUKEY_DISPLAY_INFOS, 1)
+		SetIntValue(Self, DISPLAY_INFOS, 1)
 	Else
-		UnsetIntValue(Self, SUKEY_DISPLAY_INFOS)
+		UnsetIntValue(Self, DISPLAY_INFOS)
 	EndIf
 EndFunction
 
 Function SetWarningHandling(Bool abLogWarnings = True, Bool abDisplayWarnings = True)
 	If(abLogWarnings)
-		SetIntValue(Self, SUKEY_LOG_WARNINGS, 1)
+		SetIntValue(Self, LOG_WARNINGS, 1)
 	Else
-		UnsetIntValue(Self, SUKEY_LOG_WARNINGS)
+		UnsetIntValue(Self, LOG_WARNINGS)
 	EndIf
 
 	If(abDisplayWarnings)
-		SetIntValue(Self, SUKEY_DISPLAY_WARNINGS, 1)
+		SetIntValue(Self, DISPLAY_WARNINGS, 1)
 	Else
-		UnsetIntValue(Self, SUKEY_DISPLAY_WARNINGS)
+		UnsetIntValue(Self, DISPLAY_WARNINGS)
 	EndIf
 EndFunction
 
 Function SetErrorHandling(Bool abLogErrors = True, Bool abDisplayErrors = True)
 	If(abLogErrors)
-		SetIntValue(Self, SUKEY_LOG_ERRORS, 1)
+		SetIntValue(Self, LOG_ERRORS, 1)
 	Else
-		UnsetIntValue(Self, SUKEY_LOG_ERRORS)
+		UnsetIntValue(Self, LOG_ERRORS)
 	EndIf
 
 	If(abDisplayErrors)
-		SetIntValue(Self, SUKEY_DISPLAY_ERRORS, 1)
+		SetIntValue(Self, DISPLAY_ERRORS, 1)
 	Else
-		UnsetIntValue(Self, SUKEY_DISPLAY_ERRORS)
+		UnsetIntValue(Self, DISPLAY_ERRORS)
 	EndIf
 EndFunction
 
 Bool Function RegisterForRelationshipModule()
-	If(FormListAdd(None, SUKEY_REGISTERED_RS, Self, False) > -1)
+	If(FormListAdd(None, REGISTERED_RS, Self, False) > -1)
 		Exception.Notify(FW_LOG, ModName + " is now registered for the relationship module.", False)
-		StringListAdd(None, SUKEY_REGISTERED_RS, ModName, False)
+		StringListAdd(None, REGISTERED_RS, ModName, False)
 		Return True
 	Else
 		Exception.Warn(FW_LOG, ModName + " is already registered for the relationship module.")

@@ -22,22 +22,22 @@ Int MOVE_DOWN = 3
 Int MOVE_BOTTOM = 4
 Int INITIALIZE_MOD = 6
 String FW_LOG = "APPS - Framework"
-String SUKEY_EXCEPTIONS_LOGFILE = "APPS.Framework.InfoManager.LogFile"
-String SUKEY_EXCEPTIONS_LOGNAME = "APPS.Framework.InfoManager.LogName"
-String SUKEY_DISPLAY_ERRORS = "APPS.Framework.InfoManager.DisplayErrors"
-String SUKEY_DISPLAY_WARNINGS = "APPS.Framework.InfoManager.DisplayWarnings"
-String SUKEY_DISPLAY_INFOS = "APPS.Framework.InfoManager.DisplayInfos"
-String SUKEY_LOG_ERRORS = "APPS.Framework.InfoManager.LogErrors"
-String SUKEY_LOG_WARNINGS = "APPS.Framework.InfoManager.LogWarnings"
-String SUKEY_LOG_INFOS = "APPS.Framework.InfoManager.LogInfos"
-String SUKEY_REGISTERED_MODS = "APPS.Framework.RegisteredMods"
-String SUKEY_MENU_OPTIONS = "APPS.Framework.MCM.MenuOptions"
-String SUKEY_INIT_MODS = "APPS.Framework.InitMods"
-String SUKEY_INIT_MODS_TOOLTIP = "APPS.Framework.InitMods.Tooltip"
-String SUKEY_UNINSTALL_MODS = "APPS.Framework.UninstallMods"
-String SUKEY_REGISTERED_RS = "APPS.Framework.Relationship.RegisteredMods"
-String SUKEY_SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList"
-String SUKEY_SYNC_MODE_NPC_CHANGELIST = "APPS.Framework.Relationship.SyncMode.NPC.ChangeList"
+String EXCEPTIONS_LOGFILE = "APPS.Framework.InfoManager.LogFile"
+String EXCEPTIONS_LOGNAME = "APPS.Framework.InfoManager.LogName"
+String DISPLAY_ERRORS = "APPS.Framework.InfoManager.DisplayErrors"
+String DISPLAY_WARNINGS = "APPS.Framework.InfoManager.DisplayWarnings"
+String DISPLAY_INFOS = "APPS.Framework.InfoManager.DisplayInfos"
+String LOG_ERRORS = "APPS.Framework.InfoManager.LogErrors"
+String LOG_WARNINGS = "APPS.Framework.InfoManager.LogWarnings"
+String LOG_INFOS = "APPS.Framework.InfoManager.LogInfos"
+String REGISTERED_MODS = "APPS.Framework.RegisteredMods"
+String MENU_OPTIONS = "APPS.Framework.MCM.MenuOptions"
+String INIT_MODS = "APPS.Framework.InitMods"
+String INIT_MODS_TOOLTIP = "APPS.Framework.InitMods.Tooltip"
+String UNINSTALL_MODS = "APPS.Framework.UninstallMods"
+String REGISTERED_RS = "APPS.Framework.Relationship.RegisteredMods"
+String SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList"
+String SYNC_MODE_NPC_CHANGELIST = "APPS.Framework.Relationship.SyncMode.NPC.ChangeList"
 String RS_MULTI_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.Global.ChangeList"
 String RS_MULTI_NPC_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.NPC.ChangeList"
 String RS_MULTI_S0_S1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S0_S1.ChangeList"
@@ -111,19 +111,19 @@ Event OnConfigInit()
 EndEvent
 
 Event OnPageReset(String asPage)
-	IntListClear(None, SUKEY_MENU_OPTIONS)
-	StringListClear(None, SUKEY_MENU_OPTIONS)
+	IntListClear(None, MENU_OPTIONS)
+	StringListClear(None, MENU_OPTIONS)
 
 	If (asPage == Pages[0])	;registry
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		AddHeaderOption("$REGISTERED_MODS")
 		AddEmptyOption()
 		
-		Int RegisteredMods = StringListCount(None, SUKEY_REGISTERED_MODS)
+		Int RegisteredMods = StringListCount(None, REGISTERED_MODS)
 		Int i
 
 		While (i < RegisteredMods)
-			AddTextOption(StringListGet(None, SUKEY_REGISTERED_MODS, i), "")
+			AddTextOption(StringListGet(None, REGISTERED_MODS, i), "")
 			i += 1
 		EndWhile
 		
@@ -139,12 +139,12 @@ Event OnPageReset(String asPage)
 		AddTextOptionST("LogName", "Log Name", "", OPTION_FLAG_DISABLED)
 		
 		;filling up the InfoManagerModsListOptions array with the names of the registered mods, to be shown as a menu later
-		Int RegisteredMods = StringListCount(None, SUKEY_REGISTERED_MODS)
+		Int RegisteredMods = StringListCount(None, REGISTERED_MODS)
 		InfoManagerModsListOptions = PapyrusUtil.StringArray(RegisteredMods)
 		Int i
 
 			While (i < RegisteredMods)
-				InfoManagerModsListOptions[i] = StringListGet(None, SUKEY_REGISTERED_MODS, i)
+				InfoManagerModsListOptions[i] = StringListGet(None, REGISTERED_MODS, i)
 				i += 1
 			EndWhile
 		
@@ -160,7 +160,7 @@ Event OnPageReset(String asPage)
 		AddToggleOptionST("LogErrors", "$LOG_TO_FILE", False, OPTION_FLAG_DISABLED)
 		
 	ElseIf (asPage == Pages[2])	;initialization manager
-		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, SUKEY_INIT_MODS) == 0) 
+		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, INIT_MODS) == 0) 
 			InitControlFlags = OPTION_FLAG_DISABLED
 		Else
 			InitControlFlags = OPTION_FLAG_NONE
@@ -183,14 +183,14 @@ Event OnPageReset(String asPage)
 
 		Int i
 
-		While (i < FormListCount(None, SUKEY_INIT_MODS))
-			IntListAdd(None, SUKEY_MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", StringListGet(None, SUKEY_INIT_MODS, i), InitControlFlags))
-			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_INIT_MODS, i))
+		While (i < FormListCount(None, INIT_MODS))
+			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", StringListGet(None, INIT_MODS, i), InitControlFlags))
+			StringListAdd(None, MENU_OPTIONS, StringListGet(None, INIT_MODS, i))
 			i += 1
 		EndWhile
 		
 	ElseIf (asPage == Pages[3])	;uninstall manager
-		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, SUKEY_UNINSTALL_MODS) == 0)
+		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, UNINSTALL_MODS) == 0)
 			UninstallControlFlags = OPTION_FLAG_DISABLED
 		Else
 			UninstallControlFlags = OPTION_FLAG_NONE
@@ -209,12 +209,12 @@ Event OnPageReset(String asPage)
 		AddHeaderOption("$MODS_WITH_UNINSTALL_FEATURE")
 		AddEmptyOption()
 
-		Int UninstallMods = FormListCount(None, SUKEY_UNINSTALL_MODS)
+		Int UninstallMods = FormListCount(None, UNINSTALL_MODS)
 		Int i = UninstallMods
 
-		While (i < FormListCount(None, SUKEY_UNINSTALL_MODS))
-			IntListAdd(None, SUKEY_MENU_OPTIONS, AddTextOption(StringListGet(None, SUKEY_UNINSTALL_MODS, i), "", UninstallControlFlags))
-			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_UNINSTALL_MODS, i))
+		While (i < FormListCount(None, UNINSTALL_MODS))
+			IntListAdd(None, MENU_OPTIONS, AddTextOption(StringListGet(None, UNINSTALL_MODS, i), "", UninstallControlFlags))
+			StringListAdd(None, MENU_OPTIONS, StringListGet(None, UNINSTALL_MODS, i))
 			i += 1
 		EndWhile
 		
@@ -226,9 +226,9 @@ Event OnPageReset(String asPage)
 		
 		Int i
 
-		While (i < FormListCount(None, SUKEY_REGISTERED_RS))
-			IntListAdd(None, SUKEY_MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", StringListGet(None, SUKEY_REGISTERED_RS, i)))
-			StringListAdd(None, SUKEY_MENU_OPTIONS, StringListGet(None, SUKEY_REGISTERED_RS, i))
+		While (i < FormListCount(None, REGISTERED_RS))
+			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", StringListGet(None, REGISTERED_RS, i)))
+			StringListAdd(None, MENU_OPTIONS, StringListGet(None, REGISTERED_RS, i))
 			i += 1
 		EndWhile
 		
@@ -239,25 +239,25 @@ Event OnPageReset(String asPage)
 		AddTextOption("", "$GLOBAL_SYNC_MODE_CHANGES")
 		AddEmptyOption()
 		
-		Int ModsAffectingSyncMode = FormListCount(None, SUKEY_SYNC_MODE_CHANGELIST)
+		Int ModsAffectingSyncMode = FormListCount(None, SYNC_MODE_CHANGELIST)
 		String SyncMode
 		Int i
 		
 		While (i < ModsAffectingSyncMode)
 			;convert SyncMode from Int to String
-			If (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 0)
+			If (IntListGet(None, SYNC_MODE_CHANGELIST, i) == 0)
 				SyncMode == "$DISABLE"
-			ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 1)
+			ElseIf (IntListGet(None, SYNC_MODE_CHANGELIST, i) == 1)
 				SyncMode == "$VANILLA_TO_RS"
-			ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 2)
+			ElseIf (IntListGet(None, SYNC_MODE_CHANGELIST, i) == 2)
 				SyncMode == "$RS_TO_VANILLA"
-			ElseIf (IntListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) == 3)
+			ElseIf (IntListGet(None, SYNC_MODE_CHANGELIST, i) == 3)
 				SyncMode == "$BOTH_WAYS"
 			EndIf
 			
-			Quest Token = FormListGet(None, SUKEY_SYNC_MODE_CHANGELIST, i) as Quest
-			Int ModIndex = FormListFind(None, SUKEY_REGISTERED_RS, Token)
-			String ModName = StringListGet(None, SUKEY_REGISTERED_RS, ModIndex)
+			Quest Token = FormListGet(None, SYNC_MODE_CHANGELIST, i) as Quest
+			Int ModIndex = FormListFind(None, REGISTERED_RS, Token)
+			String ModName = StringListGet(None, REGISTERED_RS, ModIndex)
 			
 			AddTextOption(ModName, SyncMode)
 			
@@ -272,12 +272,12 @@ Event OnPageReset(String asPage)
 		AddMenuOptionST("SyncModeNPCList", "", "$SELECT_NPC")
 		
 		;filling up the SyncModeNPCListOptions array with the names of the NPCs, to be shown as a menu later.
-		Int iSyncModeNPCs = FormListCount(None, SUKEY_SYNC_MODE_NPC_CHANGELIST)
+		Int iSyncModeNPCs = FormListCount(None, SYNC_MODE_NPC_CHANGELIST)
 		SyncModeNPCListOptions = PapyrusUtil.StringArray(iSyncModeNPCs)
 		Int i
 		
 			While (i < iSyncModeNPCs)
-				SyncModeNPCListOptions[i] = FormListGet(None, SUKEY_SYNC_MODE_NPC_CHANGELIST, i).GetName()
+				SyncModeNPCListOptions[i] = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, i).GetName()
 				i += 1
 			EndWhile
 		
@@ -286,25 +286,25 @@ Event OnPageReset(String asPage)
 		AddEmptyOption()
 		
 		NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
-		Int ModsAffectingSyncModeNPC = FormListCount(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST)
+		Int ModsAffectingSyncModeNPC = FormListCount(SyncModeNPC, SYNC_MODE_CHANGELIST)
 		String SyncMode
 		Int j
 		
 			While (j < ModsAffectingSyncModeNPC)
 				;convert SyncMode from Int to String
-				If (IntListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i) == 0)
+				If (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 0)
 					SyncMode == "$DISABLE"
-				ElseIf (IntListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i) == 1)
+				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 1)
 					SyncMode == "$VANILLA_TO_RS"
-				ElseIf (IntListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i) == 2)
+				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 2)
 					SyncMode == "$RS_TO_VANILLA"
-				ElseIf (IntListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i) == 3)
+				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 3)
 					SyncMode == "$BOTH_WAYS"
 				EndIf
 				
-				Quest Token = FormListGet(SyncModeNPC, SUKEY_SYNC_MODE_CHANGELIST, i) as Quest
-				Int ModIndex = FormListFind(None, SUKEY_REGISTERED_RS, Token)
-				String ModName = StringListGet(None, SUKEY_REGISTERED_RS, ModIndex)
+				Quest Token = FormListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) as Quest
+				Int ModIndex = FormListFind(None, REGISTERED_RS, Token)
+				String ModName = StringListGet(None, REGISTERED_RS, ModIndex)
 				
 				AddTextOption(ModName, SyncMode, NPCSyncModeOptionFlag)
 				j += 1
@@ -359,29 +359,29 @@ State InfoManagerModsList
 			OptionFlag = OPTION_FLAG_DISABLED
 		EndIf
 		
-		InfoManagerToken = FormListGet(None, SUKEY_REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
+		InfoManagerToken = FormListGet(None, REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
 
-		;fetching the Int contents of SUKEY_EXCEPTIONS_LOGFILE array and converting them to strings
+		;fetching the Int contents of EXCEPTIONS_LOGFILE array and converting them to strings
 		String TokenLoggingMethod
 
-		If (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
+		If (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
 			TokenLoggingMethod = LoggingMethod[0]
-		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
+		ElseIf (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
 			TokenLoggingMethod = LoggingMethod[1]
-		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_PAPYRUS_LOG)
+		ElseIf (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_PAPYRUS_LOG)
 			TokenLoggingMethod = LoggingMethod[2]
 		EndIf
 
 		SetMenuOptionValueST(InfoManagerModsListOptions[aiSelectedOption])
 		SetTextOptionValueST(InfoManagerModsListOptions[aiSelectedOption], True, "ModSettings")
 		SetMenuOptionValueST(TokenLoggingMethod, True, "LoggingMethod")
-		SetTextOptionValueST(GetStringValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGNAME), True, "LogName")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS), True, "DisplayInfos")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS), True, "LogInfos")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS), True, "DisplayWarnings")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS), True, "LogWarnings")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS), True, "DisplayErrors")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_ERRORS), True, "LogErrors")
+		SetTextOptionValueST(GetStringValue(InfoManagerToken, EXCEPTIONS_LOGNAME), True, "LogName")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, DISPLAY_INFOS), True, "DisplayInfos")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, LOG_INFOS), True, "LogInfos")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, DISPLAY_WARNINGS), True, "DisplayWarnings")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, LOG_WARNINGS), True, "LogWarnings")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, DISPLAY_ERRORS), True, "DisplayErrors")
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, LOG_ERRORS), True, "LogErrors")
 		SetOptionFlagsST(OptionFlag, True, "ModSettings")
 		SetOptionFlagsST(OptionFlag, True, "LoggingMethod")
 		SetOptionFlagsST(OptionFlag, True, "LogName")
@@ -401,13 +401,13 @@ EndState
 
 State DisplayInfos
 	Event OnSelectST()
-		If(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS))
-			UnsetIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS)
+		If(HasIntValue(InfoManagerToken, DISPLAY_INFOS))
+			UnsetIntValue(InfoManagerToken, DISPLAY_INFOS)
 		Else
-			SetIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS, 1)
+			SetIntValue(InfoManagerToken, DISPLAY_INFOS, 1)
 		EndIf
 
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_INFOS))
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, DISPLAY_INFOS))
 	EndEvent
 
 	Event OnHighlightST()
@@ -417,13 +417,13 @@ EndState
 
 State DisplayWarnings
 	Event OnSelectST()
-		If(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS))
-			UnsetIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS)
+		If(HasIntValue(InfoManagerToken, DISPLAY_WARNINGS))
+			UnsetIntValue(InfoManagerToken, DISPLAY_WARNINGS)
 		Else
-			SetIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS, 1)
+			SetIntValue(InfoManagerToken, DISPLAY_WARNINGS, 1)
 		EndIf
 
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_WARNINGS))
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, DISPLAY_WARNINGS))
 	EndEvent
 
 	Event OnHighlightST()
@@ -433,13 +433,13 @@ EndState
 
 State DisplayErrors
 	Event OnSelectST()
-		If(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS))
-			UnsetIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS)
+		If(HasIntValue(InfoManagerToken, DISPLAY_ERRORS))
+			UnsetIntValue(InfoManagerToken, DISPLAY_ERRORS)
 		Else
-			SetIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS, 1)
+			SetIntValue(InfoManagerToken, DISPLAY_ERRORS, 1)
 		EndIf
 
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_DISPLAY_ERRORS))
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, DISPLAY_ERRORS))
 	EndEvent
 
 	Event OnHighlightST()
@@ -449,13 +449,13 @@ EndState
 
 State LogInfos
 	Event OnSelectST()
-		If(HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS))
-			UnsetIntValue(InfoManagerToken, SUKEY_LOG_INFOS)
+		If(HasIntValue(InfoManagerToken, LOG_INFOS))
+			UnsetIntValue(InfoManagerToken, LOG_INFOS)
 		Else
-			SetIntValue(InfoManagerToken, SUKEY_LOG_INFOS, 1)
+			SetIntValue(InfoManagerToken, LOG_INFOS, 1)
 		EndIf
 
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_INFOS))
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, LOG_INFOS))
 	EndEvent
 
 	Event OnHighlightST()
@@ -465,13 +465,13 @@ EndState
 
 State LogWarnings
 	Event OnSelectST()
-		If(HasIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS))
-			UnsetIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS)
+		If(HasIntValue(InfoManagerToken, LOG_WARNINGS))
+			UnsetIntValue(InfoManagerToken, LOG_WARNINGS)
 		Else
-			SetIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS, 1)
+			SetIntValue(InfoManagerToken, LOG_WARNINGS, 1)
 		EndIf
 
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_WARNINGS))
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, LOG_WARNINGS))
 	EndEvent
 
 	Event OnHighlightST()
@@ -481,13 +481,13 @@ EndState
 
 State LogErrors
 	Event OnSelectST()
-		If(HasIntValue(InfoManagerToken, SUKEY_LOG_ERRORS))
-			UnsetIntValue(InfoManagerToken, SUKEY_LOG_ERRORS)
+		If(HasIntValue(InfoManagerToken, LOG_ERRORS))
+			UnsetIntValue(InfoManagerToken, LOG_ERRORS)
 		Else
-			SetIntValue(InfoManagerToken, SUKEY_LOG_ERRORS, 1)
+			SetIntValue(InfoManagerToken, LOG_ERRORS, 1)
 		EndIf
 
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, SUKEY_LOG_ERRORS))
+		SetToggleOptionValueST(HasIntValue(InfoManagerToken, LOG_ERRORS))
 	EndEvent
 
 	Event OnHighlightST()
@@ -499,11 +499,11 @@ State LoggingMethod
 	Event OnMenuOpenST()
 		SetMenuDialogOptions(LoggingMethod)
 
-		If (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
+		If (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
 			SetMenuDialogStartIndex(0)
-		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
+		ElseIf (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
 			SetMenuDialogStartIndex(1)
-		ElseIf (GetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE) == USE_PAPYRUS_LOG)
+		ElseIf (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_PAPYRUS_LOG)
 			SetMenuDialogStartIndex(2)
 		Else
 			SetMenuDialogStartIndex(0)
@@ -513,7 +513,7 @@ State LoggingMethod
 	Event OnMenuAcceptST(int aiSelectedOption)
 		Utility.WaitMenuMode(0.5)	;waiting time to fix strange mix up of variables (SkyUI bug?)
 		SetMenuOptionValueST(LoggingMethod[aiSelectedOption])
-		SetIntValue(InfoManagerToken, SUKEY_EXCEPTIONS_LOGFILE, aiSelectedOption)
+		SetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE, aiSelectedOption)
 	EndEvent
 
 	Event OnHighlightST()
@@ -557,8 +557,8 @@ State StartInitialization
 			ForcePageReset()	;this ensures install order is displayed again with OPTION_FLAG_DISABLED			
 			Utility.Wait(0.1)	;forces the user to close the menu
 
-			While (StringListCount(None, SUKEY_INIT_MODS) > 0)
-				String ModToInit = StringListGet(None, SUKEY_INIT_MODS, 0)
+			While (StringListCount(None, INIT_MODS) > 0)
+				String ModToInit = StringListGet(None, INIT_MODS, 0)
 				Exception.Notify(FW_LOG, ModToInit)
 				InitializeMod(ModToInit, abSafetyLock = False) ;SafetyLock is handled by line InitSafetyLock = True
 				Utility.Wait(TimeToNextInit)
@@ -584,7 +584,7 @@ State SyncModeNPCList
 		
 		;set the NPC, remove the disabled flag and let the OnPageReset() handle the rest
 		NPCSyncModeOptionFlag = OPTION_FLAG_NONE		
-		SyncModeNPC = FormListGet(None, SUKEY_SYNC_MODE_NPC_CHANGELIST, aiSelectedOption) as Actor
+		SyncModeNPC = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, aiSelectedOption) as Actor
 		
 		ForcePageReset()
 	EndEvent
@@ -596,14 +596,14 @@ EndState
 
 Event OnOptionHighlight(Int aiOption)
 	Int i
-	Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
+	Int MenuOptions = IntListCount(None, MENU_OPTIONS)
 
 	While (i < MenuOptions)
-		If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
+		If (aiOption == IntListGet(None, MENU_OPTIONS, i))
 			If (CurrentPage == Pages[2])
-				Form InitQuest = FormListGet(None, SUKEY_INIT_MODS, i)
-				If (HasStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
-					SetInfoText(GetStringValue(InitQuest, SUKEY_INIT_MODS_TOOLTIP))
+				Form InitQuest = FormListGet(None, INIT_MODS, i)
+				If (HasStringValue(InitQuest, INIT_MODS_TOOLTIP))
+					SetInfoText(GetStringValue(InitQuest, INIT_MODS_TOOLTIP))
 				EndIf
 			
 			ElseIf (CurrentPage == Pages[3])
@@ -623,10 +623,10 @@ EndEvent
 
 Event OnOptionMenuOpen(Int aiOption)
 	Int i
-	Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
+	Int MenuOptions = IntListCount(None, MENU_OPTIONS)
 
 	While(i < MenuOptions)
-		If(aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
+		If(aiOption == IntListGet(None, MENU_OPTIONS, i))
 			SetMenuDialogDefaultIndex(2)
 			SetMenuDialogStartIndex(2)
 			
@@ -645,21 +645,21 @@ EndEvent
 
 Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 	Int i
-	Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
+	Int MenuOptions = IntListCount(None, MENU_OPTIONS)
 
 	While (i < MenuOptions)
-		If(aiOpenedMenu == IntListGet(None, SUKEY_MENU_OPTIONS, i))
+		If(aiOpenedMenu == IntListGet(None, MENU_OPTIONS, i))
 			If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
 				If (CurrentPage == Pages[2])
-					ChangeOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), SUKEY_INIT_MODS, aiSelectedOption)
+					ChangeOrder(StringListGet(None, MENU_OPTIONS, i), INIT_MODS, aiSelectedOption)
 				ElseIf (CurrentPage == Pages[4])
-					ChangeOrder(StringListGet(None, SUKEY_MENU_OPTIONS, i), SUKEY_REGISTERED_RS, aiSelectedOption)
+					ChangeOrder(StringListGet(None, MENU_OPTIONS, i), REGISTERED_RS, aiSelectedOption)
 				EndIf
 				
 			ElseIf (aiSelectedOption == INITIALIZE_MOD)
 				If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == True)
 					ShowMessage("$CLOSE_MCM", False, "$OK")
-					String ModToInit = StringListGet(None, SUKEY_MENU_OPTIONS, i)
+					String ModToInit = StringListGet(None, MENU_OPTIONS, i)
 					Utility.Wait(0.1)	;forces the user to close the menu
 
 					InitializeMod(ModToInit)
@@ -680,12 +680,12 @@ EndEvent
 Event OnOptionSelect(Int aiOption)
 	If (CurrentPage == Pages[3])
 		Int i
-		Int MenuOptions = IntListCount(None, SUKEY_MENU_OPTIONS)
+		Int MenuOptions = IntListCount(None, MENU_OPTIONS)
 
 		While (i < MenuOptions)
-			If (aiOption == IntListGet(None, SUKEY_MENU_OPTIONS, i))
+			If (aiOption == IntListGet(None, MENU_OPTIONS, i))
 				If (ShowMessage("$UNINSTALL_MOD_CONFIRMATION") == True)
-					UninstallMod(StringListGet(None, SUKEY_MENU_OPTIONS, i))
+					UninstallMod(StringListGet(None, MENU_OPTIONS, i))
 				EndIf
 			i = MenuOptions
 			Else
@@ -700,7 +700,7 @@ EndEvent
 
 Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
 	
-	If (aiArray != SUKEY_INIT_MODS && aiArray != SUKEY_REGISTERED_RS)
+	If (aiArray != INIT_MODS && aiArray != REGISTERED_RS)
 		Return
 	EndIf
 	
@@ -708,7 +708,7 @@ Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
 	Form kQuest = FormListGet(None, aiArray, ModIndex)
 	Int iSetStage
 	
-	If (aiArray == SUKEY_INIT_MODS)
+	If (aiArray == INIT_MODS)
 		iSetStage = IntListGet(None, aiArray, ModIndex)
 	EndIf
 
@@ -723,7 +723,7 @@ Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
 		StringListRemove(None, aiArray, asModName)
 		StringListInsert(None, aiArray, 0, asModName)
 		
-		If (aiArray == SUKEY_INIT_MODS)
+		If (aiArray == INIT_MODS)
 			IntListRemove(None, aiArray, iSetStage)
 			IntListInsert(None, aiArray, 0, iSetStage)
 		EndIf
@@ -738,7 +738,7 @@ Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
 		StringListRemove(None, aiArray, asModName)
 		StringListInsert(None, aiArray, (ModIndex - 1), asModName)
 		
-		If (aiArray == SUKEY_INIT_MODS)
+		If (aiArray == INIT_MODS)
 			IntListRemove(None, aiArray, iSetStage)
 			IntListInsert(None, aiArray, (ModIndex - 1), iSetStage)
 		EndIf
@@ -747,14 +747,14 @@ Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
 			Return
 		EndIf
 
-		If(ModIndex == (StringListCount(None, SUKEY_INIT_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
+		If(ModIndex == (StringListCount(None, INIT_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
 			FormListRemove(None, aiArray, kQuest)
 			FormListAdd(None, aiArray, kQuest)
 
 			StringListRemove(None, aiArray, asModName)
 			StringListAdd(None, aiArray, asModName)
 			
-			If (aiArray == SUKEY_INIT_MODS)
+			If (aiArray == INIT_MODS)
 				IntListRemove(None, aiArray, iSetStage)
 				IntListAdd(None, aiArray, iSetStage)
 			EndIf
@@ -766,7 +766,7 @@ Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
 			
 			StringListInsert(None, aiArray, (ModIndex +1), asModName)
 			
-			If (aiArray == SUKEY_INIT_MODS)
+			If (aiArray == INIT_MODS)
 				IntListRemove(None, aiArray, iSetStage)
 				IntListInsert(None, aiArray, (ModIndex + 1), iSetStage)
 			EndIf
@@ -782,7 +782,7 @@ Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
 		StringListRemove(None, aiArray, asModName)
 		StringListAdd(None, aiArray, asModName)
 		
-		If (aiArray == SUKEY_INIT_MODS)
+		If (aiArray == INIT_MODS)
 			IntListRemove(None, aiArray, iSetStage)
 			IntListAdd(None, aiArray, iSetStage)
 		EndIf
@@ -790,9 +790,9 @@ Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
 EndFunction
 
 Bool Function InitializeMod(String asModName, Bool abSafetyLock = True)
-	Int ModIndex = StringListFind(None, SUKEY_INIT_MODS, asModName)
-	Quest InitQuest = FormListGet(None, SUKEY_INIT_MODS, ModIndex) as Quest
-	Int iSetStage = IntListGet(None, SUKEY_INIT_MODS, ModIndex)
+	Int ModIndex = StringListFind(None, INIT_MODS, asModName)
+	Quest InitQuest = FormListGet(None, INIT_MODS, ModIndex) as Quest
+	Int iSetStage = IntListGet(None, INIT_MODS, ModIndex)
 	Bool result = True
 
 	If (abSafetyLock)
@@ -814,25 +814,25 @@ Bool Function InitializeMod(String asModName, Bool abSafetyLock = True)
 	Else
 		Exception.Throw(FW_LOG, "Failed to initialize mod", asModName + "$FAILED_TO_INITIALIZE")
 
-		StringListRemove(None, SUKEY_REGISTERED_MODS, asModName)
-		FormListRemoveAt(None, SUKEY_REGISTERED_MODS, ModIndex)
+		StringListRemove(None, REGISTERED_MODS, asModName)
+		FormListRemoveAt(None, REGISTERED_MODS, ModIndex)
 	EndIf
 
 	If (abSafetyLock)
 		InitSafetyLock = False
 	EndIf
 
-	StringListRemove(None, SUKEY_INIT_MODS, asModName)
-	FormListRemove(None, SUKEY_INIT_MODS, InitQuest)
-	IntListRemove(None, SUKEY_INIT_MODS, iSetStage)
+	StringListRemove(None, INIT_MODS, asModName)
+	FormListRemove(None, INIT_MODS, InitQuest)
+	IntListRemove(None, INIT_MODS, iSetStage)
 
 	Return result
 EndFunction
 
 Bool Function UninstallMod(String asModName, Bool abSafetyLock = True)
-	Int ModIndex = StringListFind(None, SUKEY_UNINSTALL_MODS, asModName)
-	Quest UninstallQuest = FormListGet(None, SUKEY_UNINSTALL_MODS, ModIndex) as Quest
-	Int iSetStage = IntListGet(None, SUKEY_UNINSTALL_MODS, ModIndex)
+	Int ModIndex = StringListFind(None, UNINSTALL_MODS, asModName)
+	Quest UninstallQuest = FormListGet(None, UNINSTALL_MODS, ModIndex) as Quest
+	Int iSetStage = IntListGet(None, UNINSTALL_MODS, ModIndex)
 	Bool result = True
 
 	If (abSafetyLock)
@@ -855,12 +855,12 @@ Bool Function UninstallMod(String asModName, Bool abSafetyLock = True)
 		UninstSafetyLock = False
 	EndIf
 
-	StringListRemove(None, SUKEY_UNINSTALL_MODS, asModName)
-	FormListRemove(None, SUKEY_UNINSTALL_MODS, UninstallQuest)
-	IntListRemove(None, SUKEY_UNINSTALL_MODS, iSetStage)
+	StringListRemove(None, UNINSTALL_MODS, asModName)
+	FormListRemove(None, UNINSTALL_MODS, UninstallQuest)
+	IntListRemove(None, UNINSTALL_MODS, iSetStage)
 
-	StringListRemove(None, SUKEY_REGISTERED_MODS, asModName)
-	FormListRemoveAt(None, SUKEY_REGISTERED_MODS, ModIndex)
+	StringListRemove(None, REGISTERED_MODS, asModName)
+	FormListRemoveAt(None, REGISTERED_MODS, ModIndex)
 
 	Return result
 EndFunction
@@ -904,7 +904,7 @@ TODO:
 All tabs:
 	- Max array size & MCM menu sice: 128
 	- Fix Exception $translations
-	- Rename SUKEY_MENU_OPTIONS and the corresponding string to a less confusing name
+	- Rename MENU_OPTIONS and the corresponding string to a less confusing name
 	- Optimize all increasing WHILE loops
 	- Translate pages names
 Tab: Uninstall Manager
