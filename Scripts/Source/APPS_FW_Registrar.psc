@@ -29,7 +29,7 @@ Bool Function RegisterMod()
 		EndIf
 	EndIf
 
-	Int ModIndex = _GetModIndexFromString(ModName, REGISTERED_MODS) ;Look up if this mod is already registered with the framework
+	Int ModIndex = _GetModIndexFromForm(Self, REGISTERED_MODS) ;Look up if this mod is already registered with the framework
 
 	If(ModIndex > MOD_NOT_FOUND)
 		;Check if the token is the same one when the mod has been already registered
@@ -41,7 +41,7 @@ Bool Function RegisterMod()
 			Exception.Notify(FW_LOG, "Mod " + ModName + " found in registration list. Updated to new token.")
 		EndIf
 	Else
-		StringListInsert(None, REGISTERED_MODS, 0, ModName)
+		SetStringValue(Self, MOD_NAME, ModName)
 		FormListInsert(None, REGISTERED_MODS, 0, Self)
 		Exception.Notify(FW_LOG, "Mod " + ModName + " is registered.")
 	EndIf
