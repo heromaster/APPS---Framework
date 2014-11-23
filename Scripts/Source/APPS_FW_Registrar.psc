@@ -84,21 +84,18 @@ Bool Function RegisterInitQuest(Quest akInitQuest = None, Int aiSetStage = 0, St
 	Else
 		InitQuest = akInitQuest
 	EndIf
-
-	If(FormListAdd(None, INIT_MODS, InitQuest, False) > -1)
-		IntListAdd(None, INIT_MODS, aiSetStage)
-
-		If(StringListAdd(None, INIT_MODS, ModName) == -1)
-			Exception.Throw(FW_LOG, ModName + " tried to register another init quest but there is already one registered. Reverting changes", "Two init quests are not allowed")
-			IntListRemoveAt(None, INIT_MODS, IntListCount(None, INIT_MODS) - 1)
-			FormListRemove(None, INIT_MODS, InitQuest)
-			Return False
-		EndIf
-	Else
+	
+	If (GetFormValue(Self, INIT_QUEST) == InitQuest)
 		Exception.Warn(FW_LOG, "Init quest already registered for " + ModName + ". Nothing will be changed.")
 		Return False
+	ElseIf (GetFormValue(Self, INIT_QUEST))
+		Exception.Throw(FW_LOG, ModName + " tried to register another init quest but there is already one registered. Aborting changes", "Two init quests are not allowed")
+		Return False
+	Else
+		SetFormValue(Self, INIT_QUEST, InitQuest)
+		SetIntValue(Self, INIT_STAGE, aiSetStage)
 	EndIf
-
+	
 	If(asTooltip != IS_EMPTY)
 		SetStringValue(Self, INIT_MODS_TOOLTIP, asTooltip)
 	EndIf
@@ -123,12 +120,16 @@ Bool Function RegisterUninstallQuest(Quest akUninstallQuest = None, Int aiSetSta
 	If(akUninstallQuest != None)
 		UninstallQuest = akUninstallQuest
 	EndIf
-
-	If(FormListAdd(None, UNINSTALL_MODS, UninstallQuest, False) > -1)
-		IntListAdd(None, UNINSTALL_MODS, aiSetStage)
-		StringListAdd(None, UNINSTALL_MODS, ModName)
+	
+	If (GetFormValue(Self, UNINSTALL_QUEST) == UninstallQuest)
+		Exception.Warn(FW_LOG, "Uninstall quest already registered for " + ModName + ". Nothing will be changed.")
+		Return False
+	ElseIf (GetFormValue(Self, UNINSTALL_QUEST))
+		Exception.Throw(FW_LOG, ModName + " tried to register another uninstall quest but there is already one registered. Aborting changes", "Two uninstall quests are not allowed")
+		Return False
 	Else
-		Exception.Warn(FW_LOG, "Uninstall quest already registered for " + ModName +". Nothing will be changed.")
+		SetFormValue(Self, UNINSTALL_QUEST, UninstallQuest)
+		SetIntValue(Self, UNINSTALL_STAGE, aiSetStage)
 	EndIf
 
 	Exception.Notify(FW_LOG, "Quest registered an uninstallation quest.", False)

@@ -907,6 +907,7 @@ All tabs:
 	- Rename MENU_OPTIONS and the corresponding string to a less confusing name
 	- Optimize all increasing WHILE loops
 	- Translate pages names
+	- Clear MENU_OPTIONS arrays OnConfigClose
 Tab: Uninstall Manager
 	- Test manager
 	- Decide if AddTextOption should work with the Text or the Value, i.e. whether "" should be the text or the value
