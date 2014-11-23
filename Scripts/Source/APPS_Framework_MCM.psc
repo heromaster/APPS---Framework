@@ -235,8 +235,9 @@ Event OnPageReset(String asPage)
 		Int i
 
 		While (i < FormListCount(None, REGISTERED_RS))
-			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", StringListGet(None, REGISTERED_RS, i)))
-			StringListAdd(None, MENU_OPTIONS, StringListGet(None, REGISTERED_RS, i))
+			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetModNameFromFormList(REGISTERED_RS, i)))
+			;StringListAdd(None, MENU_OPTIONS, StringListGet(None, REGISTERED_RS, i))
+			FormListAdd(None, MENU_OPTIONS, FormListGet(None, REGISTERED_RS, i))
 			i += 1
 		EndWhile
 		
