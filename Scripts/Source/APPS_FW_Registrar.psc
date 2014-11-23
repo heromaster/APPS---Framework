@@ -94,6 +94,7 @@ Bool Function RegisterInitQuest(Quest akInitQuest = None, Int aiSetStage = 0, St
 	Else
 		SetFormValue(Self, INIT_QUEST, InitQuest)
 		SetIntValue(Self, INIT_STAGE, aiSetStage)
+		FormListAdd(None, INIT_MODS, Self)
 	EndIf
 	
 	If(asTooltip != IS_EMPTY)
@@ -130,6 +131,7 @@ Bool Function RegisterUninstallQuest(Quest akUninstallQuest = None, Int aiSetSta
 	Else
 		SetFormValue(Self, UNINSTALL_QUEST, UninstallQuest)
 		SetIntValue(Self, UNINSTALL_STAGE, aiSetStage)
+		FormListAdd(None, UNINSTALL_MODS, Self)
 	EndIf
 
 	Exception.Notify(FW_LOG, "Quest registered an uninstallation quest.", False)
