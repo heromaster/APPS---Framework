@@ -285,7 +285,13 @@ Event OnPageReset(String asPage)
 		AddHeaderOption("$MODS_AFFECTING_ACTOR")
 		AddEmptyOption()
 		
-		NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
+		;disable options if the user has not yet selected a SyncModeNPC
+		If (!SyncModeNPC)
+			NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
+		Else
+			NPCSyncModeOptionFlag = OPTION_FLAG_NONE
+		EndIf
+		
 		Int ModsAffectingSyncModeNPC = FormListCount(SyncModeNPC, SYNC_MODE_CHANGELIST)
 		String SyncMode
 		Int j
