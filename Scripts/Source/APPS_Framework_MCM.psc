@@ -352,6 +352,25 @@ Event OnPageReset(String asPage)
 		EndIf
 		
 		AddTextOption("$S0_S1", FloatListGet(None, RS_MULTI_S0_S1_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S1_S2", FloatListGet(None, RS_MULTI_S1_S2_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S2_S3", FloatListGet(None, RS_MULTI_S2_S3_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S3_S4", FloatListGet(None, RS_MULTI_S3_S4_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S4_S5", FloatListGet(None, RS_MULTI_S4_S5_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S5_S4", FloatListGet(None, RS_MULTI_S5_S4_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S4_S3", FloatListGet(None, RS_MULTI_S4_S3_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S3_S2", FloatListGet(None, RS_MULTI_S3_S2_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S2_S1", FloatListGet(None, RS_MULTI_S2_S1_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S1_S0", FloatListGet(None, RS_MULTI_S1_S0_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S0_S-1", FloatListGet(None, RS_MULTI_S0_SM1_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S-1_S-2", FloatListGet(None, RS_MULTI_SM1_SM2_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S-2_S-3", FloatListGet(None, RS_MULTI_SM2_SM3_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S-3_S-4", FloatListGet(None, RS_MULTI_SM3_SM4_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S-4_S-5", FloatListGet(None, RS_MULTI_SM4_SM5_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S-5_S-4", FloatListGet(None, RS_MULTI_SM5_SM4_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S-4_S-3", FloatListGet(None, RS_MULTI_SM4_SM3_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S-3_S-2", FloatListGet(None, RS_MULTI_SM3_SM2_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S-2_S-1", FloatListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+		AddTextOption("$S-1_S0", FloatListGet(None, RS_MULTI_SM1_S0_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
 		
 	EndIf
 EndEvent
