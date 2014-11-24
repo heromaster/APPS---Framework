@@ -129,7 +129,7 @@ Event OnPageReset(String asPage)
 		Int i
 
 		While (i < RegisteredMods)
-			AddTextOption(_GetModNameFromFormList(REGISTERED_MODS, i), "")
+			AddTextOption(_GetModNameFromModFormList(REGISTERED_MODS, i), "")
 			i += 1
 		EndWhile
 		
@@ -150,7 +150,7 @@ Event OnPageReset(String asPage)
 		Int i
 
 			While (i < RegisteredMods)
-				InfoManagerModsListOptions[i] = _GetModNameFromFormList(REGISTERED_MODS, i)
+				InfoManagerModsListOptions[i] = _GetModNameFromModFormList(REGISTERED_MODS, i)
 				i += 1
 			EndWhile
 		
@@ -190,8 +190,8 @@ Event OnPageReset(String asPage)
 		Int i
 
 		While (i < FormListCount(None, INIT_MODS))
-			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetModNameFromFormList(INIT_MODS, i), InitControlFlags))
-			;StringListAdd(None, MENU_OPTIONS, _GetModNameFromFormList(INIT_MODS, i))
+			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetModNameFromModFormList(INIT_MODS, i), InitControlFlags))
+			;StringListAdd(None, MENU_OPTIONS, _GetModNameFromModFormList(INIT_MODS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, INIT_MODS, i))
 			i += 1
 		EndWhile
@@ -220,8 +220,8 @@ Event OnPageReset(String asPage)
 		Int i = UninstallMods
 
 		While (i < FormListCount(None, UNINSTALL_MODS))
-			IntListAdd(None, MENU_OPTIONS, AddTextOption(_GetModNameFromFormList(UNINSTALL_MODS, i), "", UninstallControlFlags))
-			;StringListAdd(None, MENU_OPTIONS, _GetModNameFromFormList(UNINSTALL_MODS, i))
+			IntListAdd(None, MENU_OPTIONS, AddTextOption(_GetModNameFromModFormList(UNINSTALL_MODS, i), "", UninstallControlFlags))
+			;StringListAdd(None, MENU_OPTIONS, _GetModNameFromModFormList(UNINSTALL_MODS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, UNINSTALL_MODS, i))
 			i += 1
 		EndWhile
@@ -235,7 +235,7 @@ Event OnPageReset(String asPage)
 		Int i
 
 		While (i < FormListCount(None, REGISTERED_RS))
-			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetModNameFromFormList(REGISTERED_RS, i)))
+			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetModNameFromModFormList(REGISTERED_RS, i)))
 			;StringListAdd(None, MENU_OPTIONS, StringListGet(None, REGISTERED_RS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, REGISTERED_RS, i))
 			i += 1
@@ -838,7 +838,7 @@ Bool Function UninstallMod(Quest ModToUninstall, Bool abSafetyLock = True)
 	Return result
 EndFunction
 
-String Function _GetModNameFromFormList(String asFormList, Int auiIndex, Actor akNPC = None)
+String Function _GetModNameFromModFormList(String asFormList, Int auiIndex, Actor akNPC = None)
 	Quest Mod
 	If (akNPC == None)	;ANTONO QUESTION	is this check really necessary?
 		Mod = FormListGet(None, asFormList, auiIndex) as Quest
@@ -851,6 +851,24 @@ String Function _GetModNameFromFormList(String asFormList, Int auiIndex, Actor a
 	Else
 		Return GetStringValue(Mod, MOD_NAME)
 	EndIf
+EndFunction
+
+Quest Function _GetModFormFromModName(String asModName, String asFormList, Actor akNPC = None)	;contains a WHILE loop, don't use if other good alternative exists
+	Int i
+	Int j = FormListCount(akNPC, asFormList)
+	
+	While (i < j)
+		Quest Mod = FormListGet(akNPC, asFormList, i) as Quest
+		String ModName = GetStringValue(Mod, MOD_NAME)
+		
+		If (ModName == asModName)
+			Return Mod
+		Else
+			i += 1
+		EndIf
+	EndWhile
+	
+	Return None
 EndFunction
 
 ;/
