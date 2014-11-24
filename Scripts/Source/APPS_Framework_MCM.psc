@@ -6,11 +6,13 @@ String[] InitOrdering
 String[] LogLevel
 String[] InfoManagerModsListOptions
 String[] SyncModeNPCListOptions
+String[] GlobalRSMultiModsListOptions
 String[] LoggingMethod
 String[] RS_PriorityOrdering
 Int InfoManagerModsListSelection
 Int SyncModeNPCListSelection
 Quest InfoManagerToken
+Quest GlobalRsMultiMod
 Actor SyncModeNPC
 Int USE_MOD_USER_LOG = 0
 Int USE_FRAMEWORK_LOG = 1
@@ -65,9 +67,10 @@ String RS_MULTI_SM4_SM3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMu
 String RS_MULTI_SM3_SM2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-3_S-2.ChangeList"
 String RS_MULTI_SM2_SM1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-2_S-1.ChangeList"
 String RS_MULTI_SM1_S0_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-1_S0.ChangeList"
-Int InitControlFlags 
-Int UninstallControlFlags 
+Int InitControlFlag 
+Int UninstallControlFlag 
 Int NPCSyncModeOptionFlag
+Int GlobalRSMultiOptionFlag
 Float TimeToNextInit = 1.0
 Bool InitSafetyLock = False 
 Bool UninstSafetyLock = False 
@@ -82,8 +85,8 @@ Event OnConfigInit()
 	Pages[4] = "RS - Priority"
 	Pages[5] = "RS - Global Sync Mode"
 	Pages[6] = "RS - NPC Sync Mode"
-	Pages[7] = "RS - Global RS Multiplier"
-	Pages[8] = "RS - Local RS Multiplier"
+	Pages[7] = "RS - Global Multipliers"
+	Pages[8] = "RS - Local Multipliers"
 
 	InitOrdering = New String[7]
 	InitOrdering[0] = "$MOVE_TOP"
@@ -167,13 +170,13 @@ Event OnPageReset(String asPage)
 		
 	ElseIf (asPage == Pages[2])	;initialization manager
 		If (InitSafetyLock || UninstSafetyLock || FormListCount(None, INIT_MODS) == 0) 
-			InitControlFlags = OPTION_FLAG_DISABLED
+			InitControlFlag = OPTION_FLAG_DISABLED
 		Else
-			InitControlFlags = OPTION_FLAG_NONE
+			InitControlFlag = OPTION_FLAG_NONE
 		EndIf
 
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		AddSliderOptionST("WaitingTimeBetweenInits", "$WAITING_TIME_BETWEEN_INITS", 1.0, "{1} seconds", InitControlFlags)
+		AddSliderOptionST("WaitingTimeBetweenInits", "$WAITING_TIME_BETWEEN_INITS", 1.0, "{1} seconds", InitControlFlag)
 
 		If (InitSafetyLock)
 			AddHeaderOption("$INIT_IN_PROGRESS")
@@ -190,7 +193,7 @@ Event OnPageReset(String asPage)
 		Int i
 
 		While (i < FormListCount(None, INIT_MODS))
-			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetModNameFromModFormList(INIT_MODS, i), InitControlFlags))
+			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetModNameFromModFormList(INIT_MODS, i), InitControlFlag))
 			;StringListAdd(None, MENU_OPTIONS, _GetModNameFromModFormList(INIT_MODS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, INIT_MODS, i))
 			i += 1
@@ -198,9 +201,9 @@ Event OnPageReset(String asPage)
 		
 	ElseIf (asPage == Pages[3])	;uninstall manager
 		If (InitSafetyLock || UninstSafetyLock || FormListCount(None, UNINSTALL_MODS) == 0)
-			UninstallControlFlags = OPTION_FLAG_DISABLED
+			UninstallControlFlag = OPTION_FLAG_DISABLED
 		Else
-			UninstallControlFlags = OPTION_FLAG_NONE
+			UninstallControlFlag = OPTION_FLAG_NONE
 		EndIf
 
 		SetCursorFillMode(TOP_TO_BOTTOM)
@@ -220,7 +223,7 @@ Event OnPageReset(String asPage)
 		Int i = UninstallMods
 
 		While (i < FormListCount(None, UNINSTALL_MODS))
-			IntListAdd(None, MENU_OPTIONS, AddTextOption(_GetModNameFromModFormList(UNINSTALL_MODS, i), "", UninstallControlFlags))
+			IntListAdd(None, MENU_OPTIONS, AddTextOption(_GetModNameFromModFormList(UNINSTALL_MODS, i), "", UninstallControlFlag))
 			;StringListAdd(None, MENU_OPTIONS, _GetModNameFromModFormList(UNINSTALL_MODS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, UNINSTALL_MODS, i))
 			i += 1
@@ -294,7 +297,13 @@ Event OnPageReset(String asPage)
 		AddHeaderOption("$MODS_AFFECTING_ACTOR")
 		AddEmptyOption()
 		
-		NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
+		;disable options if the user has not yet selected a SyncModeNPC
+		If (!SyncModeNPC)
+			NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
+		Else
+			NPCSyncModeOptionFlag = OPTION_FLAG_NONE
+		EndIf
+		
 		Int ModsAffectingSyncModeNPC = FormListCount(SyncModeNPC, SYNC_MODE_CHANGELIST)
 		String SyncMode
 		Int j
@@ -319,17 +328,39 @@ Event OnPageReset(String asPage)
 				j += 1
 			EndWhile
 			
-;/	ElseIf (asPage == Pages[7])	;RS - Global RS Multiplier
+	ElseIf (asPage == Pages[7])	;RS - Global Multipliers
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		
 		AddHeaderOption("$RELATIONSHIP")
-		AddTextOption("", "$GLOBAL_RELATIONSHIP_MULTIPLIERS")
+		AddTextOption("", "$MODS_AFFECTING_GLOBAL_RS_MULTIPLIERS")
 		AddEmptyOption()
+		AddMenuOptionST("GlobalRSMultiModsList", "", "$SELECT_MOD")
 		
 		;filling up the GlobalRSMultiModsListOptions array with the names of the mods, to be shown as a menu later.
-		Int iGlobalRSMultiMods = FormListCount(None, RS)
+		Int iGlobalRSMultiMods = FormListCount(None, RS_MULTI_CHANGELIST)
+		GlobalRSMultiModsListOptions = PapyrusUtil.StringArray(iGlobalRSMultiMods)
 		Int i
-		/;
+		
+			While (i< iGlobalRSMultiMods)
+				GlobalRSMultiModsListOptions[i] = StringListGet(None, REGISTERED_RS, i)
+				i += 1
+			EndWhile
+		
+		SetCursorPosition(1)	;go to top of right column
+		AddHeaderOption("$GLOBAL_RS_MULTIPLIERS")
+		AddEmptyOption()
+		
+		Int GlobalRSMultiModIndex
+		
+		;disable options if the user has not yet selected a GlobalRSMultiMod and fetch ModIndex if GlobalRSMultiMod has been selected
+		If (!GlobalRsMultiMod)
+			GlobalRSMultiOptionFlag = OPTION_FLAG_DISABLED
+		Else
+			GlobalRSMultiOptionFlag = OPTION_FLAG_NONE
+			GlobalRSMultiModIndex = FormListFind(None, RS_MULTI_CHANGELIST, GlobalRSMultiMod)
+		EndIf
+		
+		AddTextOption("$S0_S1", FloatListGet(None, RS_MULTI_S0_S1_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
 		
 	EndIf
 EndEvent
@@ -593,8 +624,8 @@ State SyncModeNPCList
 		SyncModeNPCListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
 		
 		;set the NPC, remove the disabled flag and let the OnPageReset() handle the rest
-		NPCSyncModeOptionFlag = OPTION_FLAG_NONE		
 		SyncModeNPC = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, aiSelectedOption) as Actor
+		NPCSyncModeOptionFlag = OPTION_FLAG_NONE
 		
 		ForcePageReset()
 	EndEvent
@@ -916,4 +947,6 @@ All tabs:
 Tab: Uninstall Manager
 	- Test manager
 	- Decide if AddTextOption should work with the Text or the Value, i.e. whether "" should be the text or the value
+Tab: All Relationship tabs
+	- Brainstorm whether to keep StringList
 /;
