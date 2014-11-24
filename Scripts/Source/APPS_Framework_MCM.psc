@@ -6,11 +6,13 @@ String[] InitOrdering
 String[] LogLevel
 String[] InfoManagerModsListOptions
 String[] SyncModeNPCListOptions
+String[] GlobalRSMultiModsListOptions
 String[] LoggingMethod
 String[] RS_PriorityOrdering
 Int InfoManagerModsListSelection
 Int SyncModeNPCListSelection
 Quest InfoManagerToken
+Quest GlobalRSMultiMod
 Actor SyncModeNPC
 Int USE_MOD_USER_LOG = 0
 Int USE_FRAMEWORK_LOG = 1
@@ -60,9 +62,10 @@ String RS_MULTI_SM4_SM3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMu
 String RS_MULTI_SM3_SM2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-3_S-2.ChangeList"
 String RS_MULTI_SM2_SM1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-2_S-1.ChangeList"
 String RS_MULTI_SM1_S0_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-1_S0.ChangeList"
-Int InitControlFlags 
-Int UninstallControlFlags 
+Int InitControlFlag 
+Int UninstallControlFlag 
 Int NPCSyncModeOptionFlag
+Int GlobalRSMultiOptionFlag
 Float TimeToNextInit = 1.0
 Bool InitSafetyLock = False 
 Bool UninstSafetyLock = False 
@@ -161,13 +164,13 @@ Event OnPageReset(String asPage)
 		
 	ElseIf (asPage == Pages[2])	;initialization manager
 		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, INIT_MODS) == 0) 
-			InitControlFlags = OPTION_FLAG_DISABLED
+			InitControlFlag = OPTION_FLAG_DISABLED
 		Else
-			InitControlFlags = OPTION_FLAG_NONE
+			InitControlFlag = OPTION_FLAG_NONE
 		EndIf
 
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		AddSliderOptionST("WaitingTimeBetweenInits", "$WAITING_TIME_BETWEEN_INITS", 1.0, "{1} seconds", InitControlFlags)
+		AddSliderOptionST("WaitingTimeBetweenInits", "$WAITING_TIME_BETWEEN_INITS", 1.0, "{1} seconds", InitControlFlag)
 
 		If (InitSafetyLock)
 			AddHeaderOption("$INIT_IN_PROGRESS")
@@ -184,16 +187,16 @@ Event OnPageReset(String asPage)
 		Int i
 
 		While (i < FormListCount(None, INIT_MODS))
-			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", StringListGet(None, INIT_MODS, i), InitControlFlags))
+			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", StringListGet(None, INIT_MODS, i), InitControlFlag))
 			StringListAdd(None, MENU_OPTIONS, StringListGet(None, INIT_MODS, i))
 			i += 1
 		EndWhile
 		
 	ElseIf (asPage == Pages[3])	;uninstall manager
 		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, UNINSTALL_MODS) == 0)
-			UninstallControlFlags = OPTION_FLAG_DISABLED
+			UninstallControlFlag = OPTION_FLAG_DISABLED
 		Else
-			UninstallControlFlags = OPTION_FLAG_NONE
+			UninstallControlFlag = OPTION_FLAG_NONE
 		EndIf
 
 		SetCursorFillMode(TOP_TO_BOTTOM)
@@ -213,7 +216,7 @@ Event OnPageReset(String asPage)
 		Int i = UninstallMods
 
 		While (i < FormListCount(None, UNINSTALL_MODS))
-			IntListAdd(None, MENU_OPTIONS, AddTextOption(StringListGet(None, UNINSTALL_MODS, i), "", UninstallControlFlags))
+			IntListAdd(None, MENU_OPTIONS, AddTextOption(StringListGet(None, UNINSTALL_MODS, i), "", UninstallControlFlag))
 			StringListAdd(None, MENU_OPTIONS, StringListGet(None, UNINSTALL_MODS, i))
 			i += 1
 		EndWhile
