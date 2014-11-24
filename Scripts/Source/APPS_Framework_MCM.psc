@@ -310,17 +310,39 @@ Event OnPageReset(String asPage)
 				j += 1
 			EndWhile
 			
-;/	ElseIf (asPage == Pages[7])	;RS - Global RS Multiplier
+	ElseIf (asPage == Pages[7])	;RS - Global Multipliers
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		
 		AddHeaderOption("$RELATIONSHIP")
-		AddTextOption("", "$GLOBAL_RELATIONSHIP_MULTIPLIERS")
+		AddTextOption("", "$MODS_AFFECTING_GLOBAL_RS_MULTIPLIERS")
 		AddEmptyOption()
+		AddMenuOptionST("GlobalRSMultiModsList", "", "$SELECT_MOD")
 		
 		;filling up the GlobalRSMultiModsListOptions array with the names of the mods, to be shown as a menu later.
-		Int iGlobalRSMultiMods = FormListCount(None, RS)
+		Int iGlobalRSMultiMods = FormListCount(None, RS_MULTI_CHANGELIST)
+		GlobalRSMultiModsListOptions = PapyrusUtil.StringArray(iGlobalRSMultiMods)
 		Int i
-		/;
+		
+			While (i< iGlobalRSMultiMods)
+				GlobalRSMultiModsListOptions[i] = StringListGet(None, REGISTERED_RS, i)
+				i += 1
+			EndWhile
+		
+		SetCursorPosition(1)	;go to top of right column
+		AddHeaderOption("$GLOBAL_RS_MULTIPLIERS")
+		AddEmptyOption()
+		
+		Int GlobalRSMultiModIndex
+		
+		;disable options if the user has not yet selected a GlobalRSMultiMod and fetch ModIndex if GlobalRSMultiMod has been selected
+		If (!GlobalRsMultiMod)
+			GlobalRSMultiOptionFlag = OPTION_FLAG_DISABLED
+		Else
+			GlobalRSMultiOptionFlag = OPTION_FLAG_NONE
+			GlobalRSMultiModIndex = FormListFind(None, RS_MULTI_CHANGELIST, GlobalRSMultiMod)
+		EndIf
+		
+		AddTextOption("$S0_S1", FloatListGet(None, RS_MULTI_S0_S1_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
 		
 	EndIf
 EndEvent
