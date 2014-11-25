@@ -189,6 +189,7 @@ Function SetErrorHandling(Bool abLogErrors = True, Bool abDisplayErrors = True)
 EndFunction
 
 Bool Function RegisterForRelationshipModule()
+;ANTONO TODO require to be registered with the framework in general
 	If(FormListAdd(None, REGISTERED_RS, Self, False) > -1)
 		Exception.Notify(FW_LOG, ModName + " is now registered for the relationship module.", False)
 		StringListAdd(None, REGISTERED_RS, ModName, False)
