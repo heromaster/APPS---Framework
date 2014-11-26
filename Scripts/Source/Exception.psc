@@ -3,17 +3,28 @@ Import Debug
 Import StorageUtil
 
 Function Notify(String asModName, String asMessage, Bool abDisplayOnScreen = True, Bool abAsNotification = True) Global
-	Int ModIndex = StringListFind(None, "APPS.Framework.RegisteredMods", asModName)
 	Quest Token
-	String LogName
-
-	If( ModIndex > -1)
-		Token = FormListGet(None, "APPS.Framework.RegisteredMods", ModIndex) As Quest
-	Else
+	Int i
+	Int j = StorageUtil.FormListCount(None, "APPS.Framework.RegisteredMods")
+	
+	While (i < j)
+		Quest Mod = FormListGet(None, "APPS.Framework.RegisteredMods", i) as Quest
+		
+		If (Mod)
+			String ModName = GetStringValue(Mod, "APPS.Framework.RegisteredMods.ModName")
+			
+			If (ModName == asModName)
+				Token = Mod			
+			EndIf
+		EndIf
+		i += 1
+	EndWhile
+	
+	If (!Token)
 		Return
 	EndIf
 
-	LogName = GetStringValue(Token, "APPS.Framework.InfoManager.LogName")
+	String LogName = GetStringValue(Token, "APPS.Framework.InfoManager.LogName")
 
 	If(HasIntValue(Token, "APPS.Framework.InfoManager.LogInfos") && Utility.GetINIBool("bEnableLogging:Papyrus"))
 		If(GetIntValue(Token, "APPS.Framework.InfoManager.LogFile") == 2) ;2 - Writes into Papyrus log
@@ -35,25 +46,36 @@ Function Notify(String asModName, String asMessage, Bool abDisplayOnScreen = Tru
 	EndIf
 
 	If(HasIntValue(Token, "APPS.Framework.InfoManager.DisplayInfos") && abDisplayOnScreen && !abAsNotification)
-		MessageBox("Source: " + asModname + "\nInfo: " + asMessage)
+		MessageBox("Source: " + asModName + "\nInfo: " + asMessage)
 	ElseIf(HasIntValue(Token, "APPS.Framework.InfoManager.DisplayInfos") && abDisplayOnScreen && abAsNotification)
 		Notification("Info: " + asMessage)
-		Notification("Source: " + asModname)
+		Notification("Source: " + asModName)
 	EndIf
 EndFunction
 
 Function Warn(String asModName, String asMessage, String asReason = "", Bool abAsNotification = False) Global
-	Int ModIndex = StringListFind(None, "APPS.Framework.RegisteredMods", asModName)
 	Quest Token
-	String LogName
-
-	If(ModIndex > -1)
-		Token = FormListGet(None, "APPS.Framework.RegisteredMods", ModIndex) As Quest
-	Else
+	Int i
+	Int j = StorageUtil.FormListCount(None, "APPS.Framework.RegisteredMods")
+	
+	While (i < j)
+		Quest Mod = FormListGet(None, "APPS.Framework.RegisteredMods", i) as Quest
+		
+		If (Mod)
+			String ModName = GetStringValue(Mod, "APPS.Framework.RegisteredMods.ModName")
+			
+			If (ModName == asModName)
+				Token = Mod			
+			EndIf
+		EndIf
+		i += 1
+	EndWhile
+	
+	If (!Token)
 		Return
 	EndIf
 
-	LogName = GetStringValue(Token, "APPS.Framework.InfoManager.LogName")
+	String LogName = GetStringValue(Token, "APPS.Framework.InfoManager.LogName")
 
 	If(HasIntValue(Token, "APPS.Framework.InfoManager.LogWarnings") && Utility.GetINIBool("bEnableLogging:Papyrus"))
 		If(GetIntValue(Token, "APPS.Framework.InfoManager.LogFile") == 2) ;2 - Writes into Papyrus log
@@ -83,7 +105,7 @@ Function Warn(String asModName, String asMessage, String asReason = "", Bool abA
 		If(asReason != "")
 			MessageBox("Source: " + asModName + "\nReason: " + asReason + "\nWarning: " + asMessage)
 		Else
-			MessageBox("Source: " + asModname + "\nWarning: " + asMessage)
+			MessageBox("Source: " + asModName + "\nWarning: " + asMessage)
 		EndIf
 	ElseIf(HasIntValue(Token, "APPS.Framework.InfoManager.DisplayWarnings") && abAsNotification)
 		If(asReason != "")
@@ -92,23 +114,34 @@ Function Warn(String asModName, String asMessage, String asReason = "", Bool abA
 			Notification("Source: " + asModName)
 		Else
 			Notification("Warning: " + asMessage)
-			Notification("Source: " + asModname)
+			Notification("Source: " + asModName)
 		EndIf
 	EndIf
 EndFunction
 
 Function Throw(String asModName, String asMessage, String asReason) Global
-	Int ModIndex = StringListFind(None, "APPS.Framework.RegisteredMods", asModName)
 	Quest Token
-	String LogName
-
-	If( ModIndex > -1)
-		Token = FormListGet(None, "APPS.Framework.RegisteredMods", ModIndex) As Quest
-	Else
+	Int i
+	Int j = StorageUtil.FormListCount(None, "APPS.Framework.RegisteredMods")
+	
+	While (i < j)
+		Quest Mod = FormListGet(None, "APPS.Framework.RegisteredMods", i) as Quest
+		
+		If (Mod)
+			String ModName = GetStringValue(Mod, "APPS.Framework.RegisteredMods.ModName")
+			
+			If (ModName == asModName)
+				Token = Mod			
+			EndIf
+		EndIf
+		i += 1
+	EndWhile
+	
+	If (!Token)
 		Return
 	EndIf
 
-	LogName = GetStringValue(Token, "APPS.Framework.InfoManager.LogName")
+	String LogName = GetStringValue(Token, "APPS.Framework.InfoManager.LogName")
 
 	If(HasIntValue(Token, "APPS.Framework.InfoManager.LogErrors") && Utility.GetINIBool("bEnableLogging:Papyrus"))
 		If(GetIntValue(Token, "APPS.Framework.InfoManager.LogFile") == 2) ;2 - Writes into Papyrus log

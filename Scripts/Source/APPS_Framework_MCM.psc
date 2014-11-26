@@ -870,13 +870,8 @@ Bool Function UninstallMod(Quest ModToUninstall, Bool abSafetyLock = True)
 EndFunction
 
 String Function _GetModNameFromModFormList(String asFormList, Int auiIndex, Actor akNPC = None)
-	Quest Mod
-	If (akNPC == None)	;ANTONO QUESTION	is this check really necessary?
-		Mod = FormListGet(None, asFormList, auiIndex) as Quest
-	Else
-		Mod = FormListGet(akNPC, asFormList, auiIndex) as Quest
-	EndIf
-	
+	Quest Mod = FormListGet(akNPC, asFormList, auiIndex) as Quest
+
 	If (!Mod)
 		Return ""
 	Else
@@ -890,13 +885,15 @@ Quest Function _GetModFormFromModName(String asModName, String asFormList, Actor
 	
 	While (i < j)
 		Quest Mod = FormListGet(akNPC, asFormList, i) as Quest
-		String ModName = GetStringValue(Mod, MOD_NAME)
 		
-		If (ModName == asModName)
-			Return Mod
-		Else
-			i += 1
+		If (Mod)	
+			String ModName = GetStringValue(Mod, MOD_NAME)
+			
+			If (ModName == asModName)
+				Return Mod
+			EndIf
 		EndIf
+		i += 1
 	EndWhile
 	
 	Return None
