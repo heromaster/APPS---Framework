@@ -938,7 +938,6 @@ TODO:
 All tabs:
 	- Max array size & MCM menu sice: 128
 	- Fix Exception $translations
-	- Rename MENU_OPTIONS and the corresponding string to a less confusing name
 	- Optimize all increasing WHILE loops
 	- Translate pages names
 Tab: Uninstall Manager
