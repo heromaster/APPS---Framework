@@ -3,6 +3,8 @@ String Property DISPLAY_ERRORS = "APPS.Framework.InfoManager.DisplayErrors" Auto
 String Property DISPLAY_INFOS = "APPS.Framework.InfoManager.DisplayInfos" AutoReadOnly Hidden
 String Property DISPLAY_WARNINGS = "APPS.Framework.InfoManager.DisplayWarnings" AutoReadOnly Hidden
 String Property INIT_MODS = "APPS.Framework.InitMods" AutoReadOnly Hidden
+String Property INIT_QUEST = "APPS.Framework.InitMods.InitQuest" AutoReadOnly Hidden
+String Property INIT_STAGE = "APPS.Framework.InitMods.InitStage" AutoReadOnly Hidden
 String Property INIT_MODS_TOOLTIP = "APPS.Framework.InitMods.Tooltip" AutoReadOnly Hidden
 String Property LOG_ERRORS = "APPS.Framework.InfoManager.LogErrors" AutoReadOnly Hidden
 String Property LOG_INFOS = "APPS.Framework.InfoManager.LogInfos" AutoReadOnly Hidden
@@ -12,6 +14,9 @@ String Property LOGNAME = "APPS.Framework.InfoManager.LogName" AutoReadOnly Hidd
 String Property REGISTERED_MODS = "APPS.Framework.RegisteredMods" AutoReadOnly Hidden
 String Property REGISTERED_RS = "APPS.Framework.Relationship.RegisteredMods" AutoReadOnly Hidden
 String Property UNINSTALL_MODS = "APPS.Framework.UninstallMods" AutoReadOnly Hidden
+String Property UNINSTALL_QUEST = "APPS.Framework.UninstallMods.UninstallQuest" AutoReadOnly Hidden
+String Property UNINSTALL_STAGE = "APPS.Framework.UninstallMods.UninstallStage" AutoReadOnly Hidden
+String Property MOD_NAME = "APPS.Framework.RegisteredMods.ModName" AutoReadOnly Hidden
 
 ;/ |------------------------------------------------------------------------------------------------------------|
    |Checks if the mod is registered with the framework.															|
@@ -24,11 +29,19 @@ String Property UNINSTALL_MODS = "APPS.Framework.UninstallMods" AutoReadOnly Hid
    |Returns False if the specified mod was not found in the registration list.									|
    |------------------------------------------------------------------------------------------------------------| /;
 Bool Function IsModRegistered(String asModName)
-	If(_GetModIndexFromString(asModName, REGISTERED_MODS) > -1)
-		Return True
-	Else
-		Return False
-	EndIf
+	Int RegisteredMods = StorageUtil.FormListCount(None, REGISTERED_MODS)
+	Int i
+		
+		While (i < RegisteredMods)
+			Quest Mod = StorageUtil.FormListGet(None, REGISTERED_MODS, i) as Quest
+			If (StorageUtil.GetStringValue(Mod, MOD_NAME) == asModName)
+				Return True
+			Else
+				i += 1
+			EndIf
+		EndWhile
+	
+	Return False
 EndFunction
 
 ;/ |------------------------------------------------------------------------------------------------------------|

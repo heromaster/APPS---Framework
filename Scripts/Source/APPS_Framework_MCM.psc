@@ -24,6 +24,7 @@ Int MOVE_DOWN = 3
 Int MOVE_BOTTOM = 4
 Int INITIALIZE_MOD = 6
 String FW_LOG = "APPS - Framework"
+String MOD_NAME = "APPS.Framework.RegisteredMods.ModName"
 String EXCEPTIONS_LOGFILE = "APPS.Framework.InfoManager.LogFile"
 String EXCEPTIONS_LOGNAME = "APPS.Framework.InfoManager.LogName"
 String DISPLAY_ERRORS = "APPS.Framework.InfoManager.DisplayErrors"
@@ -35,8 +36,12 @@ String LOG_INFOS = "APPS.Framework.InfoManager.LogInfos"
 String REGISTERED_MODS = "APPS.Framework.RegisteredMods"
 String MENU_OPTIONS = "APPS.Framework.MCM.MenuOptions"
 String INIT_MODS = "APPS.Framework.InitMods"
+String INIT_QUEST = "APPS.Framework.InitMods.InitQuest"
+String INIT_STAGE = "APPS.Framework.InitMods.InitStage"
 String INIT_MODS_TOOLTIP = "APPS.Framework.InitMods.Tooltip"
 String UNINSTALL_MODS = "APPS.Framework.UninstallMods"
+String UNINSTALL_QUEST = "APPS.Framework.UninstallMods.UninstallQuest"
+String UNINSTALL_STAGE = "APPS.Framework.UninstallMods.UninstallStage"
 String REGISTERED_RS = "APPS.Framework.Relationship.RegisteredMods"
 String SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList"
 String SYNC_MODE_NPC_CHANGELIST = "APPS.Framework.Relationship.SyncMode.NPC.ChangeList"
@@ -80,8 +85,8 @@ Event OnConfigInit()
 	Pages[4] = "RS - Priority"
 	Pages[5] = "RS - Global Sync Mode"
 	Pages[6] = "RS - NPC Sync Mode"
-	Pages[7] = "RS - Global RS Multiplier"
-	Pages[8] = "RS - Local RS Multiplier"
+	Pages[7] = "RS - Global Multipliers"
+	Pages[8] = "RS - Local Multipliers"
 
 	InitOrdering = New String[7]
 	InitOrdering[0] = "$MOVE_TOP"
@@ -116,17 +121,18 @@ EndEvent
 Event OnPageReset(String asPage)
 	IntListClear(None, MENU_OPTIONS)
 	StringListClear(None, MENU_OPTIONS)
+	FormListClear(None, MENU_OPTIONS)
 
 	If (asPage == Pages[0])	;registry
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		AddHeaderOption("$REGISTERED_MODS")
 		AddEmptyOption()
 		
-		Int RegisteredMods = StringListCount(None, REGISTERED_MODS)
+		Int RegisteredMods = FormListCount(None, REGISTERED_MODS)
 		Int i
 
 		While (i < RegisteredMods)
-			AddTextOption(StringListGet(None, REGISTERED_MODS, i), "")
+			AddTextOption(_GetModNameFromModFormList(REGISTERED_MODS, i), "")
 			i += 1
 		EndWhile
 		
@@ -142,12 +148,12 @@ Event OnPageReset(String asPage)
 		AddTextOptionST("LogName", "Log Name", "", OPTION_FLAG_DISABLED)
 		
 		;filling up the InfoManagerModsListOptions array with the names of the registered mods, to be shown as a menu later
-		Int RegisteredMods = StringListCount(None, REGISTERED_MODS)
+		Int RegisteredMods = FormListCount(None, REGISTERED_MODS)
 		InfoManagerModsListOptions = PapyrusUtil.StringArray(RegisteredMods)
 		Int i
 
 			While (i < RegisteredMods)
-				InfoManagerModsListOptions[i] = StringListGet(None, REGISTERED_MODS, i)
+				InfoManagerModsListOptions[i] = _GetModNameFromModFormList(REGISTERED_MODS, i)
 				i += 1
 			EndWhile
 		
@@ -163,7 +169,7 @@ Event OnPageReset(String asPage)
 		AddToggleOptionST("LogErrors", "$LOG_TO_FILE", False, OPTION_FLAG_DISABLED)
 		
 	ElseIf (asPage == Pages[2])	;initialization manager
-		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, INIT_MODS) == 0) 
+		If (InitSafetyLock || UninstSafetyLock || FormListCount(None, INIT_MODS) == 0) 
 			InitControlFlag = OPTION_FLAG_DISABLED
 		Else
 			InitControlFlag = OPTION_FLAG_NONE
@@ -187,13 +193,14 @@ Event OnPageReset(String asPage)
 		Int i
 
 		While (i < FormListCount(None, INIT_MODS))
-			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", StringListGet(None, INIT_MODS, i), InitControlFlag))
-			StringListAdd(None, MENU_OPTIONS, StringListGet(None, INIT_MODS, i))
+			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetModNameFromModFormList(INIT_MODS, i), InitControlFlag))
+			;StringListAdd(None, MENU_OPTIONS, _GetModNameFromModFormList(INIT_MODS, i))
+			FormListAdd(None, MENU_OPTIONS, FormListGet(None, INIT_MODS, i))
 			i += 1
 		EndWhile
 		
 	ElseIf (asPage == Pages[3])	;uninstall manager
-		If (InitSafetyLock || UninstSafetyLock || StringListCount(None, UNINSTALL_MODS) == 0)
+		If (InitSafetyLock || UninstSafetyLock || FormListCount(None, UNINSTALL_MODS) == 0)
 			UninstallControlFlag = OPTION_FLAG_DISABLED
 		Else
 			UninstallControlFlag = OPTION_FLAG_NONE
@@ -216,8 +223,9 @@ Event OnPageReset(String asPage)
 		Int i = UninstallMods
 
 		While (i < FormListCount(None, UNINSTALL_MODS))
-			IntListAdd(None, MENU_OPTIONS, AddTextOption(StringListGet(None, UNINSTALL_MODS, i), "", UninstallControlFlag))
-			StringListAdd(None, MENU_OPTIONS, StringListGet(None, UNINSTALL_MODS, i))
+			IntListAdd(None, MENU_OPTIONS, AddTextOption(_GetModNameFromModFormList(UNINSTALL_MODS, i), "", UninstallControlFlag))
+			;StringListAdd(None, MENU_OPTIONS, _GetModNameFromModFormList(UNINSTALL_MODS, i))
+			FormListAdd(None, MENU_OPTIONS, FormListGet(None, UNINSTALL_MODS, i))
 			i += 1
 		EndWhile
 		
@@ -230,8 +238,9 @@ Event OnPageReset(String asPage)
 		Int i
 
 		While (i < FormListCount(None, REGISTERED_RS))
-			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", StringListGet(None, REGISTERED_RS, i)))
-			StringListAdd(None, MENU_OPTIONS, StringListGet(None, REGISTERED_RS, i))
+			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetModNameFromModFormList(REGISTERED_RS, i)))
+			;StringListAdd(None, MENU_OPTIONS, StringListGet(None, REGISTERED_RS, i))
+			FormListAdd(None, MENU_OPTIONS, FormListGet(None, REGISTERED_RS, i))
 			i += 1
 		EndWhile
 		
@@ -607,9 +616,10 @@ State StartInitialization
 			ForcePageReset()	;this ensures install order is displayed again with OPTION_FLAG_DISABLED			
 			Utility.Wait(0.1)	;forces the user to close the menu
 
-			While (StringListCount(None, INIT_MODS) > 0)
-				String ModToInit = StringListGet(None, INIT_MODS, 0)
-				Exception.Notify(FW_LOG, ModToInit)
+			While (FormListCount(None, INIT_MODS) > 0)
+				Quest ModToInit = FormListGet(None, INIT_MODS, 0) as Quest
+				String ModName = GetStringValue(ModToInit, MOD_NAME)
+				Exception.Notify(FW_LOG, ModName)
 				InitializeMod(ModToInit, abSafetyLock = False) ;SafetyLock is handled by line InitSafetyLock = True
 				Utility.Wait(TimeToNextInit)
 			EndWhile
@@ -633,8 +643,8 @@ State SyncModeNPCList
 		SyncModeNPCListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
 		
 		;set the NPC, remove the disabled flag and let the OnPageReset() handle the rest
-		NPCSyncModeOptionFlag = OPTION_FLAG_NONE		
 		SyncModeNPC = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, aiSelectedOption) as Actor
+		NPCSyncModeOptionFlag = OPTION_FLAG_NONE
 		
 		ForcePageReset()
 	EndEvent
@@ -701,15 +711,15 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 		If(aiOpenedMenu == IntListGet(None, MENU_OPTIONS, i))
 			If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
 				If (CurrentPage == Pages[2])
-					ChangeOrder(StringListGet(None, MENU_OPTIONS, i), INIT_MODS, aiSelectedOption)
+					ChangeOrder(FormListGet(None, MENU_OPTIONS, i) as Quest, INIT_MODS, aiSelectedOption)
 				ElseIf (CurrentPage == Pages[4])
-					ChangeOrder(StringListGet(None, MENU_OPTIONS, i), REGISTERED_RS, aiSelectedOption)
+					ChangeOrder(FormListGet(None, MENU_OPTIONS, i) as Quest, REGISTERED_RS, aiSelectedOption)
 				EndIf
 				
 			ElseIf (aiSelectedOption == INITIALIZE_MOD)
 				If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == True)
 					ShowMessage("$CLOSE_MCM", False, "$OK")
-					String ModToInit = StringListGet(None, MENU_OPTIONS, i)
+					Quest ModToInit = FormListGet(None, MENU_OPTIONS, i) as Quest
 					Utility.Wait(0.1)	;forces the user to close the menu
 
 					InitializeMod(ModToInit)
@@ -735,7 +745,8 @@ Event OnOptionSelect(Int aiOption)
 		While (i < MenuOptions)
 			If (aiOption == IntListGet(None, MENU_OPTIONS, i))
 				If (ShowMessage("$UNINSTALL_MOD_CONFIRMATION") == True)
-					UninstallMod(StringListGet(None, MENU_OPTIONS, i))
+					Quest ModToUninstall = FormListGet(None, MENU_OPTIONS, i) as Quest
+					UninstallMod(ModToUninstall)
 				EndIf
 			i = MenuOptions
 			Else
@@ -751,103 +762,61 @@ EndEvent
 Event OnConfigClose()
 	IntListClear(None, MENU_OPTIONS)
 	StringListClear(None, MENU_OPTIONS)
+	FormListClear(None, MENU_OPTIONS)
 EndEvent
 
-Function ChangeOrder(String asModName, String aiArray, Int aiPositionChange)
-	
-	If (aiArray != INIT_MODS && aiArray != REGISTERED_RS)
+Function ChangeOrder(Quest akMod, String asArray, Int aiPositionChange)
+	If (asArray != INIT_MODS && asArray != REGISTERED_RS)
 		Return
 	EndIf
-	
-	Int ModIndex = StringListFind(None, aiArray, asModName)
-	Form kQuest = FormListGet(None, aiArray, ModIndex)
-	Int iSetStage
-	
-	If (aiArray == INIT_MODS)
-		iSetStage = IntListGet(None, aiArray, ModIndex)
-	EndIf
+
+	Int ModIndex = FormListFind(None, asArray, akMod)
 
 	If(aiPositionChange == MOVE_TOP)
 		If(ModIndex == 0)
 			Return
 		EndIf
 
-		FormListRemove(None, aiArray, kQuest)
-		FormListInsert(None, aiArray, 0, kQuest)
+		FormListRemove(None, asArray, akMod)
+		FormListInsert(None, asArray, 0, akMod)
 
-		StringListRemove(None, aiArray, asModName)
-		StringListInsert(None, aiArray, 0, asModName)
-		
-		If (aiArray == INIT_MODS)
-			IntListRemove(None, aiArray, iSetStage)
-			IntListInsert(None, aiArray, 0, iSetStage)
-		EndIf
 	ElseIf(aiPositionChange == MOVE_UP)
 		If(ModIndex == 0)
 			Return
 		EndIf
 
-		FormListRemove(None, aiArray, kQuest)
-		FormListInsert(None, aiArray, (ModIndex - 1), kQuest)
+		FormListRemove(None, asArray, akMod)
+		FormListInsert(None, asArray, (ModIndex - 1), akMod)
 
-		StringListRemove(None, aiArray, asModName)
-		StringListInsert(None, aiArray, (ModIndex - 1), asModName)
-		
-		If (aiArray == INIT_MODS)
-			IntListRemove(None, aiArray, iSetStage)
-			IntListInsert(None, aiArray, (ModIndex - 1), iSetStage)
-		EndIf
 	ElseIf(aiPositionChange == MOVE_DOWN)
-		If(ModIndex == (StringListCount(None, aiArray) - 1))
+		If(ModIndex == (FormListCount(None, asArray) - 1))
 			Return
 		EndIf
 
-		If(ModIndex == (StringListCount(None, INIT_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
-			FormListRemove(None, aiArray, kQuest)
-			FormListAdd(None, aiArray, kQuest)
-
-			StringListRemove(None, aiArray, asModName)
-			StringListAdd(None, aiArray, asModName)
-			
-			If (aiArray == INIT_MODS)
-				IntListRemove(None, aiArray, iSetStage)
-				IntListAdd(None, aiArray, iSetStage)
-			EndIf
+		If(ModIndex == (FormListCount(None, asArray) - 2)) ;this is equivalent to MOVE_BOTTOM
+			FormListRemove(None, asArray, akMod)
+			FormListAdd(None, asArray, akMod)
 		Else
-			FormListRemove(None, aiArray, kQuest)
-			FormListInsert(None, aiArray, (ModIndex + 1), kQuest)
-
-			StringListRemove(None, aiArray, asModName)
-			
-			StringListInsert(None, aiArray, (ModIndex +1), asModName)
-			
-			If (aiArray == INIT_MODS)
-				IntListRemove(None, aiArray, iSetStage)
-				IntListInsert(None, aiArray, (ModIndex + 1), iSetStage)
-			EndIf
+			FormListRemove(None, asArray, akMod)
+			FormListInsert(None, asArray, (ModIndex + 1), akMod)
 		EndIf
+		
 	ElseIf(aiPositionChange == MOVE_BOTTOM)
-		If(ModIndex == StringListCount(None, aiArray) - 1)
+		If(ModIndex == FormListCount(None, asArray) - 1)
 			Return
 		EndIf
 
-		FormListRemove(None, aiArray, kQuest)
-		FormListAdd(None, aiArray, kQuest)
+		FormListRemove(None, asArray, akMod)
+		FormListAdd(None, asArray, akMod)
 
-		StringListRemove(None, aiArray, asModName)
-		StringListAdd(None, aiArray, asModName)
-		
-		If (aiArray == INIT_MODS)
-			IntListRemove(None, aiArray, iSetStage)
-			IntListAdd(None, aiArray, iSetStage)
-		EndIf
 	EndIf
 EndFunction
 
-Bool Function InitializeMod(String asModName, Bool abSafetyLock = True)
-	Int ModIndex = StringListFind(None, INIT_MODS, asModName)
-	Quest InitQuest = FormListGet(None, INIT_MODS, ModIndex) as Quest
-	Int iSetStage = IntListGet(None, INIT_MODS, ModIndex)
+Bool Function InitializeMod(Quest akModToInit, Bool abSafetyLock = True)
+	Int ModIndex = FormListFind(None, INIT_MODS, akModToInit)
+	String ModName = GetStringValue(akModToInit, MOD_NAME)
+	Quest InitQuest = GetFormValue(akModToInit, INIT_QUEST) as Quest
+	Int iSetStage = GetIntValue(akModToInit, INIT_STAGE)
 	Bool result = True
 
 	If (abSafetyLock)
@@ -865,29 +834,29 @@ Bool Function InitializeMod(String asModName, Bool abSafetyLock = True)
 	EndIf
 
 	If(result)
-		Exception.Notify(FW_LOG, asModName + "$INITIALIZED")
+		Exception.Notify(FW_LOG, ModName + "$INITIALIZED")
 	Else
-		Exception.Throw(FW_LOG, "Failed to initialize mod", asModName + "$FAILED_TO_INITIALIZE")
-
-		StringListRemove(None, REGISTERED_MODS, asModName)
-		FormListRemoveAt(None, REGISTERED_MODS, ModIndex)
+		Exception.Throw(FW_LOG, "Failed to initialize mod", ModName + "$FAILED_TO_INITIALIZE")
+		FormListRemove(None, REGISTERED_MODS, akModToInit)
 	EndIf
 
 	If (abSafetyLock)
 		InitSafetyLock = False
 	EndIf
 
-	StringListRemove(None, INIT_MODS, asModName)
-	FormListRemove(None, INIT_MODS, InitQuest)
-	IntListRemove(None, INIT_MODS, iSetStage)
+	UnsetFormValue(akModToInit, INIT_QUEST)
+	UnsetIntValue(akModToInit, INIT_STAGE)
+	UnsetStringValue(akModToInit, INIT_MODS_TOOLTIP)
+	FormListRemove(None, INIT_MODS, akModToInit)
 
 	Return result
 EndFunction
 
-Bool Function UninstallMod(String asModName, Bool abSafetyLock = True)
-	Int ModIndex = StringListFind(None, UNINSTALL_MODS, asModName)
-	Quest UninstallQuest = FormListGet(None, UNINSTALL_MODS, ModIndex) as Quest
-	Int iSetStage = IntListGet(None, UNINSTALL_MODS, ModIndex)
+Bool Function UninstallMod(Quest ModToUninstall, Bool abSafetyLock = True)
+	Int ModIndex = FormListFind(None, UNINSTALL_MODS, ModToUninstall)
+	String ModName = GetStringValue(ModToUninstall, MOD_NAME)
+	Quest UninstallQuest = GetFormValue(ModToUninstall, UNINSTALL_QUEST) as Quest
+	Int iSetStage = GetIntValue(ModToUninstall, UNINSTALL_STAGE)
 	Bool result = True
 
 	If (abSafetyLock)
@@ -896,12 +865,12 @@ Bool Function UninstallMod(String asModName, Bool abSafetyLock = True)
 
 	If(iSetStage == 0)
 		If (!UninstallQuest.Start())
-			Exception.Throw(FW_LOG, "Uninstallation failed", asModName + "$FAILED_TO_UNINSTALL")
+			Exception.Throw(FW_LOG, "Uninstallation failed", ModName + "$FAILED_TO_UNINSTALL")
 			result = False
 		EndIf
 	Else
 		If(!UninstallQuest.SetStage(iSetStage))
-			Exception.Throw(FW_LOG, "Uninstallation failed", asModName + "$FAILED_TO_UNINSTALL")
+			Exception.Throw(FW_LOG, "Uninstallation failed", ModName + "$FAILED_TO_UNINSTALL")
 			result = False
 		EndIf
 	EndIf
@@ -910,14 +879,43 @@ Bool Function UninstallMod(String asModName, Bool abSafetyLock = True)
 		UninstSafetyLock = False
 	EndIf
 
-	StringListRemove(None, UNINSTALL_MODS, asModName)
-	FormListRemove(None, UNINSTALL_MODS, UninstallQuest)
-	IntListRemove(None, UNINSTALL_MODS, iSetStage)
-
-	StringListRemove(None, REGISTERED_MODS, asModName)
-	FormListRemoveAt(None, REGISTERED_MODS, ModIndex)
+	UnsetFormValue(ModToUninstall, UNINSTALL_QUEST)
+	UnsetIntValue(ModToUninstall, UNINSTALL_STAGE)
+	UnsetStringValue(ModToUninstall, MOD_NAME)
+	FormListRemove(None, UNINSTALL_MODS, ModToUninstall)
+	FormListRemove(None, REGISTERED_MODS, ModToUninstall)
 
 	Return result
+EndFunction
+
+String Function _GetModNameFromModFormList(String asFormList, Int auiIndex, Actor akNPC = None)
+	Quest Mod = FormListGet(akNPC, asFormList, auiIndex) as Quest
+
+	If (!Mod)
+		Return ""
+	Else
+		Return GetStringValue(Mod, MOD_NAME)
+	EndIf
+EndFunction
+
+Quest Function _GetModFormFromModName(String asModName, String asFormList, Actor akNPC = None)	;contains a WHILE loop, don't use if other good alternative exists
+	Int i
+	Int j = FormListCount(akNPC, asFormList)
+	
+	While (i < j)
+		Quest Mod = FormListGet(akNPC, asFormList, i) as Quest
+		
+		If (Mod)	
+			String ModName = GetStringValue(Mod, MOD_NAME)
+			
+			If (ModName == asModName)
+				Return Mod
+			EndIf
+		EndIf
+		i += 1
+	EndWhile
+	
+	Return None
 EndFunction
 
 ;/
@@ -959,10 +957,11 @@ TODO:
 All tabs:
 	- Max array size & MCM menu sice: 128
 	- Fix Exception $translations
-	- Rename MENU_OPTIONS and the corresponding string to a less confusing name
 	- Optimize all increasing WHILE loops
 	- Translate pages names
 Tab: Uninstall Manager
 	- Test manager
 	- Decide if AddTextOption should work with the Text or the Value, i.e. whether "" should be the text or the value
+Tab: All Relationship tabs
+	- Brainstorm whether to keep StringList
 /;

@@ -89,7 +89,7 @@ Bool Function SetGlobalSyncMode(Quest akToken, Int aiSyncMode)
 		Return False
 	EndIf
 
-	String ModName = StringListGet(None, REGISTERED_RS, ModIndex)
+	String ModName = GetStringValue(akToken, MOD_NAME)
 	Int ModIndex2 = _GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST) ; Get position of current mod in this list
 	Int SyncModeChanges = FormListCount(None, SYNC_MODE_CHANGELIST) ;Get the list of mods which do change the global sync mode
 
@@ -220,7 +220,7 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 		Return False
 	EndIf
 
-	String ModName = StringListGet(None, REGISTERED_RS, ModIndex)
+	String ModName = GetStringValue(akToken, MOD_NAME)
 
 	If(aiSyncMode < 0 || aiSyncMode > 3)
 		Throw(FW_LOG, "Sync mode for " + akNPC.GetName() + " was not correctly set by " + ModName + ". The lower limit is 0 and the upper limit is 3.", "Invalid arguments")
@@ -383,7 +383,7 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRa
 		Return False
 	EndIf
 
-	String ModName = StringListGet(None, REGISTERED_RS, ModIndex)
+	String ModName = GetStringValue(akToken, MOD_NAME)
 	Int ModIndex2 = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST) ; Get position of current mod in this list
 	Int RSMultiChanges = FormListCount(None, RS_MULTI_CHANGELIST) ;Get the list of mods which do change the sync mode on an actor
 	String MultiplierString = "S" + aiFromRelationshipRank As String + "_S" + aiToRelationshipRank As String
@@ -1405,7 +1405,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 		False
 	EndIf
 
-	String ModName = StringListGet(None, REGISTERED_RS, ModIndex)
+	String ModName = GetStringValue(akToken, MOD_NAME)
 	Int ModIndex2 = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) ; Get position of current mod in this list
 	Int RSMultiChanges = FormListCount(akNPC, RS_MULTI_CHANGELIST) ;Get the list of mods which do change the sync mode on an actor
 	String MultiplierString = "S" + aiFromRelationshipRank As String + "_S" + aiToRelationshipRank As String
