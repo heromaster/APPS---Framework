@@ -72,6 +72,7 @@ Int InitControlFlag
 Int UninstallControlFlag 
 Int NPCSyncModeOptionFlag
 Int GlobalRSMultiOptionFlag
+Int InfoManagerOptionFlag
 Float TimeToNextInit = 1.0
 Bool InitSafetyLock = False 
 Bool UninstSafetyLock = False 
@@ -138,15 +139,37 @@ Event OnPageReset(String asPage)
 		EndWhile
 		
 	ElseIf (asPage == Pages[1])	;info manager
+		String TokenLoggingMethod
+		
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		AddHeaderOption("$GENERAL_SETTINGS")
 		AddToggleOptionST("EnableLogging", "$ENABLE_LOGGING", Utility.GetINIBool("bEnableLogging:Papyrus"))
 		AddEmptyOption()
 		AddHeaderOption("$MOD_SPECIFIC_SETTINGS")
-		AddMenuOptionST("InfoManagerModsList", "", "$SELECT_MOD")
-		AddEmptyOption()
-		AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", "", OPTION_FLAG_DISABLED)
-		AddTextOptionST("LogName", "Log Name", "", OPTION_FLAG_DISABLED)
+		
+		If (!InfoManagerToken)
+			InfoManagerOptionFlag = OPTION_FLAG_DISABLED
+			
+			AddMenuOptionST("InfoManagerModsList", "", "$SELECT_MOD")
+			AddEmptyOption()
+			AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", "", InfoManagerOptionFlag)
+			AddTextOptionST("LogName", "Log Name", "", InfoManagerOptionFlag)
+		Else
+			If (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
+				TokenLoggingMethod = LoggingMethod[0]
+			ElseIf (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
+				TokenLoggingMethod = LoggingMethod[1]
+			ElseIf (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_PAPYRUS_LOG)
+				TokenLoggingMethod = LoggingMethod[2]
+			EndIf
+			
+			InfoManagerOptionFlag = OPTION_FLAG_NONE
+			
+			AddMenuOptionST("InfoManagerModsList", "", _GetModNameFromModForm(InfoManagerToken))
+			AddEmptyOption()
+			AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", TokenLoggingMethod, InfoManagerOptionFlag)
+			AddTextOptionST("LogName", "Log Name", GetStringValue(InfoManagerToken, EXCEPTIONS_LOGNAME), InfoManagerOptionFlag)
+		EndIf
 		
 		;filling up the InfoManagerModsListOptions array with the names of the registered mods, to be shown as a menu later
 		Int RegisteredMods = FormListCount(None, REGISTERED_MODS)
@@ -160,14 +183,14 @@ Event OnPageReset(String asPage)
 		
 		SetCursorPosition(1)	;go to top of right column
 		AddHeaderOption("$INFOS")
-		AddToggleOptionST("DisplayInfos", "$DISPLAY_ON_SCREEN", False, OPTION_FLAG_DISABLED)
-		AddToggleOptionST("LogInfos", "$LOG_TO_FILE", False, OPTION_FLAG_DISABLED)
+		AddToggleOptionST("DisplayInfos", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, DISPLAY_INFOS), InfoManagerOptionFlag)
+		AddToggleOptionST("LogInfos", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, LOG_INFOS), InfoManagerOptionFlag)
 		AddHeaderOption("$WARNINGS")
-		AddToggleOptionST("DisplayWarnings", "$DISPLAY_ON_SCREEN", False, OPTION_FLAG_DISABLED)
-		AddToggleOptionST("LogWarnings", "$LOG_TO_FILE", False, OPTION_FLAG_DISABLED)
+		AddToggleOptionST("DisplayWarnings", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, DISPLAY_WARNINGS), InfoManagerOptionFlag)
+		AddToggleOptionST("LogWarnings", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, LOG_WARNINGS), InfoManagerOptionFlag)
 		AddHeaderOption("$ERRORS")
-		AddToggleOptionST("DisplayErrors", "$DISPLAY_ON_SCREEN", False, OPTION_FLAG_DISABLED)
-		AddToggleOptionST("LogErrors", "$LOG_TO_FILE", False, OPTION_FLAG_DISABLED)
+		AddToggleOptionST("DisplayErrors", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, DISPLAY_ERRORS), InfoManagerOptionFlag)
+		AddToggleOptionST("LogErrors", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, LOG_ERRORS), InfoManagerOptionFlag)
 		
 	ElseIf (asPage == Pages[2])	;initialization manager
 		If (InitSafetyLock || UninstSafetyLock || FormListCount(None, INIT_MODS) == 0) 
@@ -413,47 +436,20 @@ State InfoManagerModsList
 	EndEvent
 
 	Event OnMenuAcceptST(int aiSelectedOption)
-		Int OptionFlag = OPTION_FLAG_NONE
+		;Int OptionFlag = OPTION_FLAG_NONE
 		InfoManagerModsListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
 		Utility.WaitMenuMode(0.5)
-		
+		;/
 		If(!Utility.GetINIBool("bEnableLogging:Papyrus"))
 			OptionFlag = OPTION_FLAG_DISABLED
 		EndIf
+		/;
 		
+		;set the InfoManagerToken, remove the disabled flag and let the OnPageReset() handle the rest
 		InfoManagerToken = FormListGet(None, REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
-
-		;fetching the Int contents of EXCEPTIONS_LOGFILE array and converting them to strings
-		String TokenLoggingMethod
-
-		If (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_MOD_USER_LOG)
-			TokenLoggingMethod = LoggingMethod[0]
-		ElseIf (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_FRAMEWORK_LOG)
-			TokenLoggingMethod = LoggingMethod[1]
-		ElseIf (GetIntValue(InfoManagerToken, EXCEPTIONS_LOGFILE) == USE_PAPYRUS_LOG)
-			TokenLoggingMethod = LoggingMethod[2]
-		EndIf
-
-		SetMenuOptionValueST(InfoManagerModsListOptions[aiSelectedOption])
-		SetTextOptionValueST(InfoManagerModsListOptions[aiSelectedOption], True, "ModSettings")
-		SetMenuOptionValueST(TokenLoggingMethod, True, "LoggingMethod")
-		SetTextOptionValueST(GetStringValue(InfoManagerToken, EXCEPTIONS_LOGNAME), True, "LogName")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, DISPLAY_INFOS), True, "DisplayInfos")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, LOG_INFOS), True, "LogInfos")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, DISPLAY_WARNINGS), True, "DisplayWarnings")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, LOG_WARNINGS), True, "LogWarnings")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, DISPLAY_ERRORS), True, "DisplayErrors")
-		SetToggleOptionValueST(HasIntValue(InfoManagerToken, LOG_ERRORS), True, "LogErrors")
-		SetOptionFlagsST(OptionFlag, True, "ModSettings")
-		SetOptionFlagsST(OptionFlag, True, "LoggingMethod")
-		SetOptionFlagsST(OptionFlag, True, "LogName")
-		SetOptionFlagsST(OptionFlag, True, "DisplayInfos")
-		SetOptionFlagsST(OptionFlag, True, "LogInfos")
-		SetOptionFlagsST(OptionFlag, True, "DisplayWarnings")
-		SetOptionFlagsST(OptionFlag, True, "LogWarnings")
-		SetOptionFlagsST(OptionFlag, True, "DisplayErrors")
-		SetOptionFlagsST(OptionFlag, False, "LogErrors")
+		InfoManagerOptionFlag = OPTION_FLAG_NONE
 		
+		ForcePageReset()
 	EndEvent
 
 	Event OnHighlightST()
