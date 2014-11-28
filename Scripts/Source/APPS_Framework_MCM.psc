@@ -147,7 +147,7 @@ Event OnPageReset(String asPage)
 		AddEmptyOption()
 		AddHeaderOption("$MOD_SPECIFIC_SETTINGS")
 		
-		If (!InfoManagerToken)
+		If (!InfoManagerToken || !Utility.GetINIBool("bEnableLogging:Papyrus"))
 			InfoManagerOptionFlag = OPTION_FLAG_DISABLED
 			
 			AddMenuOptionST("InfoManagerModsList", "", "$SELECT_MOD")
