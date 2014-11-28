@@ -11,6 +11,7 @@ String[] LoggingMethod
 String[] RS_PriorityOrdering
 Int InfoManagerModsListSelection
 Int SyncModeNPCListSelection
+Int GlobalRSMultiModsListSelection
 Quest InfoManagerToken
 Quest GlobalRSMultiMod
 Actor SyncModeNPC
@@ -281,7 +282,15 @@ Event OnPageReset(String asPage)
 		
 		AddHeaderOption("$NPCs_WITH_SPECIAL_SYNCMODE")
 		AddEmptyOption()
-		AddMenuOptionST("SyncModeNPCList", "", "$SELECT_NPC")
+		
+		If (!SyncModeNPC)
+			NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
+			AddMenuOptionST("SyncModeNPCList", "", "$SELECT_NPC")	;disable options if the user has not yet selected a SyncModeNPC
+		Else
+			NPCSyncModeOptionFlag = OPTION_FLAG_NONE
+			AddMenuOptionST("SyncModeNPCList", SyncModeNPC.GetName(), "$SELECT_NPC")
+		EndIf
+		
 		
 		;filling up the SyncModeNPCListOptions array with the names of the NPCs, to be shown as a menu later.
 		Int iSyncModeNPCs = FormListCount(None, SYNC_MODE_NPC_CHANGELIST)
@@ -297,12 +306,7 @@ Event OnPageReset(String asPage)
 		AddHeaderOption("$MODS_AFFECTING_ACTOR")
 		AddEmptyOption()
 		
-		;disable options if the user has not yet selected a SyncModeNPC
-		If (!SyncModeNPC)
-			NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
-		Else
-			NPCSyncModeOptionFlag = OPTION_FLAG_NONE
-		EndIf
+		
 		
 		Int ModsAffectingSyncModeNPC = FormListCount(SyncModeNPC, SYNC_MODE_CHANGELIST)
 		String SyncMode
@@ -334,7 +338,17 @@ Event OnPageReset(String asPage)
 		AddHeaderOption("$RELATIONSHIP")
 		AddTextOption("", "$MODS_AFFECTING_GLOBAL_RS_MULTIPLIERS")
 		AddEmptyOption()
-		AddMenuOptionST("GlobalRSMultiModsList", "", "$SELECT_MOD")
+		
+		Int GlobalRSMultiModIndex
+		
+		If (!GlobalRsMultiMod)
+			GlobalRSMultiOptionFlag = OPTION_FLAG_DISABLED	;;disable options if the user has not yet selected a GlobalRSMultiMod and fetch ModIndex if GlobalRSMultiMod has been selected
+			AddMenuOptionST("GlobalRSMultiModsList", "", "$SELECT_MOD")
+		Else
+			GlobalRSMultiOptionFlag = OPTION_FLAG_NONE
+			GlobalRSMultiModIndex = FormListFind(None, RS_MULTI_CHANGELIST, GlobalRSMultiMod)
+			AddMenuOptionST("GlobalRSMultiModsList", _GetModNameFromModForm(GlobalRSMultiMod), "$SELECT_MOD")
+		EndIf
 		
 		;filling up the GlobalRSMultiModsListOptions array with the names of the mods, to be shown as a menu later.
 		Int iGlobalRSMultiMods = FormListCount(None, RS_MULTI_CHANGELIST)
@@ -342,24 +356,13 @@ Event OnPageReset(String asPage)
 		Int i
 		
 			While (i< iGlobalRSMultiMods)
-				GlobalRSMultiModsListOptions[i] = StringListGet(None, REGISTERED_RS, i)
+				GlobalRSMultiModsListOptions[i] = _GetModNameFromModFormList(RS_MULTI_CHANGELIST, i)
 				i += 1
 			EndWhile
 		
 		SetCursorPosition(1)	;go to top of right column
 		AddHeaderOption("$GLOBAL_RS_MULTIPLIERS")
 		AddEmptyOption()
-		
-		Int GlobalRSMultiModIndex
-		
-		;disable options if the user has not yet selected a GlobalRSMultiMod and fetch ModIndex if GlobalRSMultiMod has been selected
-		If (!GlobalRsMultiMod)
-			GlobalRSMultiOptionFlag = OPTION_FLAG_DISABLED
-		Else
-			GlobalRSMultiOptionFlag = OPTION_FLAG_NONE
-			GlobalRSMultiModIndex = FormListFind(None, RS_MULTI_CHANGELIST, GlobalRSMultiMod)
-		EndIf
-		
 		AddTextOption("$S0_S1", FloatListGet(None, RS_MULTI_S0_S1_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
 		AddTextOption("$S1_S2", FloatListGet(None, RS_MULTI_S1_S2_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
 		AddTextOption("$S2_S3", FloatListGet(None, RS_MULTI_S2_S3_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
@@ -618,7 +621,7 @@ State StartInitialization
 
 			While (FormListCount(None, INIT_MODS) > 0)
 				Quest ModToInit = FormListGet(None, INIT_MODS, 0) as Quest
-				String ModName = GetStringValue(ModToInit, MOD_NAME)
+				String ModName = _GetModNameFromModForm(ModToInit)
 				Exception.Notify(FW_LOG, ModName)
 				InitializeMod(ModToInit, abSafetyLock = False) ;SafetyLock is handled by line InitSafetyLock = True
 				Utility.Wait(TimeToNextInit)
@@ -642,7 +645,7 @@ State SyncModeNPCList
 	Event OnMenuAcceptST(Int aiSelectedOption)
 		SyncModeNPCListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
 		
-		;set the NPC, remove the disabled flag and let the OnPageReset() handle the rest
+		;set the SyncModeNPC, remove the disabled flag and let the OnPageReset() handle the rest
 		SyncModeNPC = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, aiSelectedOption) as Actor
 		NPCSyncModeOptionFlag = OPTION_FLAG_NONE
 		
@@ -651,6 +654,27 @@ State SyncModeNPCList
 	
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_SYNCMODE_NPC_LIST")
+	EndEvent
+EndState
+
+State GlobalRSMultiModsList
+	Event OnMenuOpenST()
+		SetMenuDialogOptions(GlobalRSMultiModsListOptions)
+		SetMenuDialogStartIndex(GlobalRSMultiModsListSelection)
+	EndEvent
+	
+	Event OnMenuAcceptST(Int aiSelectedOption)
+		GlobalRSMultiModsListSelection = aiSelectedOption ;store the user's selection as a variable to be used the next time the menu is displayed
+		
+		;set the GlobalRSMultiMod, remove the disabled flag and let the OnPageReset() handle the rest
+		GlobalRSMultiMod = FormListGet(None, RS_MULTI_CHANGELIST, aiSelectedOption) as Quest
+		GlobalRSMultiOptionFlag = OPTION_FLAG_NONE
+		
+		ForcePageReset()
+	EndEvent
+	
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_GLOBAL_RS_MULTI_MODS_LIST")
 	EndEvent
 EndState
 
@@ -814,7 +838,7 @@ EndFunction
 
 Bool Function InitializeMod(Quest akModToInit, Bool abSafetyLock = True)
 	Int ModIndex = FormListFind(None, INIT_MODS, akModToInit)
-	String ModName = GetStringValue(akModToInit, MOD_NAME)
+	String ModName = _GetModNameFromModForm(akModToInit)
 	Quest InitQuest = GetFormValue(akModToInit, INIT_QUEST) as Quest
 	Int iSetStage = GetIntValue(akModToInit, INIT_STAGE)
 	Bool result = True
@@ -854,7 +878,7 @@ EndFunction
 
 Bool Function UninstallMod(Quest ModToUninstall, Bool abSafetyLock = True)
 	Int ModIndex = FormListFind(None, UNINSTALL_MODS, ModToUninstall)
-	String ModName = GetStringValue(ModToUninstall, MOD_NAME)
+	String ModName = _GetModNameFromModForm(ModToUninstall)
 	Quest UninstallQuest = GetFormValue(ModToUninstall, UNINSTALL_QUEST) as Quest
 	Int iSetStage = GetIntValue(ModToUninstall, UNINSTALL_STAGE)
 	Bool result = True
@@ -895,6 +919,14 @@ String Function _GetModNameFromModFormList(String asFormList, Int auiIndex, Acto
 		Return ""
 	Else
 		Return GetStringValue(Mod, MOD_NAME)
+	EndIf
+EndFunction
+
+String Function _GetModNameFromModForm(Quest akMod)
+	If (!akMod)
+		Return ""
+	Else
+		Return GetStringValue(akMod, MOD_NAME)
 	EndIf
 EndFunction
 
