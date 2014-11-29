@@ -7,13 +7,19 @@ String[] LogLevel
 String[] InfoManagerModsListOptions
 String[] SyncModeNPCListOptions
 String[] GlobalRSMultiModsListOptions
+String[] LocalRSMultiActorsListOptions
+String[] LocalRSMultiModsListOptions
 String[] LoggingMethod
 String[] RS_PriorityOrdering
 Int InfoManagerModsListSelection
 Int SyncModeNPCListSelection
 Int GlobalRSMultiModsListSelection
+Int LocalRSMultiActorsListSelection
+Int LocalRSMultiModsListSelection
 Quest InfoManagerToken
 Quest GlobalRSMultiMod
+Quest LocalRSMultiMod
+Actor LocalRSMultiActor
 Actor SyncModeNPC
 Int USE_MOD_USER_LOG = 0
 Int USE_FRAMEWORK_LOG = 1
@@ -72,6 +78,8 @@ Int InitControlFlag
 Int UninstallControlFlag 
 Int NPCSyncModeOptionFlag
 Int GlobalRSMultiOptionFlag
+Int LocalRSMultiActorOptionFlag
+Int LocalRSMultiModOptionFlag
 Float TimeToNextInit = 1.0
 Bool InitSafetyLock = False 
 Bool UninstSafetyLock = False 
@@ -335,30 +343,30 @@ Event OnPageReset(String asPage)
 	ElseIf (asPage == Pages[7])	;RS - Global Multipliers
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		
+		;filling up the GlobalRSMultiModsListOptions array with the names of the mods, to be shown as a menu later.
+		Int iGlobalRSMultiMods = FormListCount(None, RS_MULTI_CHANGELIST)
+		GlobalRSMultiModsListOptions = PapyrusUtil.StringArray(iGlobalRSMultiMods)
+		Int i
+		
+			While (i < iGlobalRSMultiMods)
+				GlobalRSMultiModsListOptions[i] = _GetModNameFromModFormList(RS_MULTI_CHANGELIST, i)
+				i += 1
+			EndWhile
+		
 		AddHeaderOption("$RELATIONSHIP")
 		AddTextOption("", "$MODS_AFFECTING_GLOBAL_RS_MULTIPLIERS")
 		AddEmptyOption()
 		
 		Int GlobalRSMultiModIndex
 		
-		If (!GlobalRsMultiMod)
+		If (!GlobalRSMultiMod)
 			GlobalRSMultiOptionFlag = OPTION_FLAG_DISABLED	;;disable options if the user has not yet selected a GlobalRSMultiMod and fetch ModIndex if GlobalRSMultiMod has been selected
 			AddMenuOptionST("GlobalRSMultiModsList", "", "$SELECT_MOD")
 		Else
 			GlobalRSMultiOptionFlag = OPTION_FLAG_NONE
 			GlobalRSMultiModIndex = FormListFind(None, RS_MULTI_CHANGELIST, GlobalRSMultiMod)
-			AddMenuOptionST("GlobalRSMultiModsList", _GetModNameFromModForm(GlobalRSMultiMod), "$SELECT_MOD")
+			AddMenuOptionST("GlobalRSMultiModsList", "", _GetModNameFromModForm(GlobalRSMultiMod))
 		EndIf
-		
-		;filling up the GlobalRSMultiModsListOptions array with the names of the mods, to be shown as a menu later.
-		Int iGlobalRSMultiMods = FormListCount(None, RS_MULTI_CHANGELIST)
-		GlobalRSMultiModsListOptions = PapyrusUtil.StringArray(iGlobalRSMultiMods)
-		Int i
-		
-			While (i< iGlobalRSMultiMods)
-				GlobalRSMultiModsListOptions[i] = _GetModNameFromModFormList(RS_MULTI_CHANGELIST, i)
-				i += 1
-			EndWhile
 		
 		SetCursorPosition(1)	;go to top of right column
 		AddHeaderOption("$GLOBAL_RS_MULTIPLIERS")
@@ -383,6 +391,78 @@ Event OnPageReset(String asPage)
 		AddTextOption("$S-3_S-2", FloatListGet(None, RS_MULTI_SM3_SM2_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
 		AddTextOption("$S-2_S-1", FloatListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
 		AddTextOption("$S-1_S0", FloatListGet(None, RS_MULTI_SM1_S0_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
+	
+	ElseIf (asPage == Pages[8])	;RS - Local Multipliers
+		SetCursorFillMode(TOP_TO_BOTTOM)
+		
+		;filling up the LocalRSMultiActorsListOptions array with the names of the actors, to be shown as a menu later.
+		Int iLocalRSMultiActors = FormListCount(None, RS_MULTI_NPC_CHANGELIST)
+		LocalRSMultiActorsListOptions = PapyrusUtil.StringArray(iLocalRSMultiActors)
+		Int i
+		
+			While (i < iLocalRSMultiActors)
+				LocalRSMultiActorsListOptions[i] = FormListGet(None, RS_MULTI_NPC_CHANGELIST, i).GetName()
+				i += 1
+			EndWhile
+		
+		AddHeaderOption("$RELATIONSHIP")
+		AddTextOption("", "$NPCs_WITH_SPECIAL_RS_MULTIPLIERS")
+		AddEmptyOption()
+		
+		If (!LocalRSMultiActor)
+			LocalRSMultiActorOptionFlag = OPTION_FLAG_DISABLED
+			AddMenuOptionST("LocalRSMultiActorsList", "", "$SELECT_NPC")
+		Else
+			;filling up the LocalRSMultiModsListOptions array with the names of the mods, to be shown as a menu later.
+			Int iLocalRSMultiMods = FormListCount(LocalRSMultiActor, RS_MULTI_CHANGELIST)
+			LocalRSMultiModsListOptions = PapyrusUtil.StringArray(iLocalRSMultiMods)
+			Int j
+			
+				While (j < iLocalRSMultiMods)
+					LocalRSMultiModsListOptions[j] = _GetModNameFromModFormList(RS_MULTI_CHANGELIST, j)
+					j += 1
+				EndWhile
+				
+			LocalRSMultiActorOptionFlag = OPTION_FLAG_NONE
+			AddMenuOptionST("LocalRSMultiActorsList", "", LocalRSMultiActor.GetName())
+		EndIf
+		
+		AddEmptyOption()
+		
+		Int LocalRSMultiModIndex
+		
+		If (!LocalRSMultiMod) 
+			LocalRSMultiModOptionFlag = OPTION_FLAG_DISABLED
+			AddMenuOptionST("LocalRSMultiModsList", "", "$SELECT_MOD")
+		Else
+			LocalRSMultiModOptionFlag = OPTION_FLAG_NONE
+			LocalRSMultiModIndex = FormListFind(LocalRSMultiActor, RS_MULTI_CHANGELIST, LocalRSMultiMod)
+			AddMenuOptionST("LocalRSMultiModsList", "", _GetModNameFromModForm(LocalRSMultiMod))
+		EndIf
+		
+		SetCursorPosition(1)	;go to top of right column
+		AddHeaderOption("$NPC_RS_MULTIPLIERS")
+		AddEmptyOption()
+		AddTextOption("$S0_S1", FloatListGet(LocalRSMultiActor, RS_MULTI_S0_S1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S1_S2", FloatListGet(LocalRSMultiActor, RS_MULTI_S1_S2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S2_S3", FloatListGet(LocalRSMultiActor, RS_MULTI_S2_S3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S3_S4", FloatListGet(LocalRSMultiActor, RS_MULTI_S3_S4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S4_S5", FloatListGet(LocalRSMultiActor, RS_MULTI_S4_S5_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S5_S4", FloatListGet(LocalRSMultiActor, RS_MULTI_S5_S4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S4_S3", FloatListGet(LocalRSMultiActor, RS_MULTI_S4_S3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S3_S2", FloatListGet(LocalRSMultiActor, RS_MULTI_S3_S2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S2_S1", FloatListGet(LocalRSMultiActor, RS_MULTI_S2_S1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S1_S0", FloatListGet(LocalRSMultiActor, RS_MULTI_S1_S0_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S0_S-1", FloatListGet(LocalRSMultiActor, RS_MULTI_S0_SM1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S-1_S-2", FloatListGet(LocalRSMultiActor, RS_MULTI_SM1_SM2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S-2_S-3", FloatListGet(LocalRSMultiActor, RS_MULTI_SM2_SM3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S-3_S-4", FloatListGet(LocalRSMultiActor, RS_MULTI_SM3_SM4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S-4_S-5", FloatListGet(LocalRSMultiActor, RS_MULTI_SM4_SM5_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S-5_S-4", FloatListGet(LocalRSMultiActor, RS_MULTI_SM5_SM4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S-4_S-3", FloatListGet(LocalRSMultiActor, RS_MULTI_SM4_SM3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S-3_S-2", FloatListGet(LocalRSMultiActor, RS_MULTI_SM3_SM2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S-2_S-1", FloatListGet(LocalRSMultiActor, RS_MULTI_SM2_SM1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		AddTextOption("$S-1_S0", FloatListGet(LocalRSMultiActor, RS_MULTI_SM1_S0_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
 		
 	EndIf
 EndEvent
@@ -675,6 +755,45 @@ State GlobalRSMultiModsList
 	
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_GLOBAL_RS_MULTI_MODS_LIST")
+	EndEvent
+EndState
+
+State LocalRSMultiActorsList
+	Event OnMenuOpenST()
+		SetMenuDialogOptions(LocalRSMultiActorsListOptions)
+		SetMenuDialogStartIndex(LocalRSMultiActorsListSelection)
+	EndEvent
+	
+	Event OnMenuAcceptST(Int aiSelectedOption)
+		;set the LocalRSMultiActor, remove the disabled flag, clear the LocalRSMultiMod and let the OnPageReset() handle the rest
+		LocalRSMultiActor = FormListGet(None, RS_MULTI_NPC_CHANGELIST, aiSelectedOption) as Actor
+		LocalRSMultiActorOptionFlag = OPTION_FLAG_NONE
+		LocalRSMultiMod = None
+		
+		ForcePageReset()
+	EndEvent
+	
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_LOCAL_RS_MULTI_ACTORS_LIST")
+	EndEvent
+EndState
+
+State LocalRSMultiModsList
+	Event OnMenuOpenST()
+		SetMenuDialogOptions(LocalRSMultiModsListOptions)
+		SetMenuDialogStartIndex(LocalRSMultiModsListSelection)
+	EndEvent
+	
+	Event OnMenuAcceptST(Int aiSelectedOption)
+		;set the LocalRSMultiMod, remove the disabled flag and let the OnPageReset() handle the rest
+		LocalRSMultiMod = FormListGet(LocalRSMultiActor, RS_MULTI_CHANGELIST, aiSelectedOption) as Quest
+		LocalRSMultiModOptionFlag = OPTION_FLAG_NONE
+		
+		ForcePageReset()
+	EndEvent
+	
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_LOCAL_RS_MULTI_MODS_LIST")
 	EndEvent
 EndState
 
@@ -991,6 +1110,8 @@ All tabs:
 	- Fix Exception $translations
 	- Optimize all increasing WHILE loops
 	- Translate pages names
+	- Clear stored menu selections (e.g. SyncModeNPC) OnConfigOpen
+	- Experiment with OPTION_FLAG_HIDDEN
 Tab: Uninstall Manager
 	- Test manager
 	- Decide if AddTextOption should work with the Text or the Value, i.e. whether "" should be the text or the value
