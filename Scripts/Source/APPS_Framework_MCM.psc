@@ -436,14 +436,8 @@ State InfoManagerModsList
 	EndEvent
 
 	Event OnMenuAcceptST(int aiSelectedOption)
-		;Int OptionFlag = OPTION_FLAG_NONE
 		InfoManagerModsListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
 		Utility.WaitMenuMode(0.5)
-		;/
-		If(!Utility.GetINIBool("bEnableLogging:Papyrus"))
-			OptionFlag = OPTION_FLAG_DISABLED
-		EndIf
-		/;
 		
 		;set the InfoManagerToken, remove the disabled flag and let the OnPageReset() handle the rest
 		InfoManagerToken = FormListGet(None, REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
