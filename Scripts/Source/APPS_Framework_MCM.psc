@@ -41,6 +41,7 @@ String LOG_ERRORS = "APPS.Framework.InfoManager.LogErrors"
 String LOG_WARNINGS = "APPS.Framework.InfoManager.LogWarnings"
 String LOG_INFOS = "APPS.Framework.InfoManager.LogInfos"
 String REGISTERED_MODS = "APPS.Framework.RegisteredMods"
+String RESET_MENUS_ON_CLOSE = "APPS.Framework.MCM.ResetMenusOnClose"
 String MENU_OPTIONS = "APPS.Framework.MCM.MenuOptions"
 String INIT_MODS = "APPS.Framework.InitMods"
 String INIT_QUEST = "APPS.Framework.InitMods.InitQuest"
@@ -82,7 +83,7 @@ Int LocalRSMultiActorOptionFlag
 Int LocalRSMultiModOptionFlag
 Float TimeToNextInit = 1.0
 Bool InitSafetyLock = False 
-Bool UninstSafetyLock = False 
+Bool UninstSafetyLock = False
 
 Event OnConfigInit()
 	Pages = new String[9]
@@ -144,6 +145,9 @@ Event OnPageReset(String asPage)
 			AddTextOption(_GetModNameFromModFormList(REGISTERED_MODS, i), "")
 			i += 1
 		EndWhile
+		
+		SetCursorPosition(1)	;go to top of right column
+		AddToggleOptionST("ResetMenusOnClose", "$RESET_MENUS_ON_CLOSE", False)
 		
 	ElseIf (asPage == Pages[1])	;info manager
 		SetCursorFillMode(TOP_TO_BOTTOM)
@@ -466,6 +470,22 @@ Event OnPageReset(String asPage)
 		
 	EndIf
 EndEvent
+
+State ResetMenusOnClose
+	Event OnSelectST()
+		If (GetIntValue(None, RESET_MENUS_ON_CLOSE) == 0)
+			SetIntValue(None, RESET_MENUS_ON_CLOSE, 1)
+		Else
+			(SetIntValue(None, RESET_MENUS_ON_CLOSE, 0))
+		EndIf
+		
+		SetToggleOptionValueST(GetIntValue(None, RESET_MENUS_ON_CLOSE))
+	EndEvent
+	
+	Event OnHighlightST()
+		SetInfoText("$EXPLAIN_RESET_MENUS_ON_CLOSE")
+	EndEvent
+EndState
 
 State EnableLogging
 	Event OnSelectST()
@@ -900,6 +920,16 @@ Event OnOptionSelect(Int aiOption)
 	EndIf
 	
 	ForcePageReset()
+EndEvent
+
+Event OnConfigOpen()
+	If (GetIntValue(None, RESET_MENUS_ON_CLOSE))
+		InfoManagerToken = None
+		GlobalRSMultiMod = None
+		LocalRSMultiMod = None
+		LocalRSMultiActor = None
+		SyncModeNPC = None
+	EndIf
 EndEvent
 
 Event OnConfigClose()
