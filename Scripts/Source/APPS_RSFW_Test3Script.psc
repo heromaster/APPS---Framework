@@ -8,6 +8,7 @@ Function Fragment_0()
 RegisterMod()
 RegisterInitQuest(Self, 10, "This quest is the same quest as the install quest.")
 RegisterUninstallQuest(Self, 20)
+RegisterForRelationshipModule()
 ;END CODE
 EndFunction
 ;END FRAGMENT

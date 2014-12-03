@@ -5,6 +5,7 @@ Event OnInit()
 	RegisterMod()
 	RegisterInitQuest(InitQuest, 0)
 	RegisterForExceptionModule("APPS_Test2")
+	RegisterForRelationshipModule()
 	SetInfoHandling(True, True)
 	SetErrorHandling(True, False)
 EndEvent
