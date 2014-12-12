@@ -9,3 +9,5 @@ Event OnInit()
 	RegisterForExceptionModule("APPS_Test1")
 	RegisterForRelationshipModule()
 EndEvent
+
+Actor Property AlvorREF  Auto  
