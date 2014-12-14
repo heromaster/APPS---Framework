@@ -93,7 +93,7 @@ Bool InitSafetyLock = False
 Bool UninstSafetyLock = False
 
 Event OnConfigInit()
-	Pages = new String[9]
+	Pages = new String[12]
 	Pages[0] = "$REGISTRY"
 	Pages[1] = "$INFO_MANAGER"
 	Pages[2] = "$INITIALIZATION_MANAGER"
