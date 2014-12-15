@@ -1,6 +1,5 @@
 ScriptName APPS_Framework_MCM Extends SKI_ConfigBase
 Import StorageUtil
-APPS_FW_Relationship Property RSscript Auto
 
 Int FileLogLevel
 String[] InitOrdering
@@ -20,14 +19,8 @@ Int LocalRSMultiModsListSelection
 Quest InfoManagerToken
 Quest GlobalRSMultiMod
 Quest LocalRSMultiMod
-Quest APPSTest1
-Quest APPSTest2
-Quest APPSTest3
 Actor LocalRSMultiActor
 Actor SyncModeNPC
-Actor APPSTest1Actor
-Actor APPSTest2Actor
-Actor APPSTest3Actor
 Int USE_MOD_USER_LOG = 0
 Int USE_FRAMEWORK_LOG = 1
 Int USE_PAPYRUS_LOG = 2
@@ -103,9 +96,6 @@ Event OnConfigInit()
 	Pages[6] = "RS - NPC Sync Mode"
 	Pages[7] = "RS - Global Multipliers"
 	Pages[8] = "RS - Local Multipliers"
-	Pages[9] = "Test 1"
-	Pages[10] = "Test 2"
-	Pages[11] = "Test 3"
 
 	InitOrdering = New String[7]
 	InitOrdering[0] = "$MOVE_TOP"
@@ -476,158 +466,7 @@ Event OnPageReset(String asPage)
 		AddTextOption("$S-4_S-3", FloatListGet(LocalRSMultiActor, RS_MULTI_SM4_SM3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
 		AddTextOption("$S-3_S-2", FloatListGet(LocalRSMultiActor, RS_MULTI_SM3_SM2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
 		AddTextOption("$S-2_S-1", FloatListGet(LocalRSMultiActor, RS_MULTI_SM2_SM1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S-1_S0", FloatListGet(LocalRSMultiActor, RS_MULTI_SM1_S0_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		
-	ElseIf (asPage == Pages[9]) ;Test Page 1
-		SetCursorPosition(TOP_TO_BOTTOM)
-		
-		;convert SyncMode from Int to String
-		String SyncMode
-		
-		If (RSscript.GetSyncMode(APPSTest1Actor) == 0)
-			SyncMode == "$DISABLE"
-		ElseIf (RSscript.GetSyncMode(APPSTest1Actor) == 1)
-			SyncMode == "$VANILLA_TO_RS"
-		ElseIf (RSscript.GetSyncMode(APPSTest1Actor) == 2)
-			SyncMode == "$RS_TO_VANILLA"
-		ElseIf (RSscript.GetSyncMode(APPSTest1Actor) == 3)
-			SyncMode == "$BOTH_WAYS"
-		EndIf
-		
-		AddHeaderOption(APPSTest1Actor.GetName())
-		AddEmptyOption()
-		AddTextOption("SyncMode", SyncMode)
-		AddTextOption("SyncMode Changes", RSscript.GetSyncModeChanges(APPSTest1Actor) as String)
-		AddTextOption("SyncMode Position", RSscript.GetSyncModePos(APPSTest1, APPSTest1Actor) as String)
-		AddEmptyOption()
-		AddTextOption("RS Points", RSscript.GetRelationshipPoints(APPSTest1Actor) as String)
-		AddTextOption("To next rank", RSscript.GetRPForNextRank(APPSTest1Actor) as String)
-		AddTextOption("To previous rank", RSscript.GetRPForPreviousRank(APPSTest1Actor) as String)
-		
-		SetCursorPosition(1)
-		AddHeaderOption("RS Multipliers")
-		AddEmptyOption()
-		AddTextOption("$S0_S1", RSscript.GetRelationshipMulti(APPSTest1Actor, 0, 1) as String)
-		AddTextOption("$S1_S2", RSscript.GetRelationshipMulti(APPSTest1Actor, 1, 2) as String)
-		AddTextOption("$S2_S3", RSscript.GetRelationshipMulti(APPSTest1Actor, 2, 3) as String)
-		AddTextOption("$S3_S4", RSscript.GetRelationshipMulti(APPSTest1Actor, 3, 4) as String)
-		AddTextOption("$S4_S5", RSscript.GetRelationshipMulti(APPSTest1Actor, 4, 5) as String)
-		AddTextOption("$S5_S4", RSscript.GetRelationshipMulti(APPSTest1Actor, 5, 4) as String)
-		AddTextOption("$S4_S3", RSscript.GetRelationshipMulti(APPSTest1Actor, 4, 3) as String)
-		AddTextOption("$S3_S2", RSscript.GetRelationshipMulti(APPSTest1Actor, 3, 2) as String)
-		AddTextOption("$S2_S1", RSscript.GetRelationshipMulti(APPSTest1Actor, 2, 1) as String)
-		AddTextOption("$S1_S0", RSscript.GetRelationshipMulti(APPSTest1Actor, 1, 0) as String)
-		AddTextOption("$S0_S-1", RSscript.GetRelationshipMulti(APPSTest1Actor, 0, -1) as String)
-		AddTextOption("$S-1_S-2", RSscript.GetRelationshipMulti(APPSTest1Actor, -1, -2) as String)
-		AddTextOption("$S-2_S-3", RSscript.GetRelationshipMulti(APPSTest1Actor, -2, -3) as String)
-		AddTextOption("$S-3_S-4", RSscript.GetRelationshipMulti(APPSTest1Actor, -3, -4) as String)
-		AddTextOption("$S-4_S-5", RSscript.GetRelationshipMulti(APPSTest1Actor, -4, -5) as String)
-		AddTextOption("$S-5_S-4", RSscript.GetRelationshipMulti(APPSTest1Actor, -5, -4) as String)
-		AddTextOption("$S-4_S-3", RSscript.GetRelationshipMulti(APPSTest1Actor, -4, -3) as String)
-		AddTextOption("$S-3_S-2", RSscript.GetRelationshipMulti(APPSTest1Actor, -3, -2) as String)
-		AddTextOption("$S-2_S-1", RSscript.GetRelationshipMulti(APPSTest1Actor, -2, -1) as String)
-		AddTextOption("$S-1_S0", RSscript.GetRelationshipMulti(APPSTest1Actor, -1, 0) as String)
-	
-	ElseIf (asPage == Pages[10]) ;Test Page 2
-		SetCursorPosition(TOP_TO_BOTTOM)
-		
-		;convert SyncMode from Int to String
-		String SyncMode
-		
-		If (RSscript.GetSyncMode(APPSTest2Actor) == 0)
-			SyncMode == "$DISABLE"
-		ElseIf (RSscript.GetSyncMode(APPSTest2Actor) == 1)
-			SyncMode == "$VANILLA_TO_RS"
-		ElseIf (RSscript.GetSyncMode(APPSTest2Actor) == 2)
-			SyncMode == "$RS_TO_VANILLA"
-		ElseIf (RSscript.GetSyncMode(APPSTest2Actor) == 3)
-			SyncMode == "$BOTH_WAYS"
-		EndIf
-		
-		AddHeaderOption(APPSTest2Actor.GetName())
-		AddEmptyOption()
-		AddTextOption("SyncMode", SyncMode)
-		AddTextOption("SyncMode Changes", RSscript.GetSyncModeChanges(APPSTest2Actor) as String)
-		AddTextOption("SyncMode Position", RSscript.GetSyncModePos(APPSTest2, APPSTest2Actor) as String)
-		AddEmptyOption()
-		AddTextOption("RS Points", RSscript.GetRelationshipPoints(APPSTest2Actor) as String)
-		AddTextOption("To next rank", RSscript.GetRPForNextRank(APPSTest2Actor) as String)
-		AddTextOption("To previous rank", RSscript.GetRPForPreviousRank(APPSTest2Actor) as String)
-		
-		SetCursorPosition(1)
-		AddHeaderOption("RS Multipliers")
-		AddEmptyOption()
-		AddTextOption("$S0_S1", RSscript.GetRelationshipMulti(APPSTest2Actor, 0, 1) as String)
-		AddTextOption("$S1_S2", RSscript.GetRelationshipMulti(APPSTest2Actor, 1, 2) as String)
-		AddTextOption("$S2_S3", RSscript.GetRelationshipMulti(APPSTest2Actor, 2, 3) as String)
-		AddTextOption("$S3_S4", RSscript.GetRelationshipMulti(APPSTest2Actor, 3, 4) as String)
-		AddTextOption("$S4_S5", RSscript.GetRelationshipMulti(APPSTest2Actor, 4, 5) as String)
-		AddTextOption("$S5_S4", RSscript.GetRelationshipMulti(APPSTest2Actor, 5, 4) as String)
-		AddTextOption("$S4_S3", RSscript.GetRelationshipMulti(APPSTest2Actor, 4, 3) as String)
-		AddTextOption("$S3_S2", RSscript.GetRelationshipMulti(APPSTest2Actor, 3, 2) as String)
-		AddTextOption("$S2_S1", RSscript.GetRelationshipMulti(APPSTest2Actor, 2, 1) as String)
-		AddTextOption("$S1_S0", RSscript.GetRelationshipMulti(APPSTest2Actor, 1, 0) as String)
-		AddTextOption("$S0_S-1", RSscript.GetRelationshipMulti(APPSTest2Actor, 0, -1) as String)
-		AddTextOption("$S-1_S-2", RSscript.GetRelationshipMulti(APPSTest2Actor, -1, -2) as String)
-		AddTextOption("$S-2_S-3", RSscript.GetRelationshipMulti(APPSTest2Actor, -2, -3) as String)
-		AddTextOption("$S-3_S-4", RSscript.GetRelationshipMulti(APPSTest2Actor, -3, -4) as String)
-		AddTextOption("$S-4_S-5", RSscript.GetRelationshipMulti(APPSTest2Actor, -4, -5) as String)
-		AddTextOption("$S-5_S-4", RSscript.GetRelationshipMulti(APPSTest2Actor, -5, -4) as String)
-		AddTextOption("$S-4_S-3", RSscript.GetRelationshipMulti(APPSTest2Actor, -4, -3) as String)
-		AddTextOption("$S-3_S-2", RSscript.GetRelationshipMulti(APPSTest2Actor, -3, -2) as String)
-		AddTextOption("$S-2_S-1", RSscript.GetRelationshipMulti(APPSTest2Actor, -2, -1) as String)
-		AddTextOption("$S-1_S0", RSscript.GetRelationshipMulti(APPSTest2Actor, -1, 0) as String)
-		
-	ElseIf (asPage == Pages[11]) ;Test Page 3
-		SetCursorPosition(TOP_TO_BOTTOM)
-		
-		;convert SyncMode from Int to String
-		String SyncMode
-		
-		If (RSscript.GetSyncMode(APPSTest3Actor) == 0)
-			SyncMode == "$DISABLE"
-		ElseIf (RSscript.GetSyncMode(APPSTest3Actor) == 1)
-			SyncMode == "$VANILLA_TO_RS"
-		ElseIf (RSscript.GetSyncMode(APPSTest3Actor) == 2)
-			SyncMode == "$RS_TO_VANILLA"
-		ElseIf (RSscript.GetSyncMode(APPSTest3Actor) == 3)
-			SyncMode == "$BOTH_WAYS"
-		EndIf
-		
-		AddHeaderOption(APPSTest3Actor.GetName())
-		AddEmptyOption()
-		AddTextOption("SyncMode", SyncMode)
-		AddTextOption("SyncMode Changes", RSscript.GetSyncModeChanges(APPSTest3Actor) as String)
-		AddTextOption("SyncMode Position", RSscript.GetSyncModePos(APPSTest3, APPSTest3Actor) as String)
-		AddEmptyOption()
-		AddTextOption("RS Points", RSscript.GetRelationshipPoints(APPSTest3Actor) as String)
-		AddTextOption("To next rank", RSscript.GetRPForNextRank(APPSTest3Actor) as String)
-		AddTextOption("To previous rank", RSscript.GetRPForPreviousRank(APPSTest3Actor) as String)
-		
-		SetCursorPosition(1)
-		AddHeaderOption("RS Multipliers")
-		AddEmptyOption()
-		AddTextOption("$S0_S1", RSscript.GetRelationshipMulti(APPSTest3Actor, 0, 1) as String)
-		AddTextOption("$S1_S2", RSscript.GetRelationshipMulti(APPSTest3Actor, 1, 2) as String)
-		AddTextOption("$S2_S3", RSscript.GetRelationshipMulti(APPSTest3Actor, 2, 3) as String)
-		AddTextOption("$S3_S4", RSscript.GetRelationshipMulti(APPSTest3Actor, 3, 4) as String)
-		AddTextOption("$S4_S5", RSscript.GetRelationshipMulti(APPSTest3Actor, 4, 5) as String)
-		AddTextOption("$S5_S4", RSscript.GetRelationshipMulti(APPSTest3Actor, 5, 4) as String)
-		AddTextOption("$S4_S3", RSscript.GetRelationshipMulti(APPSTest3Actor, 4, 3) as String)
-		AddTextOption("$S3_S2", RSscript.GetRelationshipMulti(APPSTest3Actor, 3, 2) as String)
-		AddTextOption("$S2_S1", RSscript.GetRelationshipMulti(APPSTest3Actor, 2, 1) as String)
-		AddTextOption("$S1_S0", RSscript.GetRelationshipMulti(APPSTest3Actor, 1, 0) as String)
-		AddTextOption("$S0_S-1", RSscript.GetRelationshipMulti(APPSTest3Actor, 0, -1) as String)
-		AddTextOption("$S-1_S-2", RSscript.GetRelationshipMulti(APPSTest3Actor, -1, -2) as String)
-		AddTextOption("$S-2_S-3", RSscript.GetRelationshipMulti(APPSTest3Actor, -2, -3) as String)
-		AddTextOption("$S-3_S-4", RSscript.GetRelationshipMulti(APPSTest3Actor, -3, -4) as String)
-		AddTextOption("$S-4_S-5", RSscript.GetRelationshipMulti(APPSTest3Actor, -4, -5) as String)
-		AddTextOption("$S-5_S-4", RSscript.GetRelationshipMulti(APPSTest3Actor, -5, -4) as String)
-		AddTextOption("$S-4_S-3", RSscript.GetRelationshipMulti(APPSTest3Actor, -4, -3) as String)
-		AddTextOption("$S-3_S-2", RSscript.GetRelationshipMulti(APPSTest3Actor, -3, -2) as String)
-		AddTextOption("$S-2_S-1", RSscript.GetRelationshipMulti(APPSTest3Actor, -2, -1) as String)
-		AddTextOption("$S-1_S0", RSscript.GetRelationshipMulti(APPSTest3Actor, -1, 0) as String)
-		
+		AddTextOption("$S-1_S0", FloatListGet(LocalRSMultiActor, RS_MULTI_SM1_S0_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)	
 	EndIf
 EndEvent
 
