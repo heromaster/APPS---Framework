@@ -1,7 +1,6 @@
 ScriptName APPS_RSFW_Test1_MCM Extends SKI_ConfigBase
 Import StorageUtil
 APPS_FW_Relationship Property RSFW Auto
-
 Actor Property AlvorREF Auto
 
 Event OnConfigInit()
