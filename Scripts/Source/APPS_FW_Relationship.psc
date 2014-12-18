@@ -72,7 +72,7 @@ Int Function GetGlobalSyncModeChanges()
 	Return FormListCount(None, SYNC_MODE_CHANGELIST)
 EndFunction
 
-Int Function GetGlobalSyncModePos(Quest akToken)
+Int Function GetGlobalSyncModePriority(Quest akToken)
 	Return _GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST) + 1
 EndFunction
 
@@ -193,7 +193,7 @@ Int Function GetSyncModeChanges(Actor akNPC)
 	Return FormListCount(akNPC, SYNC_MODE_CHANGELIST)
 EndFunction
 
-Int Function GetSyncModePos(Quest akToken, Actor akNPC)
+Int Function GetSyncModePriority(Quest akToken, Actor akNPC)
 	If(akNPC == None)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
 		Return -1
@@ -343,7 +343,7 @@ Float Function GetGlobalRelationshipMulti(Int aiFromRelationshipRank, Int aiToRe
 	Return GetFloatValue(None, MultiplierString)
 EndFunction
 
-Int Function GetGlobalRelationshipMultiPos(Quest akToken)
+Int Function GetGlobalRelationshipMultiPriority(Quest akToken)
 	Return _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST) + 1
 EndFunction
 
@@ -1355,7 +1355,7 @@ Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int
 	EndIf
 EndFunction
 
-Int Function GetRelationshipMultiPos(Quest akToken, Actor akNPC)
+Int Function GetRelationshipMultiPriority(Quest akToken, Actor akNPC)
 	If(akNPC == None)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
 		Return -1
