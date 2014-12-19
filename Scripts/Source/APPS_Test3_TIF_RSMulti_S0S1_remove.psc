@@ -1,15 +1,18 @@
 ;BEGIN FRAGMENT CODE - Do not edit anything between this and the end comment
 ;NEXT FRAGMENT INDEX 1
-Scriptname APPS_Test2_TIF_Priority Extends TopicInfo Hidden
+Scriptname APPS_Test3_TIF_RSMulti_S0S1_remove Extends TopicInfo Hidden
 
 ;BEGIN FRAGMENT Fragment_0
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-Debug.Notification("APPS Test2 Priority is: " + (StorageUtil.StringListFind(None, "APPS.Relationship.RegisteredMods", "Test2") + 1))
+RSFW.RemoveRelationshipMulti(Token, SigridREF, 0, 1)
 ;END CODE
 EndFunction
 ;END FRAGMENT
 
 ;END FRAGMENT CODE - Do not edit anything between this and the begin comment
-APPS_RelFramework_Functions Property RS Auto
+APPS_FW_Relationship Property RSFW  Auto
+
+Actor Property SigridREF  Auto  
+Quest Property Token Auto
