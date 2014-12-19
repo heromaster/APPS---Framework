@@ -1313,7 +1313,7 @@ Bool Function RemoveAllGlobalRelationshipMulti(Quest akToken)
 	Return True
 EndFunction
 
-Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abIsGetGlobalIfNotFound = True)
+Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abGetGlobalIfNotFound = True)
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC for function GetRelationshipMulti() is None!", "Invalid arguments")
 		Return -1.0
@@ -1347,7 +1347,7 @@ Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int
 	If(HasFloatValue(akNPC, MultiplierString))
 		Return GetFloatValue(akNPC, MultiplierString)
 	Else
-		If(abIsGetGlobalIfNotFound)
+		If(abGetGlobalIfNotFound)
 			Return GetGlobalRelationshipMulti(aiFromRelationshipRank, aiToRelationshipRank)
 		Else
 			Return -1.0
