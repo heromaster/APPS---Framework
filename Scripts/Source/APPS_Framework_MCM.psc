@@ -490,6 +490,7 @@ Event OnPageReset(String asPage)
 		AddTextOption("$S-3_S-2", FloatListGet(LocalRSMultiActor, RS_MULTI_SM3_SM2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
 		AddTextOption("$S-2_S-1", FloatListGet(LocalRSMultiActor, RS_MULTI_SM2_SM1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
 		AddTextOption("$S-1_S0", FloatListGet(LocalRSMultiActor, RS_MULTI_SM1_S0_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)	
+		
 	EndIf
 EndEvent
 

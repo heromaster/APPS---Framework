@@ -2377,6 +2377,11 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 		SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(Alias_PC.GetActorRef()) * 100)
 	EndIf
 
+	If(!HasIntValue(akNPC, RSP) && akNPC.GetRelationshipRank(Alias_PC.GetActorRef()) != 0 && GetIntValue(akNPC, SYNC_MODE) == 1 || GetIntValue(akNPC, SYNC_MODE) == 3)
+		SetIntValue(akNPC, IGNORE_CHANGES, 1)
+		SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(Alias_PC.GetActorRef()) * 100)
+	EndIf
+
 	Float NewRP
 	Float CurrentRP = GetRelationshipPoints(akNPC)
 	Int CurrentRank = akNPC.GetFactionRank(RelationshipRankFaction)
@@ -2445,6 +2450,9 @@ Bool Function SetRelationshipPoints(Actor akNPC, Float aiRelationshipPoints)
 
 	akNPC.SetFactionRank(RelationshipPointsFaction, aiRelationshipPoints As Int % 100)
 	akNPC.SetFactionRank(RelationshipRankFaction, Math.Ceiling(aiRelationshipPoints / 100))
+
+	akNPC.SetFactionRank(RelationshipPointsFaction, auiRelationshipPoints As Int % 100)
+	akNPC.SetFactionRank(RelationshipRankFaction, Math.Ceiling(auiRelationshipPoints / 100))
 
 	If(GetSyncMode(akNPC) > 1 && !HasIntValue(akNPC, IGNORE_CHANGES))
 		SetIntValue(akNPC, IGNORE_CHANGES, 1)
