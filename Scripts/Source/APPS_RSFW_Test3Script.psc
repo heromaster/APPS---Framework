@@ -19,8 +19,11 @@ Function Fragment_1()
 Exception.Warn("APPS Test 3", "Test 3 is waiting now for 4s")
 Utility.Wait(4)
 Exception.Warn("APPS Test 3", "Test 3 waiting time is done")
+APPS_RSFW_Test3.Start()
 ;END CODE
 EndFunction
 ;END FRAGMENT
 
 ;END FRAGMENT CODE - Do not edit anything between this and the begin comment
+
+Quest Property APPS_RSFW_Test3  Auto  
