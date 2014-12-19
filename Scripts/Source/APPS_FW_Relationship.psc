@@ -2451,8 +2451,8 @@ Bool Function SetRelationshipPoints(Actor akNPC, Float aiRelationshipPoints)
 	akNPC.SetFactionRank(RelationshipPointsFaction, aiRelationshipPoints As Int % 100)
 	akNPC.SetFactionRank(RelationshipRankFaction, Math.Ceiling(aiRelationshipPoints / 100))
 
-	akNPC.SetFactionRank(RelationshipPointsFaction, auiRelationshipPoints As Int % 100)
-	akNPC.SetFactionRank(RelationshipRankFaction, Math.Ceiling(auiRelationshipPoints / 100))
+	akNPC.SetFactionRank(RelationshipPointsFaction, aiRelationshipPoints As Int % 100)
+	akNPC.SetFactionRank(RelationshipRankFaction, Math.Ceiling(aiRelationshipPoints / 100))
 
 	If(GetSyncMode(akNPC) > 1 && !HasIntValue(akNPC, IGNORE_CHANGES))
 		SetIntValue(akNPC, IGNORE_CHANGES, 1)
