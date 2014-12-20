@@ -2,9 +2,9 @@ Scriptname APPS_FW_Relationship Extends APPS_FW_Core
 Import StorageUtil
 Import Exception
 
+Actor Property PlayerRef Auto
 Faction Property RelationshipPointsFaction Auto
 Faction Property RelationshipRankFaction Auto
-ReferenceAlias Property Alias_PC Auto
 
 Bool IsUninstallingAll = False
 String Property SYNC_MODE = "APPS.Framework.Relationship.SyncMode" AutoReadOnly Hidden
@@ -173,10 +173,10 @@ Int Function GetSyncMode(Actor akNPC, Bool abGetGlobalIfNotFound = True)
 
 	If(!HasIntValue(akNPC, SYNC_MODE))
 		If(abGetGlobalIfNotFound)
-			Notify(FW_LOG, "Sync mode on " + akNPC.GetName() + " was not set, returning global sync mode.", False)
+			Notify(FW_LOG, "Sync mode on " + akNPC.GetActorBase().GetName() + " was not set, returning global sync mode.", False)
 			Return GetGlobalSyncMode()
 		Else
-			Notify(FW_LOG, "No mod changed the sync mode on " + akNPC.GetName() + ".", False)
+			Notify(FW_LOG, "No mod changed the sync mode on " + akNPC.GetActorBase().GetName() + ".", False)
 			Return -1
 		EndIf
 	EndIf
@@ -216,14 +216,14 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	EndIf
 
 	If(!akNPC.GetActorBase().IsUnique())
-		Throw(FW_LOG, "Actor " + akNPC.GetName() + " must be an unique actor!", "Invalid arguments")
+		Throw(FW_LOG, "Actor " + akNPC.GetActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
 		Return False
 	EndIf
 
 	String ModName = GetStringValue(akToken, MOD_NAME)
 
 	If(aiSyncMode < 0 || aiSyncMode > 3)
-		Throw(FW_LOG, "Sync mode for " + akNPC.GetName() + " was not correctly set by " + ModName + ". The lower limit is 0 and the upper limit is 3.", "Invalid arguments")
+		Throw(FW_LOG, "Sync mode for " + akNPC.GetActorBase().GetName() + " was not correctly set by " + ModName + ". The lower limit is 0 and the upper limit is 3.", "Invalid arguments")
 		Return False
 	EndIf
 
@@ -235,14 +235,14 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	If(ModIndex2 >= 0)
 		IntListSet(akNPC, SYNC_MODE_CHANGELIST, ModIndex2, aiSyncMode)
 		
-		Notify(FW_LOG, "Sync mode on " + akNPC.GetName() + " got updated by " + ModName + ".", False)
+		Notify(FW_LOG, "Sync mode on " + akNPC.GetActorBase().GetName() + " got updated by " + ModName + ".", False)
 
 		;If the mod is also on the last position then also update the global sync mode
 		If(ModIndex2 == SyncModeChanges - 1)
 			SetIntValue(akNPC, SYNC_MODE, aiSyncMode)
 			Return True
 		Else
-			Notify(FW_LOG, "Can't change the sync mode on " + akNPC.GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
+			Notify(FW_LOG, "Can't change the sync mode on " + akNPC.GetActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
 			Return True
 		EndIf
 	Else
@@ -259,7 +259,7 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 			Else
 				FormListInsert(akNPC, SYNC_MODE_CHANGELIST, i, akToken) ;Insert the actual mod into the list before the comparing mod
 				IntListInsert(akNPC, SYNC_MODE_CHANGELIST, i, aiSyncMode) ;Insert the sync mode value as well
-				Notify(FW_LOG, "Can't change the sync mode on " + akNPC.GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
+				Notify(FW_LOG, "Can't change the sync mode on " + akNPC.GetActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
 				Return True
 			EndIf
 		EndWhile
@@ -275,15 +275,15 @@ EndFunction
 
 Bool Function RemoveSyncMode(Quest akToken, Actor akNPC)
 	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
-		Warn(FW_LOG, "A mod tried to remove its changes to the actor " + akNPC.GetName() + ". It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Warn(FW_LOG, "A mod tried to remove its changes to the actor " + akNPC.GetActorBase().GetName() + ". It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	EndIf
 	
 	If (FormListFind(None, SYNC_MODE_NPC_CHANGELIST, akNPC) == -1)
-		Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetActorBase().GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	ElseIf (_GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST, akNPC) == -1)
-		Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetName() + ", but there had been no changes made to this actor by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetActorBase().GetName() + ", but there had been no changes made to this actor by this mod. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	EndIf
 	
@@ -339,7 +339,7 @@ Float Function GetGlobalRelationshipMulti(Int aiFromRelationshipRank, Int aiToRe
 		Return -1.0
 	EndIf
 
-	String MultiplierString = "APPS.Relationship.RelationshipMulti.S" + aiFromRelationshipRank As String + "_" + "S" + aiToRelationshipRank As String
+	String MultiplierString = "APPS.Framework.Relationship.RelationshipMulti.S" + aiFromRelationshipRank As String + "_" + "S" + aiToRelationshipRank As String
 	Return GetFloatValue(None, MultiplierString)
 EndFunction
 
@@ -1342,7 +1342,7 @@ Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int
 		Return -1.0
 	EndIf
 
-	String MultiplierString = "APPS.Relationship.RelationshipMulti.S" + aiFromRelationshipRank As String + "_" + "S" + aiToRelationshipRank As String
+	String MultiplierString = "APPS.Framework.Relationship.RelationshipMulti.S" + aiFromRelationshipRank As String + "_" + "S" + aiToRelationshipRank As String
 
 	If(HasFloatValue(akNPC, MultiplierString))
 		Return GetFloatValue(akNPC, MultiplierString)
@@ -1520,7 +1520,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 				SetFloatValue(akNPC, RS_MULTI_SM1_S0, auiMultiplier)
 			EndIf
 		Else
-			Notify(FW_LOG, "Can't change the relationship multiplier on " + akNPC.GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
+			Notify(FW_LOG, "Can't change the relationship multiplier on " + akNPC.GetActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
 			Return True
 		EndIf
 	Else
@@ -1639,7 +1639,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 					IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 1)
 				EndIf
 
-				Notify(FW_LOG, "Can't change the relationship multiplier on " + akNPC.GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
+				Notify(FW_LOG, "Can't change the relationship multiplier on " + akNPC.GetActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
 				Return True
 			EndIf
 		EndWhile
@@ -1774,10 +1774,10 @@ EndFunction
 
 Bool Function RemoveRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank)
 	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
-		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetActorBase().GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	ElseIf(_GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) == -1)
-		Notify(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetName() + "'s relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Notify(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetActorBase().GetName() + "'s relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	EndIf
 
@@ -2191,10 +2191,10 @@ EndFunction
 
 Bool Function RemoveAllRelationshipMulti(Quest akToken, Actor akNPC)
 	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
-		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetActorBase().GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	ElseIf(_GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) == -1)
-		Notify(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetName() + "'s relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Notify(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetActorBase().GetName() + "'s relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	EndIf
 	
@@ -2349,9 +2349,16 @@ Bool Function RemoveAllRelationshipMulti(Quest akToken, Actor akNPC)
 EndFunction
 
 Float Function GetRelationshipPoints(Actor akNPC)
-	If(akNPC == None)
+	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
 		Return - 500.0
+	EndIf
+
+	If(!HasIntValue(akNPC, RSP) && akNPC.GetRelationshipRank(PlayerRef) != 0)
+		If(GetSyncMode(akNPC) == 1 || GetSyncMode(akNPC) == 3)
+			SetIntValue(akNPC, IGNORE_CHANGES, 1)
+			SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(PlayerRef) * 100)
+		EndIf
 	EndIf
 
 	Return GetFloatValue(akNPC, RSP)
@@ -2364,7 +2371,7 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 	EndIf
 
 	If(!akNPC.GetActorBase().IsUnique())
-		Throw(FW_LOG, "Actor " + akNPC.GetName() + " must be an unique actor!", "Invalid arguments")
+		Throw(FW_LOG, "Actor " + akNPC.GetActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
 		Return 0.0
 	EndIf
 
@@ -2372,9 +2379,9 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 		Warn(FW_LOG, "Argument aiRelationshipPoints was 0. Function will not be executed.")
 	EndIf
 
-	If(!HasIntValue(akNPC, RSP) && akNPC.GetRelationshipRank(Alias_PC.GetActorRef()) != 0 && GetIntValue(akNPC, SYNC_MODE) == 1 || GetIntValue(akNPC, SYNC_MODE) == 3)
+	If(!HasIntValue(akNPC, RSP) && akNPC.GetRelationshipRank(PlayerRef) != 0 && GetIntValue(akNPC, SYNC_MODE) == 1 || GetIntValue(akNPC, SYNC_MODE) == 3)
 		SetIntValue(akNPC, IGNORE_CHANGES, 1)
-		SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(Alias_PC.GetActorRef()) * 100)
+		SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(PlayerRef) * 100)
 	EndIf
 
 	Float NewRP
@@ -2437,18 +2444,18 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 EndFunction
 
 Bool Function SetRelationshipPoints(Actor akNPC, Float aiRelationshipPoints)
-	If(akNPC == None || aiRelationshipPoints < -499 || aiRelationshipPoints > 499)
+	If(!akNPC || aiRelationshipPoints < -499 || aiRelationshipPoints > 499)
 		Return False
 	EndIf
 
 	SetFloatValue(akNPC, RSP, aiRelationshipPoints)
 
 	akNPC.SetFactionRank(RelationshipPointsFaction, aiRelationshipPoints As Int % 100)
-	akNPC.SetFactionRank(RelationshipRankFaction, Math.Ceiling(aiRelationshipPoints / 100))
+	akNPC.SetFactionRank(RelationshipRankFaction, Math.Floor(aiRelationshipPoints / 100))
 
 	If(GetSyncMode(akNPC) > 1 && !HasIntValue(akNPC, IGNORE_CHANGES))
 		SetIntValue(akNPC, IGNORE_CHANGES, 1)
-		akNPC.SetRelationshipRank(Alias_PC.GetActorRef(), Math.Ceiling(aiRelationshipPoints / 100))
+		akNPC.SetRelationshipRank(PlayerRef, Math.Ceiling(aiRelationshipPoints / 100))
 	EndIf
 
 	UnsetIntValue(akNPC, IGNORE_CHANGES)
@@ -2456,13 +2463,14 @@ Bool Function SetRelationshipPoints(Actor akNPC, Float aiRelationshipPoints)
 EndFunction
 
 Float Function GetRPForNextRank(Actor akNPC)
-	If(!HasIntValue(akNPC, RSP) && akNPC.GetRelationshipRank(Alias_PC.GetActorRef()) != 0 && GetIntValue(akNPC, SYNC_MODE) == 1 || GetIntValue(akNPC, SYNC_MODE) == 3)
-		SetIntValue(akNPC, IGNORE_CHANGES, 1)
-		SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(Alias_PC.GetActorRef()) * 100)
-	EndIf
-
 	Float RP = GetRelationshipPoints(akNPC)
-	Int RelationshipRank = akNPC.GetFactionRank(RelationshipRankFaction)
+	Int RelationshipRank
+
+	If(!akNPC.IsInFaction(RelationshipRankFaction))
+		RelationshipRank = 0
+	Else
+		RelationshipRank = akNPC.GetFactionRank(RelationshipRankFaction)
+	EndIf
 
 	If(RelationshipRank == 4)
 		Return (499 - RP) / GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank + 1)
@@ -2476,13 +2484,14 @@ Float Function GetRPForNextRank(Actor akNPC)
 EndFunction
 
 Float Function GetRPForPreviousRank(Actor akNPC)
-	If(!HasIntValue(akNPC, RSP) && akNPC.GetRelationshipRank(Alias_PC.GetActorRef()) != 0 && GetIntValue(akNPC, SYNC_MODE) == 1 || GetIntValue(akNPC, SYNC_MODE) == 3)
-		SetIntValue(akNPC, IGNORE_CHANGES, 1)
-		SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(Alias_PC.GetActorRef()) * 100)
-	EndIf
-
 	Float RP = GetRelationshipPoints(akNPC)
-	Int RelationshipRank = akNPC.GetFactionRank(RelationshipRankFaction)
+	Int RelationshipRank
+
+	If(!akNPC.IsInFaction(RelationshipRankFaction))
+		RelationshipRank = 0
+	Else
+		RelationshipRank = akNPC.GetFactionRank(RelationshipRankFaction)
+	EndIf
 
 	If(RelationshipRank == -4)
 		Return (-499 - RP) / GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank - 1)
