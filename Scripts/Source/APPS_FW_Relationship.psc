@@ -2444,14 +2444,14 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 EndFunction
 
 Bool Function SetRelationshipPoints(Actor akNPC, Float aiRelationshipPoints)
-	If(akNPC == None || aiRelationshipPoints < -499 || aiRelationshipPoints > 499)
+	If(!akNPC || aiRelationshipPoints < -499 || aiRelationshipPoints > 499)
 		Return False
 	EndIf
 
 	SetFloatValue(akNPC, RSP, aiRelationshipPoints)
 
 	akNPC.SetFactionRank(RelationshipPointsFaction, aiRelationshipPoints As Int % 100)
-	akNPC.SetFactionRank(RelationshipRankFaction, Math.Ceiling(aiRelationshipPoints / 100))
+	akNPC.SetFactionRank(RelationshipRankFaction, Math.Floor(aiRelationshipPoints / 100))
 
 	If(GetSyncMode(akNPC) > 1 && !HasIntValue(akNPC, IGNORE_CHANGES))
 		SetIntValue(akNPC, IGNORE_CHANGES, 1)
@@ -2464,7 +2464,13 @@ EndFunction
 
 Float Function GetRPForNextRank(Actor akNPC)
 	Float RP = GetRelationshipPoints(akNPC)
-	Int RelationshipRank = akNPC.GetFactionRank(RelationshipRankFaction)
+	Int RelationshipRank
+
+	If(!akNPC.IsInFaction(RelationshipRankFaction))
+		RelationshipRank = 0
+	Else
+		RelationshipRank = akNPC.GetFactionRank(RelationshipRankFaction)
+	EndIf
 
 	If(RelationshipRank == 4)
 		Return (499 - RP) / GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank + 1)
@@ -2479,7 +2485,13 @@ EndFunction
 
 Float Function GetRPForPreviousRank(Actor akNPC)
 	Float RP = GetRelationshipPoints(akNPC)
-	Int RelationshipRank = akNPC.GetFactionRank(RelationshipRankFaction)
+	Int RelationshipRank
+
+	If(!akNPC.IsInFaction(RelationshipRankFaction))
+		RelationshipRank = 0
+	Else
+		RelationshipRank = akNPC.GetFactionRank(RelationshipRankFaction)
+	EndIf
 
 	If(RelationshipRank == -4)
 		Return (-499 - RP) / GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank - 1)
