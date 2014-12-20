@@ -7,6 +7,7 @@ Faction Property RelationshipRankFaction Auto
 ReferenceAlias Property Alias_PC Auto
 
 Bool IsUninstallingAll = False
+String Property GROUPS = "APPS.Framework.Relationship.Groups" AutoReadOnly Hidden
 String Property SYNC_MODE = "APPS.Framework.Relationship.SyncMode" AutoReadOnly Hidden
 String Property SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList" AutoReadOnly Hidden
 String Property SYNC_MODE_NPC_CHANGELIST = "APPS.Framework.Relationship.SyncMode.NPC.ChangeList" AutoReadOnly Hidden
@@ -155,13 +156,13 @@ Bool Function RemoveGlobalSyncMode(Quest akToken)
 
 	FormListRemove(None, SYNC_MODE_CHANGELIST, akToken)
 	IntListRemoveAt(None, SYNC_MODE_CHANGELIST, ModIndex)
-	
+
 	;;if the changelists are now empty (e.g. the framework has been removed), clear them
 	If (FormListCount(None, SYNC_MODE_CHANGELIST) == 0)
 		FormListClear(None, SYNC_MODE_CHANGELIST)
 		IntListClear(None, SYNC_MODE_CHANGELIST)
 	EndIf
-	
+
 	Return True
 EndFunction
 
@@ -227,14 +228,13 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 		Return False
 	EndIf
 
-	
 	Int ModIndex2 = _GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST, akNPC) ; Get position of current mod in this list
 	Int SyncModeChanges = FormListCount(akNPC, SYNC_MODE_CHANGELIST) ;Get the list of mods which do change the sync mode on an actor
 
 	;If the mod was found, update its new value
 	If(ModIndex2 >= 0)
 		IntListSet(akNPC, SYNC_MODE_CHANGELIST, ModIndex2, aiSyncMode)
-		
+
 		Notify(FW_LOG, "Sync mode on " + akNPC.GetName() + " got updated by " + ModName + ".", False)
 
 		;If the mod is also on the last position then also update the global sync mode
@@ -264,7 +264,7 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 			EndIf
 		EndWhile
 	EndIf
-	
+
 	;No changes made to the array, so just add the value to it and apply the changes to the framework
 	FormListAdd(akNPC, SYNC_MODE_CHANGELIST, akToken)
 	IntListAdd(akNPC, SYNC_MODE_CHANGELIST, aiSyncMode) 
@@ -278,7 +278,7 @@ Bool Function RemoveSyncMode(Quest akToken, Actor akNPC)
 		Warn(FW_LOG, "A mod tried to remove its changes to the actor " + akNPC.GetName() + ". It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	EndIf
-	
+
 	If (FormListFind(None, SYNC_MODE_NPC_CHANGELIST, akNPC) == -1)
 		Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
@@ -286,7 +286,7 @@ Bool Function RemoveSyncMode(Quest akToken, Actor akNPC)
 		Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetName() + ", but there had been no changes made to this actor by this mod. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
 	EndIf
-	
+
 	Int ModIndex = _GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST, akNPC)
 
 	;If the npc sync mode changelist only contains one element, remove the sync mode completely from that npc and remove him from the list of npc's with local changelists
@@ -300,18 +300,18 @@ Bool Function RemoveSyncMode(Quest akToken, Actor akNPC)
 
 	FormListRemove(akNPC, SYNC_MODE_CHANGELIST, akToken)
 	IntListRemoveAt(akNPC, SYNC_MODE_CHANGELIST, ModIndex)
-	
+
 	;if no NPC with local changes remains, clear the arrays
 	If (FormListCount(None, SYNC_MODE_NPC_CHANGELIST) == 0)
 		FormListClear(None, SYNC_MODE_NPC_CHANGELIST)
 	EndIf
-	
+
 	;if the changelists are now empty (e.g. the framework has been removed), clear them
 	If (FormListCount(akNPC, SYNC_MODE_CHANGELIST) == 0)
 		FormListClear(akNPC, SYNC_MODE_CHANGELIST)
 		IntListClear(akNPC, SYNC_MODE_CHANGELIST)
 	EndIf
-	
+
 	Return True
 EndFunction
 
@@ -2346,6 +2346,121 @@ Bool Function RemoveAllRelationshipMulti(Quest akToken, Actor akNPC)
 	EndIf
 	
 	Return True
+EndFunction
+
+Bool Function CreatePrivateGroup(Quest akToken, String asGroupName)
+	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
+		Warn(FW_LOG, "A mod tried to create a private group named " + asGroupName + ". It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	EndIf
+
+	If(asGroupName == "")
+		Warn(FW_LOG, "A mod tried to create a group, but the group name was empty.")
+		Return False
+	EndIf
+
+	If(StringListAdd(akToken, GROUPS, asGroupName, False) == -1)
+		Warn(FW_LOG, "A mod tried to create a group, but the group already exists.")
+		Return False
+	Else
+		Return True
+	EndIf
+EndFunction
+
+Bool Function CreatePublicGroup(String asGroupName)
+	If(asGroupName == "")
+		Warn(FW_LOG, "A mod tried to create a group, but the group name was empty.")
+		Return False
+	EndIf
+
+	If(StringListAdd(None, GROUPS, asGroupName) == -1)
+		Warn(FW_LOG, "A mod tried to create a group, but the group already exists.")
+		Return False
+	Else
+		Return True
+	EndIf
+EndFunction
+
+Bool Function DeletePrivateGroup(Quest akToken, String asGroupName)
+	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
+		Warn(FW_LOG, "A mod tried to delete a private group named " + asGroupName + ". It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	EndIf
+
+	If(asGroupName == "")
+		Warn(FW_LOG, "A mod tried to delete a private group, but the group name was empty.")
+		Return False
+	EndIf
+
+	If(StringListRemove(akToken, GROUPS, asGroupName) == 0)
+		Warn(FW_LOG, "A mod tried to delete a private group, but the group " + asGroupName + " didn't exists.")
+		Return False
+	Else
+		FormListClear(akToken, GROUPS + "." + asGroupName)
+		Return True
+	EndIf
+EndFunction
+
+Bool Function IsPublicGroupCreated(String asGroupName)
+	If(asGroupName == "")
+		Warn(FW_LOG, "A mod tried to ask for a public group, but the group name was empty.")
+		Return False
+	EndIf
+
+	If(StringListFind(None, GROUPS, asGroupName) == -1)
+		Return False
+	Else
+		Return True
+	EndIf
+EndFunction
+
+Bool Function AddToPrivateGroup(Quest akToken, String asGroupName, Actor akNPC)
+	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
+		Warn(FW_LOG, "A mod tried to add an actor to a private group named. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Return False
+	EndIf
+
+	If(asGroupName == "")
+		Warn(FW_LOG, "A mod tried to add an actor for a private group, but the group name was empty.")
+		Return False
+	EndIf
+
+	If(StringListFind(akToken, GROUPS, asGroupName) == -1)
+		Throw
+	If(akNPC == None)
+		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
+		Return - 500.0
+	EndIf
+
+	If(FormListAdd(akToken, GROUPS + "." + asGroupName
+EndFunction
+
+Bool Function AddToPublicGroup(String asGroupName, Actor akNPC)
+
+EndFunction
+
+Bool Function RemoveFromPrivateGroup(Quest akToken, String asGroupName, Actor akNPC)
+
+EndFunction
+
+Bool Function RemoveFromPublicGroup(String asGroupName, Actor akNPC)
+
+EndFunction
+
+Actor[] Function GetPrivateGroupMembers(Quest akToken, String asGroupName)
+
+EndFunction
+
+Actor[] Function GetPublicGroupMembers(String asGroupName)
+
+EndFunction
+
+Bool Function ModRelationshipPointsInPrivateGroup(Quest akToken, String asGroupName, Float afValue)
+
+EndFunction
+
+Bool Function ModRelationshipPointsInPublicGroup(String asGroupName, Float afValue)
+
 EndFunction
 
 Float Function GetRelationshipPoints(Actor akNPC)
