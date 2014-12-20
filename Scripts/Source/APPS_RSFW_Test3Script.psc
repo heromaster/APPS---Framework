@@ -16,9 +16,6 @@ EndFunction
 ;BEGIN FRAGMENT Fragment_1
 Function Fragment_1()
 ;BEGIN CODE
-Exception.Warn("APPS Test 3", "Test 3 is waiting now for 4s")
-Utility.Wait(4)
-Exception.Warn("APPS Test 3", "Test 3 waiting time is done")
 APPS_RSFW_Test3.Start()
 ;END CODE
 EndFunction
