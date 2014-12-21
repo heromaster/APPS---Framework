@@ -3,11 +3,6 @@ Import StorageUtil
 APPS_FW_Relationship Property RSFW Auto
 Actor Property SigridREF Auto
 
-Event OnConfigInit()
-	Pages = new String[1]
-	Pages[0] = "Test 3"
-EndEvent
-
 Event OnPageReset(String asPage)
 	SetCursorFillMode(TOP_TO_BOTTOM)
 	
