@@ -281,16 +281,15 @@ Event OnPageReset(String asPage)
 			
 			Quest Token = FormListGet(None, SYNC_MODE_CHANGELIST, i) as Quest
 			Int ModIndex = FormListFind(None, REGISTERED_RS, Token)
-			String ModName = StringListGet(None, REGISTERED_RS, ModIndex)
+			String ModName2 = StringListGet(None, REGISTERED_RS, ModIndex)
 			
-			AddTextOption(ModName, SyncMode)
+			AddTextOption(ModName2, SyncMode)
 			
 			i += 1
 		EndWhile
 		
 	ElseIf (asPage == Pages[6])	;RS - NPC Sync Mode changes
-		SetCursorFillMode(TOP_TO_BOTTOM)
-		
+		SetCursorFillMode(TOP_TO_BOTTOM)		
 		AddHeaderOption("$NPCs_WITH_SPECIAL_SYNCMODE")
 		AddEmptyOption()
 		
@@ -299,69 +298,80 @@ Event OnPageReset(String asPage)
 			AddMenuOptionST("SyncModeNPCList", "", "$SELECT_NPC")	;disable options if the user has not yet selected a SyncModeNPC
 		Else
 			NPCSyncModeOptionFlag = OPTION_FLAG_NONE
-			AddMenuOptionST("SyncModeNPCList", SyncModeNPC.GetName(), "$SELECT_NPC")
+			AddMenuOptionST("SyncModeNPCList", "", SyncModeNPC.GetActorBase().GetName())
 		EndIf
-		
-		
+
 		;filling up the SyncModeNPCListOptions array with the names of the NPCs, to be shown as a menu later.
 		Int iSyncModeNPCs = FormListCount(None, SYNC_MODE_NPC_CHANGELIST)
 		SyncModeNPCListOptions = PapyrusUtil.StringArray(iSyncModeNPCs)
 		Int i
 		
 			While (i < iSyncModeNPCs)
-				SyncModeNPCListOptions[i] = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, i).GetName()
+				SyncModeNPCListOptions[i] = (FormListGet(None, SYNC_MODE_NPC_CHANGELIST, i) As Actor).GetActorBase().GetName()
 				i += 1
 			EndWhile
 		
+		i = 0
+		
+		While(i < StringListCount(None, REGISTERED_RS))
+			ShowMessage(StringListGet(None, REGISTERED_RS, i))
+
+			i += 1
+		EndWhile
+
 		SetCursorPosition(1)	;go to top of right column
 		AddHeaderOption("$MODS_AFFECTING_ACTOR")
 		AddEmptyOption()
-		
-		
-		
-		Int ModsAffectingSyncModeNPC = FormListCount(SyncModeNPC, SYNC_MODE_CHANGELIST)
-		String SyncMode
-		Int j
-		
+
+		If (SyncModeNPC)
+			Int ModsAffectingSyncModeNPC = FormListCount(SyncModeNPC, SYNC_MODE_CHANGELIST)
+			String SyncMode
+			Int j
+
 			While (j < ModsAffectingSyncModeNPC)
 				;convert SyncMode from Int to String
-				If (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 0)
-					SyncMode == "$DISABLE"
-				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 1)
-					SyncMode == "$VANILLA_TO_RS"
-				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 2)
-					SyncMode == "$RS_TO_VANILLA"
-				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 3)
-					SyncMode == "$BOTH_WAYS"
+				If (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, j) == 0)
+					SyncMode = "$DISABLE"
+				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, j) == 1)
+					SyncMode = "$VANILLA_TO_RS"
+				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, j) == 2)
+					SyncMode = "$RS_TO_VANILLA"
+				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, j) == 3)
+					SyncMode = "$BOTH_WAYS"
 				EndIf
-				
-				Quest Token = FormListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) as Quest
+
+				Quest Token = FormListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, j) as Quest
+				ShowMessage("Token is: " + Token.GetName())
 				Int ModIndex = FormListFind(None, REGISTERED_RS, Token)
-				String ModName = StringListGet(None, REGISTERED_RS, ModIndex)
-				
-				AddTextOption(ModName, SyncMode, NPCSyncModeOptionFlag)
+				ShowMessage("Mod index is: " + ModIndex)
+				String ModName2 = StringListGet(None, REGISTERED_RS, ModIndex)
+				ShowMessage("Mod name is: " + ModName2)
+
+				AddTextOption(ModName2, SyncMode, NPCSyncModeOptionFlag)
 				j += 1
 			EndWhile
-			
+		Else
+			AddTextOption("Please select an NPC first", "", OPTION_FLAG_DISABLED)
+		EndIf
 	ElseIf (asPage == Pages[7])	;RS - Global Multipliers
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		
+
 		;filling up the GlobalRSMultiModsListOptions array with the names of the mods, to be shown as a menu later.
 		Int iGlobalRSMultiMods = FormListCount(None, RS_MULTI_CHANGELIST)
 		GlobalRSMultiModsListOptions = PapyrusUtil.StringArray(iGlobalRSMultiMods)
 		Int i
-		
+
 			While (i < iGlobalRSMultiMods)
 				GlobalRSMultiModsListOptions[i] = _GetModNameFromModFormList(RS_MULTI_CHANGELIST, i)
 				i += 1
 			EndWhile
-		
+
 		AddHeaderOption("$RELATIONSHIP")
 		AddTextOption("", "$MODS_AFFECTING_GLOBAL_RS_MULTIPLIERS")
 		AddEmptyOption()
-		
+
 		Int GlobalRSMultiModIndex
-		
+
 		If (!GlobalRSMultiMod)
 			GlobalRSMultiOptionFlag = OPTION_FLAG_DISABLED	;;disable options if the user has not yet selected a GlobalRSMultiMod and fetch ModIndex if GlobalRSMultiMod has been selected
 			AddMenuOptionST("GlobalRSMultiModsList", "", "$SELECT_MOD")
@@ -370,7 +380,7 @@ Event OnPageReset(String asPage)
 			GlobalRSMultiModIndex = FormListFind(None, RS_MULTI_CHANGELIST, GlobalRSMultiMod)
 			AddMenuOptionST("GlobalRSMultiModsList", "", _GetModNameFromModForm(GlobalRSMultiMod))
 		EndIf
-		
+
 		SetCursorPosition(1)	;go to top of right column
 		AddHeaderOption("$GLOBAL_RS_MULTIPLIERS")
 		AddEmptyOption()
@@ -396,23 +406,22 @@ Event OnPageReset(String asPage)
 		AddTextOption("$S-1_S0", FloatListGet(None, RS_MULTI_SM1_S0_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
 	
 	ElseIf (asPage == Pages[8])	;RS - Local Multipliers
-	
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		
+
 		;filling up the LocalRSMultiActorsListOptions array with the names of the actors, to be shown as a menu later.
 		Int iLocalRSMultiActors = FormListCount(None, RS_MULTI_NPC_CHANGELIST)
 		LocalRSMultiActorsListOptions = PapyrusUtil.StringArray(iLocalRSMultiActors)
 		Int i
-		
-			While (i < iLocalRSMultiActors)
-				LocalRSMultiActorsListOptions[i] = FormListGet(None, RS_MULTI_NPC_CHANGELIST, i).GetName()
-				i += 1
-			EndWhile
-		
+
+		While (i < iLocalRSMultiActors)
+			LocalRSMultiActorsListOptions[i] = (FormListGet(None, RS_MULTI_NPC_CHANGELIST, i) As Actor).GetActorBase().GetName()
+			i += 1
+		EndWhile
+
 		AddHeaderOption("$RELATIONSHIP")
 		AddTextOption("", "$NPCs_WITH_SPECIAL_RS_MULTIPLIERS")
 		AddEmptyOption()
-		
+
 		If (!LocalRSMultiActor)
 			LocalRSMultiActorOptionFlag = OPTION_FLAG_DISABLED
 			AddMenuOptionST("LocalRSMultiActorsList", "", "$SELECT_NPC")
@@ -421,14 +430,14 @@ Event OnPageReset(String asPage)
 			Int iLocalRSMultiMods = FormListCount(LocalRSMultiActor, RS_MULTI_CHANGELIST)
 			LocalRSMultiModsListOptions = PapyrusUtil.StringArray(iLocalRSMultiMods)
 			Int j
-			
+
 				While (j < iLocalRSMultiMods)
 					LocalRSMultiModsListOptions[j] = _GetModNameFromModFormList(RS_MULTI_CHANGELIST, j)
 					j += 1
 				EndWhile
-				
+
 			LocalRSMultiActorOptionFlag = OPTION_FLAG_NONE
-			AddMenuOptionST("LocalRSMultiActorsList", "", LocalRSMultiActor.GetName())
+			AddMenuOptionST("LocalRSMultiActorsList", "", LocalRSMultiActor.GetActorBase().GetName())
 		EndIf
 		
 		AddEmptyOption()
@@ -745,7 +754,7 @@ State SyncModeNPCList
 		SyncModeNPCListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
 		
 		;set the SyncModeNPC, remove the disabled flag and let the OnPageReset() handle the rest
-		SyncModeNPC = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, aiSelectedOption) as Actor
+		SyncModeNPC = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, aiSelectedOption) As Actor
 		NPCSyncModeOptionFlag = OPTION_FLAG_NONE
 		
 		ForcePageReset()
