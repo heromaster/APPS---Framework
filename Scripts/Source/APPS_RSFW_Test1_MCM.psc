@@ -3,7 +3,6 @@ Import StorageUtil
 APPS_FW_Relationship Property RSFW Auto
 Actor Property AlvorREF Auto
 
-<<<<<<< HEAD
 Event OnInit()
 	If(!Self.IsRunning())
 		Return
@@ -12,13 +11,6 @@ Event OnInit()
 	EndIf
 EndEvent
 
-Event OnConfigInit()
-	Pages = new String[1]
-	Pages[0] = "Test 1"
-EndEvent
-
-=======
->>>>>>> origin/development
 Event OnPageReset(String asPage)
 	SetCursorFillMode(TOP_TO_BOTTOM)
 	
