@@ -3,6 +3,14 @@ Import StorageUtil
 APPS_FW_Relationship Property RSFW Auto
 Actor Property SigridREF Auto
 
+Event OnInit()
+	If(!Self.IsRunning())
+		Return
+	Else
+		Parent.OnInit()
+	EndIf
+EndEvent
+
 Event OnPageReset(String asPage)
 	SetCursorFillMode(TOP_TO_BOTTOM)
 	
