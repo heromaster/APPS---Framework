@@ -176,7 +176,7 @@ Event OnPageReset(String asPage)
 			
 			InfoManagerOptionFlag = OPTION_FLAG_NONE
 			
-			AddMenuOptionST("InfoManagerModsList", "", _GetModNameFromModForm(InfoManagerToken))
+			AddMenuOptionST("InfoManagerModsList", "", _GetNameOfModFromModForm(InfoManagerToken))
 			AddEmptyOption()
 			AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", TokenLoggingMethod, InfoManagerOptionFlag)
 			AddTextOptionST("LogName", "Log Name", GetStringValue(InfoManagerToken, EXCEPTIONS_LOGNAME), InfoManagerOptionFlag)

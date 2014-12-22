@@ -2384,9 +2384,9 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 		SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(PlayerRef) * 100)
 	EndIf
 
-	If(!HasIntValue(akNPC, RSP) && akNPC.GetRelationshipRank(Alias_PC.GetActorRef()) != 0 && GetIntValue(akNPC, SYNC_MODE) == 1 || GetIntValue(akNPC, SYNC_MODE) == 3)
+	If(!HasIntValue(akNPC, RSP) && akNPC.GetRelationshipRank(PlayerRef) != 0 && GetIntValue(akNPC, SYNC_MODE) == 1 || GetIntValue(akNPC, SYNC_MODE) == 3)
 		SetIntValue(akNPC, IGNORE_CHANGES, 1)
-		SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(Alias_PC.GetActorRef()) * 100)
+		SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(PlayerRef) * 100)
 	EndIf
 
 	Float NewRP
