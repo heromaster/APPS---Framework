@@ -75,15 +75,15 @@ String RS_MULTI_SM4_SM3_CHANGELIST = "APPS.Framework.Relationship.RelationshipMu
 String RS_MULTI_SM3_SM2_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-3_S-2.ChangeList"
 String RS_MULTI_SM2_SM1_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-2_S-1.ChangeList"
 String RS_MULTI_SM1_S0_CHANGELIST = "APPS.Framework.Relationship.RelationshipMulti.S-1_S0.ChangeList"
-Int InitControlFlag 
-Int UninstallControlFlag 
+Int InitControlFlag
+Int UninstallControlFlag
 Int NPCSyncModeOptionFlag
 Int GlobalRSMultiOptionFlag
 Int InfoManagerOptionFlag
 Int LocalRSMultiActorOptionFlag
 Int LocalRSMultiModOptionFlag
 Float TimeToNextInit = 1.0
-Bool InitSafetyLock = False 
+Bool InitSafetyLock = False
 Bool UninstSafetyLock = False
 
 Event OnConfigInit()
@@ -106,7 +106,7 @@ Event OnConfigInit()
 	InitOrdering[4] = "$MOVE_BOTTOM"
 	InitOrdering[5] = "---------------"
 	InitOrdering[6] = "$INITIALIZE_MOD"
-	
+
 	RS_PriorityOrdering = New String[5]
 	RS_PriorityOrdering[0] = "$MOVE_TOP"
 	RS_PriorityOrdering[1] = "$MOVE_UP"
@@ -124,7 +124,7 @@ Event OnConfigInit()
 	LoggingMethod[0] = "$USE_MOD_USER_LOG"
 	LoggingMethod[1] = "$USE_FRAMEWORK_LOG"
 	LoggingMethod[2] = "$USE_PAPYRUS_LOG"
-	
+
 	NPCSyncModeOptionFlag = OPTION_FLAG_HIDDEN
 EndEvent
 
@@ -137,18 +137,18 @@ Event OnPageReset(String asPage)
 		SetCursorFillMode(TOP_TO_BOTTOM)
 		AddHeaderOption("$REGISTERED_MODS")
 		AddEmptyOption()
-		
+
 		Int RegisteredMods = FormListCount(None, REGISTERED_MODS)
 		Int i
 
 		While (i < RegisteredMods)
-			AddTextOption(_GetModNameFromModFormList(REGISTERED_MODS, i), "")
+			AddTextOption(_GetNameOfModFromModFormList(REGISTERED_MODS, i), "")
 			i += 1
 		EndWhile
-		
+
 		SetCursorPosition(1)	;go to top of right column
 		AddToggleOptionST("ResetMenusOnClose", "$RESET_MENUS_ON_CLOSE", False)
-		
+
 	ElseIf (asPage == Pages[1])	;info manager
 		String TokenLoggingMethod
 		
@@ -181,17 +181,17 @@ Event OnPageReset(String asPage)
 			AddMenuOptionST("LoggingMethod", "$LOGGING_METHOD", TokenLoggingMethod, InfoManagerOptionFlag)
 			AddTextOptionST("LogName", "Log Name", GetStringValue(InfoManagerToken, EXCEPTIONS_LOGNAME), InfoManagerOptionFlag)
 		EndIf
-		
+
 		;filling up the InfoManagerModsListOptions array with the names of the registered mods, to be shown as a menu later
 		Int RegisteredMods = FormListCount(None, REGISTERED_MODS)
 		InfoManagerModsListOptions = PapyrusUtil.StringArray(RegisteredMods)
 		Int i
 
 			While (i < RegisteredMods)
-				InfoManagerModsListOptions[i] = _GetModNameFromModFormList(REGISTERED_MODS, i)
+				InfoManagerModsListOptions[i] = _GetNameOfModFromModFormList(REGISTERED_MODS, i)
 				i += 1
 			EndWhile
-		
+
 		SetCursorPosition(1)	;go to top of right column
 		AddHeaderOption("$INFOS")
 		AddToggleOptionST("DisplayInfos", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, DISPLAY_INFOS), InfoManagerOptionFlag)
@@ -202,9 +202,9 @@ Event OnPageReset(String asPage)
 		AddHeaderOption("$ERRORS")
 		AddToggleOptionST("DisplayErrors", "$DISPLAY_ON_SCREEN", HasIntValue(InfoManagerToken, DISPLAY_ERRORS), InfoManagerOptionFlag)
 		AddToggleOptionST("LogErrors", "$LOG_TO_FILE", HasIntValue(InfoManagerToken, LOG_ERRORS), InfoManagerOptionFlag)
-		
+
 	ElseIf (asPage == Pages[2])	;initialization manager
-		If (InitSafetyLock || UninstSafetyLock || FormListCount(None, INIT_MODS) == 0) 
+		If (InitSafetyLock || UninstSafetyLock || FormListCount(None, INIT_MODS) == 0)
 			InitControlFlag = OPTION_FLAG_DISABLED
 		Else
 			InitControlFlag = OPTION_FLAG_NONE
@@ -218,7 +218,7 @@ Event OnPageReset(String asPage)
 		ElseIf (UninstSafetyLock)
 			AddHeaderOption("$UNINST_IN_PROGRESS")
 		Else
-			AddTextOptionST("StartInitialization", "$START_INITIALIZATION_SEQUENCE", "$GO")
+			AddTextOptionST("StartInitialization", "$START_INITIALIZATION_SEQUENCE", "$GO", InitControlFlag)
 		EndIf
 
 		AddEmptyOption()
@@ -228,12 +228,12 @@ Event OnPageReset(String asPage)
 		Int i
 
 		While (i < FormListCount(None, INIT_MODS))
-			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetModNameFromModFormList(INIT_MODS, i), InitControlFlag))
-			;StringListAdd(None, MENU_OPTIONS, _GetModNameFromModFormList(INIT_MODS, i))
+			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetNameOfModFromModFormList(INIT_MODS, i), InitControlFlag))
+			;StringListAdd(None, MENU_OPTIONS, _GetNameOfModFromModFormList(INIT_MODS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, INIT_MODS, i))
 			i += 1
 		EndWhile
-		
+
 	ElseIf (asPage == Pages[3])	;uninstall manager
 		If (InitSafetyLock || UninstSafetyLock || FormListCount(None, UNINSTALL_MODS) == 0)
 			UninstallControlFlag = OPTION_FLAG_DISABLED
@@ -258,142 +258,144 @@ Event OnPageReset(String asPage)
 		Int i = UninstallMods
 
 		While (i < FormListCount(None, UNINSTALL_MODS))
-			IntListAdd(None, MENU_OPTIONS, AddTextOption(_GetModNameFromModFormList(UNINSTALL_MODS, i), "", UninstallControlFlag))
-			;StringListAdd(None, MENU_OPTIONS, _GetModNameFromModFormList(UNINSTALL_MODS, i))
+			IntListAdd(None, MENU_OPTIONS, AddTextOption(_GetNameOfModFromModFormList(UNINSTALL_MODS, i), "", UninstallControlFlag))
+			;StringListAdd(None, MENU_OPTIONS, _GetNameOfModFromModFormList(UNINSTALL_MODS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, UNINSTALL_MODS, i))
 			i += 1
 		EndWhile
-		
+
 	ElseIf (asPage == Pages[4])	;RS - Priority
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		
+
 		AddHeaderOption("$RELATIONSHIP_PRIORITY")
 		AddEmptyOption()
-		
+
 		Int i
 
 		While (i < FormListCount(None, REGISTERED_RS))
-			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetModNameFromModFormList(REGISTERED_RS, i)))
+			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetNameOfModFromModFormList(REGISTERED_RS, i)))
 			;StringListAdd(None, MENU_OPTIONS, StringListGet(None, REGISTERED_RS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, REGISTERED_RS, i))
 			i += 1
 		EndWhile
-		
+
 	ElseIf (asPage == Pages[5])	;RS - Global Sync Mode changes
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		
+
 		AddHeaderOption("$RELATIONSHIP")
 		AddTextOption("", "$GLOBAL_SYNC_MODE_CHANGES")
 		AddEmptyOption()
-		
+
 		Int ModsAffectingSyncMode = FormListCount(None, SYNC_MODE_CHANGELIST)
 		String SyncMode
 		Int i
-		
+
 		While (i < ModsAffectingSyncMode)
 			;convert SyncMode from Int to String
 			If (IntListGet(None, SYNC_MODE_CHANGELIST, i) == 0)
-				SyncMode == "$DISABLE"
+				SyncMode = "$DISABLE"
 			ElseIf (IntListGet(None, SYNC_MODE_CHANGELIST, i) == 1)
-				SyncMode == "$VANILLA_TO_RS"
+				SyncMode = "$VANILLA_TO_RS"
 			ElseIf (IntListGet(None, SYNC_MODE_CHANGELIST, i) == 2)
-				SyncMode == "$RS_TO_VANILLA"
+				SyncMode = "$RS_TO_VANILLA"
 			ElseIf (IntListGet(None, SYNC_MODE_CHANGELIST, i) == 3)
-				SyncMode == "$BOTH_WAYS"
+				SyncMode = "$BOTH_WAYS"
 			EndIf
-			
+
 			Quest Token = FormListGet(None, SYNC_MODE_CHANGELIST, i) as Quest
 			Int ModIndex = FormListFind(None, REGISTERED_RS, Token)
-			String ModName = StringListGet(None, REGISTERED_RS, ModIndex)
-			
-			AddTextOption(ModName, SyncMode)
-			
+			String NameOfMod = StringListGet(None, REGISTERED_RS, ModIndex)
+
+			AddTextOption(NameOfMod, SyncMode)
+
 			i += 1
 		EndWhile
-		
+
 	ElseIf (asPage == Pages[6])	;RS - NPC Sync Mode changes
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		
 		AddHeaderOption("$NPCs_WITH_SPECIAL_SYNCMODE")
 		AddEmptyOption()
-		
+
 		If (!SyncModeNPC)
 			NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
 			AddMenuOptionST("SyncModeNPCList", "", "$SELECT_NPC")	;disable options if the user has not yet selected a SyncModeNPC
 		Else
 			NPCSyncModeOptionFlag = OPTION_FLAG_NONE
-			AddMenuOptionST("SyncModeNPCList", SyncModeNPC.GetName(), "$SELECT_NPC")
+			AddMenuOptionST("SyncModeNPCList", "", SyncModeNPC.GetActorBase().GetName())
 		EndIf
-		
-		
+
 		;filling up the SyncModeNPCListOptions array with the names of the NPCs, to be shown as a menu later.
 		Int iSyncModeNPCs = FormListCount(None, SYNC_MODE_NPC_CHANGELIST)
 		SyncModeNPCListOptions = PapyrusUtil.StringArray(iSyncModeNPCs)
 		Int i
-		
+
 			While (i < iSyncModeNPCs)
-				SyncModeNPCListOptions[i] = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, i).GetName()
+				SyncModeNPCListOptions[i] = (FormListGet(None, SYNC_MODE_NPC_CHANGELIST, i) As Actor).GetActorBase().GetName()
 				i += 1
 			EndWhile
-		
+
+		i = 0
+
 		SetCursorPosition(1)	;go to top of right column
 		AddHeaderOption("$MODS_AFFECTING_ACTOR")
 		AddEmptyOption()
-		
-		
-		
-		Int ModsAffectingSyncModeNPC = FormListCount(SyncModeNPC, SYNC_MODE_CHANGELIST)
-		String SyncMode
-		Int j
-		
-			While (j < ModsAffectingSyncModeNPC)
+
+		If (SyncModeNPC)
+			Int ModsAffectingSyncModeNPC = FormListCount(SyncModeNPC, SYNC_MODE_CHANGELIST)
+			String SyncMode
+			i = 0
+
+			While (i < ModsAffectingSyncModeNPC)
 				;convert SyncMode from Int to String
 				If (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 0)
-					SyncMode == "$DISABLE"
+					SyncMode = "$DISABLE"
 				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 1)
-					SyncMode == "$VANILLA_TO_RS"
+					SyncMode = "$VANILLA_TO_RS"
 				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 2)
-					SyncMode == "$RS_TO_VANILLA"
+					SyncMode = "$RS_TO_VANILLA"
 				ElseIf (IntListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) == 3)
-					SyncMode == "$BOTH_WAYS"
+					SyncMode = "$BOTH_WAYS"
 				EndIf
-				
+
 				Quest Token = FormListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) as Quest
 				Int ModIndex = FormListFind(None, REGISTERED_RS, Token)
-				String ModName = StringListGet(None, REGISTERED_RS, ModIndex)
-				
-				AddTextOption(ModName, SyncMode, NPCSyncModeOptionFlag)
-				j += 1
+				String NameOfMod = StringListGet(None, REGISTERED_RS, ModIndex)
+
+				AddTextOption(NameOfMod, SyncMode, NPCSyncModeOptionFlag)
+				i += 1
 			EndWhile
-			
+		Else
+			AddTextOption("$PLEASE_SELECT_NPC_FIRST", "", OPTION_FLAG_DISABLED)
+		EndIf
+
 	ElseIf (asPage == Pages[7])	;RS - Global Multipliers
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		
+
 		;filling up the GlobalRSMultiModsListOptions array with the names of the mods, to be shown as a menu later.
 		Int iGlobalRSMultiMods = FormListCount(None, RS_MULTI_CHANGELIST)
 		GlobalRSMultiModsListOptions = PapyrusUtil.StringArray(iGlobalRSMultiMods)
 		Int i
-		
+
 			While (i < iGlobalRSMultiMods)
-				GlobalRSMultiModsListOptions[i] = _GetModNameFromModFormList(RS_MULTI_CHANGELIST, i)
+				GlobalRSMultiModsListOptions[i] = _GetNameOfModFromModFormList(RS_MULTI_CHANGELIST, i)
 				i += 1
 			EndWhile
-		
+
 		AddHeaderOption("$RELATIONSHIP")
 		AddTextOption("", "$MODS_AFFECTING_GLOBAL_RS_MULTIPLIERS")
 		AddEmptyOption()
-		
+
 		Int GlobalRSMultiModIndex
-		
+
 		If (!GlobalRSMultiMod)
 			GlobalRSMultiOptionFlag = OPTION_FLAG_DISABLED	;;disable options if the user has not yet selected a GlobalRSMultiMod and fetch ModIndex if GlobalRSMultiMod has been selected
 			AddMenuOptionST("GlobalRSMultiModsList", "", "$SELECT_MOD")
 		Else
 			GlobalRSMultiOptionFlag = OPTION_FLAG_NONE
 			GlobalRSMultiModIndex = FormListFind(None, RS_MULTI_CHANGELIST, GlobalRSMultiMod)
-			AddMenuOptionST("GlobalRSMultiModsList", "", _GetModNameFromModForm(GlobalRSMultiMod))
+			AddMenuOptionST("GlobalRSMultiModsList", "", _GetNameOfModFromModForm(GlobalRSMultiMod))
 		EndIf
-		
+
 		SetCursorPosition(1)	;go to top of right column
 		AddHeaderOption("$GLOBAL_RS_MULTIPLIERS")
 		AddEmptyOption()
@@ -417,25 +419,24 @@ Event OnPageReset(String asPage)
 		AddTextOption("$S-3_S-2", FloatListGet(None, RS_MULTI_SM3_SM2_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
 		AddTextOption("$S-2_S-1", FloatListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
 		AddTextOption("$S-1_S0", FloatListGet(None, RS_MULTI_SM1_S0_CHANGELIST, GlobalRSMultiModIndex) as String, GlobalRSMultiOptionFlag)
-	
+
 	ElseIf (asPage == Pages[8])	;RS - Local Multipliers
-	
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		
+
 		;filling up the LocalRSMultiActorsListOptions array with the names of the actors, to be shown as a menu later.
 		Int iLocalRSMultiActors = FormListCount(None, RS_MULTI_NPC_CHANGELIST)
 		LocalRSMultiActorsListOptions = PapyrusUtil.StringArray(iLocalRSMultiActors)
 		Int i
-		
-			While (i < iLocalRSMultiActors)
-				LocalRSMultiActorsListOptions[i] = FormListGet(None, RS_MULTI_NPC_CHANGELIST, i).GetName()
-				i += 1
-			EndWhile
-		
+
+		While (i < iLocalRSMultiActors)
+			LocalRSMultiActorsListOptions[i] = (FormListGet(None, RS_MULTI_NPC_CHANGELIST, i) As Actor).GetActorBase().GetName()
+			i += 1
+		EndWhile
+
 		AddHeaderOption("$RELATIONSHIP")
 		AddTextOption("", "$NPCs_WITH_SPECIAL_RS_MULTIPLIERS")
 		AddEmptyOption()
-		
+
 		If (!LocalRSMultiActor)
 			LocalRSMultiActorOptionFlag = OPTION_FLAG_DISABLED
 			AddMenuOptionST("LocalRSMultiActorsList", "", "$SELECT_NPC")
@@ -443,53 +444,58 @@ Event OnPageReset(String asPage)
 			;filling up the LocalRSMultiModsListOptions array with the names of the mods, to be shown as a menu later.
 			Int iLocalRSMultiMods = FormListCount(LocalRSMultiActor, RS_MULTI_CHANGELIST)
 			LocalRSMultiModsListOptions = PapyrusUtil.StringArray(iLocalRSMultiMods)
-			Int j
-			
-				While (j < iLocalRSMultiMods)
-					LocalRSMultiModsListOptions[j] = _GetModNameFromModFormList(RS_MULTI_CHANGELIST, j)
-					j += 1
+			i = 0
+
+				While (i < iLocalRSMultiMods)
+					LocalRSMultiModsListOptions[i] = _GetNameOfModFromModFormList(RS_MULTI_CHANGELIST, i)
+					i += 1
 				EndWhile
-				
+
 			LocalRSMultiActorOptionFlag = OPTION_FLAG_NONE
-			AddMenuOptionST("LocalRSMultiActorsList", "", LocalRSMultiActor.GetName())
+			AddMenuOptionST("LocalRSMultiActorsList", "", LocalRSMultiActor.GetActorBase().GetName())
 		EndIf
-		
+
 		AddEmptyOption()
-		
+
 		Int LocalRSMultiModIndex
-		
-		If (!LocalRSMultiMod) 
+
+		If (!LocalRSMultiMod)
 			LocalRSMultiModOptionFlag = OPTION_FLAG_DISABLED
 			AddMenuOptionST("LocalRSMultiModsList", "", "$SELECT_MOD")
 		Else
 			LocalRSMultiModOptionFlag = OPTION_FLAG_NONE
 			LocalRSMultiModIndex = FormListFind(LocalRSMultiActor, RS_MULTI_CHANGELIST, LocalRSMultiMod)
-			AddMenuOptionST("LocalRSMultiModsList", "", _GetModNameFromModForm(LocalRSMultiMod))
+			AddMenuOptionST("LocalRSMultiModsList", "", _GetNameOfModFromModForm(LocalRSMultiMod))
 		EndIf
-		
+
 		SetCursorPosition(1)	;go to top of right column
 		AddHeaderOption("$NPC_RS_MULTIPLIERS")
 		AddEmptyOption()
-		AddTextOption("$S0_S1", FloatListGet(LocalRSMultiActor, RS_MULTI_S0_S1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S1_S2", FloatListGet(LocalRSMultiActor, RS_MULTI_S1_S2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S2_S3", FloatListGet(LocalRSMultiActor, RS_MULTI_S2_S3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S3_S4", FloatListGet(LocalRSMultiActor, RS_MULTI_S3_S4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S4_S5", FloatListGet(LocalRSMultiActor, RS_MULTI_S4_S5_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S5_S4", FloatListGet(LocalRSMultiActor, RS_MULTI_S5_S4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S4_S3", FloatListGet(LocalRSMultiActor, RS_MULTI_S4_S3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S3_S2", FloatListGet(LocalRSMultiActor, RS_MULTI_S3_S2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S2_S1", FloatListGet(LocalRSMultiActor, RS_MULTI_S2_S1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S1_S0", FloatListGet(LocalRSMultiActor, RS_MULTI_S1_S0_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S0_S-1", FloatListGet(LocalRSMultiActor, RS_MULTI_S0_SM1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S-1_S-2", FloatListGet(LocalRSMultiActor, RS_MULTI_SM1_SM2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S-2_S-3", FloatListGet(LocalRSMultiActor, RS_MULTI_SM2_SM3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S-3_S-4", FloatListGet(LocalRSMultiActor, RS_MULTI_SM3_SM4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S-4_S-5", FloatListGet(LocalRSMultiActor, RS_MULTI_SM4_SM5_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S-5_S-4", FloatListGet(LocalRSMultiActor, RS_MULTI_SM5_SM4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S-4_S-3", FloatListGet(LocalRSMultiActor, RS_MULTI_SM4_SM3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S-3_S-2", FloatListGet(LocalRSMultiActor, RS_MULTI_SM3_SM2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S-2_S-1", FloatListGet(LocalRSMultiActor, RS_MULTI_SM2_SM1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
-		AddTextOption("$S-1_S0", FloatListGet(LocalRSMultiActor, RS_MULTI_SM1_S0_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)	
+
+		If (LocalRSMultiActor)
+			AddTextOption("$S0_S1", FloatListGet(LocalRSMultiActor, RS_MULTI_S0_S1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S1_S2", FloatListGet(LocalRSMultiActor, RS_MULTI_S1_S2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S2_S3", FloatListGet(LocalRSMultiActor, RS_MULTI_S2_S3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S3_S4", FloatListGet(LocalRSMultiActor, RS_MULTI_S3_S4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S4_S5", FloatListGet(LocalRSMultiActor, RS_MULTI_S4_S5_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S5_S4", FloatListGet(LocalRSMultiActor, RS_MULTI_S5_S4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S4_S3", FloatListGet(LocalRSMultiActor, RS_MULTI_S4_S3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S3_S2", FloatListGet(LocalRSMultiActor, RS_MULTI_S3_S2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S2_S1", FloatListGet(LocalRSMultiActor, RS_MULTI_S2_S1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S1_S0", FloatListGet(LocalRSMultiActor, RS_MULTI_S1_S0_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S0_S-1", FloatListGet(LocalRSMultiActor, RS_MULTI_S0_SM1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S-1_S-2", FloatListGet(LocalRSMultiActor, RS_MULTI_SM1_SM2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S-2_S-3", FloatListGet(LocalRSMultiActor, RS_MULTI_SM2_SM3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S-3_S-4", FloatListGet(LocalRSMultiActor, RS_MULTI_SM3_SM4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S-4_S-5", FloatListGet(LocalRSMultiActor, RS_MULTI_SM4_SM5_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S-5_S-4", FloatListGet(LocalRSMultiActor, RS_MULTI_SM5_SM4_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S-4_S-3", FloatListGet(LocalRSMultiActor, RS_MULTI_SM4_SM3_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S-3_S-2", FloatListGet(LocalRSMultiActor, RS_MULTI_SM3_SM2_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S-2_S-1", FloatListGet(LocalRSMultiActor, RS_MULTI_SM2_SM1_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+			AddTextOption("$S-1_S0", FloatListGet(LocalRSMultiActor, RS_MULTI_SM1_S0_CHANGELIST, LocalRSMultiModIndex) as String, LocalRSMultiModOptionFlag)
+		Else
+			AddTextOption("$PLEASE_SELECT_NPC_FIRST", "", OPTION_FLAG_DISABLED)
+		EndIf
 	EndIf
 EndEvent
 
@@ -500,10 +506,10 @@ State ResetMenusOnClose
 		Else
 			(SetIntValue(None, RESET_MENUS_ON_CLOSE, 0))
 		EndIf
-		
+
 		SetToggleOptionValueST(GetIntValue(None, RESET_MENUS_ON_CLOSE))
 	EndEvent
-	
+
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_RESET_MENUS_ON_CLOSE")
 	EndEvent
@@ -537,11 +543,12 @@ State InfoManagerModsList
 	Event OnMenuAcceptST(int aiSelectedOption)
 		InfoManagerModsListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
 		Utility.WaitMenuMode(0.5)
-		
+
 		;set the InfoManagerToken, remove the disabled flag and let the OnPageReset() handle the rest
+		
 		InfoManagerToken = FormListGet(None, REGISTERED_MODS, aiSelectedOption) as Quest ;save the user's selection as a variable to be used for toggling the Info Manager's options
 		InfoManagerOptionFlag = OPTION_FLAG_NONE
-		
+
 		ForcePageReset()
 	EndEvent
 
@@ -705,13 +712,13 @@ State StartInitialization
 			ShowMessage("$CLOSE_MCM", False, "$OK")
 			InitSafetyLock = True
 			SetTextOptionValueST("$INITIALIZING", False, "StartInitialization")
-			ForcePageReset()	;this ensures install order is displayed again with OPTION_FLAG_DISABLED			
+			ForcePageReset()	;this ensures install order is displayed again with OPTION_FLAG_DISABLED
 			Utility.Wait(0.1)	;forces the user to close the menu
 
 			While (FormListCount(None, INIT_MODS) > 0)
 				Quest ModToInit = FormListGet(None, INIT_MODS, 0) as Quest
-				String ModName = _GetModNameFromModForm(ModToInit)
-				Exception.Notify(FW_LOG, ModName)
+				String NameOfMod = _GetNameOfModFromModForm(ModToInit)
+				Exception.Notify(FW_LOG, NameOfMod)
 				InitializeMod(ModToInit, abSafetyLock = False) ;SafetyLock is handled by line InitSafetyLock = True
 				Utility.Wait(TimeToNextInit)
 			EndWhile
@@ -730,17 +737,17 @@ State SyncModeNPCList
 		SetMenuDialogOptions(SyncModeNPCListOptions)
 		SetMenuDialogStartIndex(SyncModeNPCListSelection)
 	EndEvent
-	
+
 	Event OnMenuAcceptST(Int aiSelectedOption)
 		SyncModeNPCListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
-		
+
 		;set the SyncModeNPC, remove the disabled flag and let the OnPageReset() handle the rest
-		SyncModeNPC = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, aiSelectedOption) as Actor
+		SyncModeNPC = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, aiSelectedOption) As Actor
 		NPCSyncModeOptionFlag = OPTION_FLAG_NONE
-		
+
 		ForcePageReset()
 	EndEvent
-	
+
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_SYNCMODE_NPC_LIST")
 	EndEvent
@@ -751,17 +758,17 @@ State GlobalRSMultiModsList
 		SetMenuDialogOptions(GlobalRSMultiModsListOptions)
 		SetMenuDialogStartIndex(GlobalRSMultiModsListSelection)
 	EndEvent
-	
+
 	Event OnMenuAcceptST(Int aiSelectedOption)
 		GlobalRSMultiModsListSelection = aiSelectedOption ;store the user's selection as a variable to be used the next time the menu is displayed
-		
+
 		;set the GlobalRSMultiMod, remove the disabled flag and let the OnPageReset() handle the rest
 		GlobalRSMultiMod = FormListGet(None, RS_MULTI_CHANGELIST, aiSelectedOption) as Quest
 		GlobalRSMultiOptionFlag = OPTION_FLAG_NONE
-		
+
 		ForcePageReset()
 	EndEvent
-	
+
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_GLOBAL_RS_MULTI_MODS_LIST")
 	EndEvent
@@ -772,16 +779,16 @@ State LocalRSMultiActorsList
 		SetMenuDialogOptions(LocalRSMultiActorsListOptions)
 		SetMenuDialogStartIndex(LocalRSMultiActorsListSelection)
 	EndEvent
-	
+
 	Event OnMenuAcceptST(Int aiSelectedOption)
 		;set the LocalRSMultiActor, remove the disabled flag, clear the LocalRSMultiMod and let the OnPageReset() handle the rest
 		LocalRSMultiActor = FormListGet(None, RS_MULTI_NPC_CHANGELIST, aiSelectedOption) as Actor
 		LocalRSMultiActorOptionFlag = OPTION_FLAG_NONE
 		LocalRSMultiMod = None
-		
+
 		ForcePageReset()
 	EndEvent
-	
+
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_LOCAL_RS_MULTI_ACTORS_LIST")
 	EndEvent
@@ -792,15 +799,15 @@ State LocalRSMultiModsList
 		SetMenuDialogOptions(LocalRSMultiModsListOptions)
 		SetMenuDialogStartIndex(LocalRSMultiModsListSelection)
 	EndEvent
-	
+
 	Event OnMenuAcceptST(Int aiSelectedOption)
 		;set the LocalRSMultiMod, remove the disabled flag and let the OnPageReset() handle the rest
 		LocalRSMultiMod = FormListGet(LocalRSMultiActor, RS_MULTI_CHANGELIST, aiSelectedOption) as Quest
 		LocalRSMultiModOptionFlag = OPTION_FLAG_NONE
-		
+
 		ForcePageReset()
 	EndEvent
-	
+
 	Event OnHighlightST()
 		SetInfoText("$EXPLAIN_LOCAL_RS_MULTI_MODS_LIST")
 	EndEvent
@@ -817,7 +824,7 @@ Event OnOptionHighlight(Int aiOption)
 				If (HasStringValue(InitQuest, INIT_MODS_TOOLTIP))
 					SetInfoText(GetStringValue(InitQuest, INIT_MODS_TOOLTIP))
 				EndIf
-			
+
 			ElseIf (CurrentPage == Pages[3])
 				SetInfoText("$EXPLAIN_UNINSTALL")
 			ElseIf (CurrentPage == Pages[4])
@@ -825,7 +832,7 @@ Event OnOptionHighlight(Int aiOption)
 			ElseIf (CurrentPage == Pages[3])
 				SetInfoText("$EXPLAIN_RS_GLOBAL_SYNC_MODE_CHANGES")
 			EndIf
-			
+
 			i = MenuOptions
 		Else
 			i += 1
@@ -841,13 +848,13 @@ Event OnOptionMenuOpen(Int aiOption)
 		If(aiOption == IntListGet(None, MENU_OPTIONS, i))
 			SetMenuDialogDefaultIndex(2)
 			SetMenuDialogStartIndex(2)
-			
+
 			If (CurrentPage == Pages[2])
 				SetMenuDialogOptions(InitOrdering)
 			ElseIf (CurrentPage == Pages[4])
 				SetMenuDialogOptions(RS_PriorityOrdering)
 			EndIf
-			
+
 			i = MenuOptions
 		Else
 			i += 1
@@ -867,7 +874,7 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 				ElseIf (CurrentPage == Pages[4])
 					ChangeOrder(FormListGet(None, MENU_OPTIONS, i) as Quest, REGISTERED_RS, aiSelectedOption)
 				EndIf
-				
+
 			ElseIf (aiSelectedOption == INITIALIZE_MOD)
 				If (ShowMessage("$INITIALIZE_MOD_CONFIRMATION") == True)
 					ShowMessage("$CLOSE_MCM", False, "$OK")
@@ -876,10 +883,10 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 
 					InitializeMod(ModToInit)
 				EndIf
-				
+
 			i = MenuOptions	;stops the loop
 			EndIf
-			
+
 		i = MenuOptions	;stops the loop
 		Else
 			i += 1
@@ -905,9 +912,9 @@ Event OnOptionSelect(Int aiOption)
 				i += 1
 			EndIf
 		EndWhile
-		
+
 	EndIf
-	
+
 	ForcePageReset()
 EndEvent
 
@@ -962,7 +969,7 @@ Function ChangeOrder(Quest akMod, String asArray, Int aiPositionChange)
 			FormListRemove(None, asArray, akMod)
 			FormListInsert(None, asArray, (ModIndex + 1), akMod)
 		EndIf
-		
+
 	ElseIf(aiPositionChange == MOVE_BOTTOM)
 		If(ModIndex == FormListCount(None, asArray) - 1)
 			Return
@@ -976,7 +983,7 @@ EndFunction
 
 Bool Function InitializeMod(Quest akModToInit, Bool abSafetyLock = True)
 	Int ModIndex = FormListFind(None, INIT_MODS, akModToInit)
-	String ModName = _GetModNameFromModForm(akModToInit)
+	String NameOfMod = _GetNameOfModFromModForm(akModToInit)
 	Quest InitQuest = GetFormValue(akModToInit, INIT_QUEST) as Quest
 	Int iSetStage = GetIntValue(akModToInit, INIT_STAGE)
 	Bool result = True
@@ -996,9 +1003,9 @@ Bool Function InitializeMod(Quest akModToInit, Bool abSafetyLock = True)
 	EndIf
 
 	If(result)
-		Exception.Notify(FW_LOG, ModName + "$INITIALIZED")
+		Exception.Notify(FW_LOG, NameOfMod + "$INITIALIZED")
 	Else
-		Exception.Throw(FW_LOG, "Failed to initialize mod", ModName + "$FAILED_TO_INITIALIZE")
+		Exception.Throw(FW_LOG, "Failed to initialize mod", NameOfMod + "$FAILED_TO_INITIALIZE")
 		FormListRemove(None, REGISTERED_MODS, akModToInit)
 	EndIf
 
@@ -1016,7 +1023,7 @@ EndFunction
 
 Bool Function UninstallMod(Quest ModToUninstall, Bool abSafetyLock = True)
 	Int ModIndex = FormListFind(None, UNINSTALL_MODS, ModToUninstall)
-	String ModName = _GetModNameFromModForm(ModToUninstall)
+	String NameOfMod = _GetNameOfModFromModForm(ModToUninstall)
 	Quest UninstallQuest = GetFormValue(ModToUninstall, UNINSTALL_QUEST) as Quest
 	Int iSetStage = GetIntValue(ModToUninstall, UNINSTALL_STAGE)
 	Bool result = True
@@ -1027,12 +1034,12 @@ Bool Function UninstallMod(Quest ModToUninstall, Bool abSafetyLock = True)
 
 	If(iSetStage == 0)
 		If (!UninstallQuest.Start())
-			Exception.Throw(FW_LOG, "Uninstallation failed", ModName + "$FAILED_TO_UNINSTALL")
+			Exception.Throw(FW_LOG, "Uninstallation failed", NameOfMod + "$FAILED_TO_UNINSTALL")
 			result = False
 		EndIf
 	Else
 		If(!UninstallQuest.SetStage(iSetStage))
-			Exception.Throw(FW_LOG, "Uninstallation failed", ModName + "$FAILED_TO_UNINSTALL")
+			Exception.Throw(FW_LOG, "Uninstallation failed", NameOfMod + "$FAILED_TO_UNINSTALL")
 			result = False
 		EndIf
 	EndIf
@@ -1050,7 +1057,7 @@ Bool Function UninstallMod(Quest ModToUninstall, Bool abSafetyLock = True)
 	Return result
 EndFunction
 
-String Function _GetModNameFromModFormList(String asFormList, Int auiIndex, Actor akNPC = None)
+String Function _GetNameOfModFromModFormList(String asFormList, Int auiIndex, Actor akNPC = None)
 	Quest Mod = FormListGet(akNPC, asFormList, auiIndex) as Quest
 
 	If (!Mod)
@@ -1060,7 +1067,7 @@ String Function _GetModNameFromModFormList(String asFormList, Int auiIndex, Acto
 	EndIf
 EndFunction
 
-String Function _GetModNameFromModForm(Quest akMod)
+String Function _GetNameOfModFromModForm(Quest akMod)
 	If (!akMod)
 		Return ""
 	Else
@@ -1068,23 +1075,23 @@ String Function _GetModNameFromModForm(Quest akMod)
 	EndIf
 EndFunction
 
-Quest Function _GetModFormFromModName(String asModName, String asFormList, Actor akNPC = None)	;contains a WHILE loop, don't use if other good alternative exists
+Quest Function _GetModFormFromNameOfMod(String asNameOfMod, String asFormList, Actor akNPC = None)	;contains a WHILE loop, don't use if other good alternative exists
 	Int i
-	Int j = FormListCount(akNPC, asFormList)
-	
-	While (i < j)
+	Int ModsInList = FormListCount(akNPC, asFormList)
+
+	While (i < ModsInList)
 		Quest Mod = FormListGet(akNPC, asFormList, i) as Quest
-		
-		If (Mod)	
-			String ModName = GetStringValue(Mod, MOD_NAME)
-			
-			If (ModName == asModName)
+
+		If (Mod)
+			String NameOfMod = GetStringValue(Mod, MOD_NAME)
+
+			If (NameOfMod == asNameOfMod)
 				Return Mod
 			EndIf
 		EndIf
 		i += 1
 	EndWhile
-	
+
 	Return None
 EndFunction
 
@@ -1113,7 +1120,7 @@ Tab: Initialization Manager
 	- remove failed mods from the registry
 	- Take advantage of tooltip functionality by heromaster
 Tab: Uninstall Manager
-	- Shows a list of all registered mods which have an uninstall quest	
+	- Shows a list of all registered mods which have an uninstall quest
 	- ShowMessage(If mod will be uninstalled, it will uninstall completely)
 	- Menu point "Uninstall all mods"
 	- Disable above menu point if Uninstall Manager is uninstalling or if list is empty

@@ -1,11 +1,15 @@
-Scriptname APPS_RSFW_Test1InitScript extends Quest  
+Scriptname APPS_RSFW_Test1InitScript extends APPS_FW_Registrar
+Quest Property InitQuest Auto
+Quest Property UninstallQuest Auto
 
 Event OnInit()
 	If(!Self.IsRunning())
 		Return
 	EndIf
 
-	Exception.Warn("APPS Test 1", "Dummy installation from Test 1. Waiting 5s just because i can!")
-	Utility.Wait(5)
-	Exception.Warn("APPS Test 1", "Done! Test1 used the 'init quest is different from register quest' method and has no stages")
+	RegisterMod()
+	RegisterInitQuest(InitQuest, 0, "Uses a different quest for init which has no stages!")
+	RegisterUninstallQuest(UninstallQuest)
+	RegisterForExceptionModule("APPS_Test1")
+	RegisterForRelationshipModule()
 EndEvent
