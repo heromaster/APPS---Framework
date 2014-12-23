@@ -1,6 +1,6 @@
 ;BEGIN FRAGMENT CODE - Do not edit anything between this and the end comment
 ;NEXT FRAGMENT INDEX 2
-Scriptname APPS_RSFW_Test3Script Extends APPS_FW_Registrar Hidden
+Scriptname APPS_RSFW_Test3InitScript Extends APPS_FW_Registrar Hidden
 
 ;BEGIN FRAGMENT Fragment_0
 Function Fragment_0()
@@ -22,6 +22,4 @@ EndFunction
 ;END FRAGMENT
 
 ;END FRAGMENT CODE - Do not edit anything between this and the begin comment
-APPS_FW_Relationship Property RS Auto
-
 Quest Property APPS_RSFW_Test3  Auto  

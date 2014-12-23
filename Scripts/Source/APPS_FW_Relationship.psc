@@ -268,7 +268,7 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	;No changes made to the array, so just add the value to it and apply the changes to the framework
 	FormListAdd(akNPC, SYNC_MODE_CHANGELIST, akToken)
 	IntListAdd(akNPC, SYNC_MODE_CHANGELIST, aiSyncMode) 
-	FormListAdd(None, SYNC_MODE_NPC_CHANGELIST, akNPC)
+	FormListAdd(None, SYNC_MODE_NPC_CHANGELIST, akNPC, False)
 	SetIntValue(akNPC, SYNC_MODE, aiSyncMode)
 	Return True
 EndFunction
