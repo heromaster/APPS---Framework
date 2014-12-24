@@ -274,6 +274,11 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 EndFunction
 
 Bool Function RemoveSyncMode(Quest akToken, Actor akNPC)
+	If(!akNPC)
+		Throw(FW_LOG, "Argument akNPC for function RemoveSyncMode() is None!", "Invalid arguments")
+		Return False
+	EndIf
+	
 	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
 		Warn(FW_LOG, "A mod tried to remove its changes to the actor " + akNPC.GetActorBase().GetName() + ". It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
@@ -1773,6 +1778,11 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 EndFunction
 
 Bool Function RemoveRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank)
+	If(!akNPC)
+		Throw(FW_LOG, "Argument akNPC for function RemoveRelationshipMulti() is None!", "Invalid arguments")
+		Return False
+	EndIf
+	
 	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
 		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetActorBase().GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
@@ -2190,6 +2200,11 @@ Bool Function RemoveRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRela
 EndFunction
 
 Bool Function RemoveAllRelationshipMulti(Quest akToken, Actor akNPC)
+	If(!akNPC)
+		Throw(FW_LOG, "Argument akNPC for function RemoveAllRelationshipMulti() is None!", "Invalid arguments")
+		Return False
+	EndIf
+	
 	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
 		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetActorBase().GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return False
@@ -2463,6 +2478,11 @@ Bool Function SetRelationshipPoints(Actor akNPC, Float aiRelationshipPoints)
 EndFunction
 
 Float Function GetRPForNextRank(Actor akNPC)
+	If(!akNPC)
+		Throw(FW_LOG, "Argument akNPC for function GetRPForNextRank() is None!", "Invalid arguments")
+		Return 0.0
+	EndIf
+	
 	Float RP = GetRelationshipPoints(akNPC)
 	Int RelationshipRank
 
@@ -2484,6 +2504,11 @@ Float Function GetRPForNextRank(Actor akNPC)
 EndFunction
 
 Float Function GetRPForPreviousRank(Actor akNPC)
+	If(!akNPC)
+		Throw(FW_LOG, "Argument akNPC for function GetRPForPreviousRank() is None!", "Invalid arguments")
+		Return 0.0
+	EndIf
+	
 	Float RP = GetRelationshipPoints(akNPC)
 	Int RelationshipRank
 

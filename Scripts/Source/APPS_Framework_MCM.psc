@@ -1,5 +1,6 @@
 ScriptName APPS_Framework_MCM Extends SKI_ConfigBase
 Import StorageUtil
+APPS_FW_Relationship Property RSFW Auto
 
 Int FileLogLevel
 String[] InitOrdering
@@ -878,10 +879,10 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 	While (i < MenuOptions)
 		If(aiOpenedMenu == IntListGet(None, MENU_OPTIONS, i))
 			If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
-				If (CurrentPage == Pages[2])
-					ChangeOrder(FormListGet(None, MENU_OPTIONS, i) as Quest, INIT_MODS, aiSelectedOption)
-				ElseIf (CurrentPage == Pages[4])
-					ChangeOrder(FormListGet(None, MENU_OPTIONS, i) as Quest, REGISTERED_RS, aiSelectedOption)
+				If (CurrentPage == Pages[2])	;InitManager
+					ChangeInitOrder(FormListGet(None, MENU_OPTIONS, i) as Quest, aiSelectedOption)	;init order change
+				ElseIf (CurrentPage == Pages[4])	;Priority
+					ChangeModPriority(FormListGet(None, MENU_OPTIONS, i) as Quest, aiSelectedOption)	;priority change
 				EndIf
 
 			ElseIf (aiSelectedOption == INITIALIZE_MOD)
@@ -943,51 +944,51 @@ Event OnConfigClose()
 	FormListClear(None, MENU_OPTIONS)
 EndEvent
 
-Function ChangeOrder(Quest akMod, String asArray, Int aiPositionChange)
-	If (asArray != INIT_MODS && asArray != REGISTERED_RS)
-		Return
-	EndIf
-
-	Int ModIndex = FormListFind(None, asArray, akMod)
+Function ChangeInitOrder(Quest akInitQuest, Int aiPositionChange)
+	Int ModIndex = FormListFind(None, INIT_MODS, akInitQuest)
 
 	If(aiPositionChange == MOVE_TOP)
 		If(ModIndex == 0)
 			Return
 		EndIf
 
-		FormListRemove(None, asArray, akMod)
-		FormListInsert(None, asArray, 0, akMod)
+		FormListRemove(None, INIT_MODS, akInitQuest)
+		FormListInsert(None, INIT_MODS, 0, akInitQuest)
 
 	ElseIf(aiPositionChange == MOVE_UP)
 		If(ModIndex == 0)
 			Return
 		EndIf
 
-		FormListRemove(None, asArray, akMod)
-		FormListInsert(None, asArray, (ModIndex - 1), akMod)
+		FormListRemove(None, INIT_MODS, akInitQuest)
+		FormListInsert(None, INIT_MODS, (ModIndex - 1), akInitQuest)
 
 	ElseIf(aiPositionChange == MOVE_DOWN)
-		If(ModIndex == (FormListCount(None, asArray) - 1))
+		If(ModIndex == (FormListCount(None, INIT_MODS) - 1))
 			Return
 		EndIf
 
-		If(ModIndex == (FormListCount(None, asArray) - 2)) ;this is equivalent to MOVE_BOTTOM
-			FormListRemove(None, asArray, akMod)
-			FormListAdd(None, asArray, akMod)
+		If(ModIndex == (FormListCount(None, INIT_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
+			FormListRemove(None, INIT_MODS, akInitQuest)
+			FormListAdd(None, INIT_MODS, akInitQuest)
 		Else
-			FormListRemove(None, asArray, akMod)
-			FormListInsert(None, asArray, (ModIndex + 1), akMod)
+			FormListRemove(None, INIT_MODS, akInitQuest)
+			FormListInsert(None, INIT_MODS, (ModIndex + 1), akInitQuest)
 		EndIf
 
 	ElseIf(aiPositionChange == MOVE_BOTTOM)
-		If(ModIndex == FormListCount(None, asArray) - 1)
+		If(ModIndex == FormListCount(None, INIT_MODS) - 1)
 			Return
 		EndIf
 
-		FormListRemove(None, asArray, akMod)
-		FormListAdd(None, asArray, akMod)
+		FormListRemove(None, INIT_MODS, akInitQuest)
+		FormListAdd(None, INIT_MODS, akInitQuest)
 
 	EndIf
+EndFunction
+
+Function ChangeModPriority(Quest akMod, Int aiPriorityChange)
+	;ANTONO WIP
 EndFunction
 
 Bool Function InitializeMod(Quest akModToInit, Bool abSafetyLock = True)
@@ -1102,6 +1103,45 @@ Quest Function _GetModFormFromNameOfMod(String asNameOfMod, String asFormList, A
 	EndWhile
 
 	Return None
+EndFunction
+
+Int Function _MyGlobalSyncMode(Quest akToken)
+	;/ startValidation /;
+	If (FormListFind(None, REGISTERED_RS, akToken) == -1)
+		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access _MyGlobalSyncMode(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Return -2
+	EndIf
+	;/ stopValidation /;
+	
+	Int ModIndex = RSFW._GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST)
+	
+	If (ModIndex == -1)	;no GlobalSyncMode changes requested by this mod
+		Return -1
+	Else
+		Return IntListGet(None, SYNC_MODE_CHANGELIST, ModIndex)
+	EndIf
+EndFunction
+
+Int Function _MySyncMode(Quest akToken, Actor akNPC)
+	;/ startValidation /;
+	If (!akToken || !akNPC)
+		Return -2
+	ElseIf (FormListFind(None, REGISTERED_RS, akToken) == -1)
+		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access _MySyncMode(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Return -2
+	ElseIf (FormListFind(None, SYNC_MODE_NPC_CHANGELIST, akNPC) == -1)
+		Exception.Notify(FW_LOG, "A mod tried to fetch its changes to the actor" + akNPC.GetActorBase().GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Return -2
+	EndIf
+	;/ stopValidation /;
+	
+	Int ModIndex = RSFW._GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST, akNPC)
+	
+	If (ModIndex == -1)	;no SyncMode changes on this NPC requested by this mod
+		Return -1
+	Else
+		Return IntListGet(akNPC, SYNC_MODE_CHANGELIST, ModIndex)
+	EndIf
 EndFunction
 
 ;/
