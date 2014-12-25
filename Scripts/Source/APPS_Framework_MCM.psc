@@ -944,53 +944,6 @@ Event OnConfigClose()
 	FormListClear(None, MENU_OPTIONS)
 EndEvent
 
-Function ChangeInitOrder(Quest akInitQuest, Int aiPositionChange)
-	Int ModIndex = FormListFind(None, INIT_MODS, akInitQuest)
-
-	If(aiPositionChange == MOVE_TOP)
-		If(ModIndex == 0)
-			Return
-		EndIf
-
-		FormListRemove(None, INIT_MODS, akInitQuest)
-		FormListInsert(None, INIT_MODS, 0, akInitQuest)
-
-	ElseIf(aiPositionChange == MOVE_UP)
-		If(ModIndex == 0)
-			Return
-		EndIf
-
-		FormListRemove(None, INIT_MODS, akInitQuest)
-		FormListInsert(None, INIT_MODS, (ModIndex - 1), akInitQuest)
-
-	ElseIf(aiPositionChange == MOVE_DOWN)
-		If(ModIndex == (FormListCount(None, INIT_MODS) - 1))
-			Return
-		EndIf
-
-		If(ModIndex == (FormListCount(None, INIT_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
-			FormListRemove(None, INIT_MODS, akInitQuest)
-			FormListAdd(None, INIT_MODS, akInitQuest)
-		Else
-			FormListRemove(None, INIT_MODS, akInitQuest)
-			FormListInsert(None, INIT_MODS, (ModIndex + 1), akInitQuest)
-		EndIf
-
-	ElseIf(aiPositionChange == MOVE_BOTTOM)
-		If(ModIndex == FormListCount(None, INIT_MODS) - 1)
-			Return
-		EndIf
-
-		FormListRemove(None, INIT_MODS, akInitQuest)
-		FormListAdd(None, INIT_MODS, akInitQuest)
-
-	EndIf
-EndFunction
-
-Function ChangeModPriority(Quest akMod, Int aiPriorityChange)
-	;ANTONO WIP
-EndFunction
-
 Bool Function InitializeMod(Quest akModToInit, Bool abSafetyLock = True)
 	Int ModIndex = FormListFind(None, INIT_MODS, akModToInit)
 	String NameOfMod = _GetNameOfModFromModForm(akModToInit)
@@ -1067,6 +1020,189 @@ Bool Function UninstallMod(Quest ModToUninstall, Bool abSafetyLock = True)
 	Return result
 EndFunction
 
+Function ChangeInitOrder(Quest akInitQuest, Int aiPositionChange)
+	Int ModIndex = FormListFind(None, INIT_MODS, akInitQuest)
+
+	If(aiPositionChange == MOVE_TOP)
+		If(ModIndex == 0)
+			Return
+		EndIf
+
+		FormListRemove(None, INIT_MODS, akInitQuest)
+		FormListInsert(None, INIT_MODS, 0, akInitQuest)
+
+	ElseIf(aiPositionChange == MOVE_UP)
+		If(ModIndex == 0)
+			Return
+		EndIf
+
+		FormListRemove(None, INIT_MODS, akInitQuest)
+		FormListInsert(None, INIT_MODS, (ModIndex - 1), akInitQuest)
+
+	ElseIf(aiPositionChange == MOVE_DOWN)
+		If(ModIndex == (FormListCount(None, INIT_MODS) - 1))
+			Return
+		EndIf
+
+		If(ModIndex == (FormListCount(None, INIT_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
+			FormListRemove(None, INIT_MODS, akInitQuest)
+			FormListAdd(None, INIT_MODS, akInitQuest)
+		Else
+			FormListRemove(None, INIT_MODS, akInitQuest)
+			FormListInsert(None, INIT_MODS, (ModIndex + 1), akInitQuest)
+		EndIf
+
+	ElseIf(aiPositionChange == MOVE_BOTTOM)
+		If(ModIndex == FormListCount(None, INIT_MODS) - 1)
+			Return
+		EndIf
+
+		FormListRemove(None, INIT_MODS, akInitQuest)
+		FormListAdd(None, INIT_MODS, akInitQuest)
+
+	EndIf
+EndFunction
+
+Function ChangeModPriority(Quest akMod, Int aiPriorityChange)
+	;ANTONO WIP
+EndFunction
+
+Int Function MyGlobalSyncMode(Quest akToken)
+	;/ beginValidation /;
+	If (RSFW._GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
+		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access _MyGlobalSyncMode(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Return -2
+	EndIf
+	;/ endValidation /;
+
+	Int ModIndex = RSFW._GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST)
+
+	If (ModIndex == -1)	;no GlobalSyncMode changes requested by this mod
+		Return -1
+	Else
+		Return IntListGet(None, SYNC_MODE_CHANGELIST, ModIndex)
+	EndIf
+EndFunction
+
+Int Function MySyncMode(Quest akToken, Actor akNPC)
+	;/ beginValidation /;
+	If(!akNPC)
+		Exception.Throw(FW_LOG, "Argument akNPC for function MySyncMode() is None!", "Invalid arguments")
+		Return -2
+	ElseIf (RSFW._GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
+		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access MySyncMode(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Return -2
+	ElseIf (RSFW._GetModIndexFromForm(akNPC, SYNC_MODE_NPC_CHANGELIST) == -1)
+		Exception.Notify(FW_LOG, "A mod tried to fetch its changes to the actor" + akNPC.GetActorBase().GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Return -2
+	EndIf
+	;/ endValidation /;
+
+	Int ModIndex = RSFW._GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST, akNPC)
+
+	If (ModIndex == -1)	;no SyncMode changes on this NPC requested by this mod
+		Return -1
+	Else
+		Return IntListGet(akNPC, SYNC_MODE_CHANGELIST, ModIndex)
+	EndIf
+EndFunction
+
+Float[] Function MyGlobalRelationshipMulti(Quest akToken)
+	;/ beginValidation /;
+	If (FormListFind(None, REGISTERED_RS, akToken) == -1)
+		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access MyGlobalRelationshipMulti(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Float[] Result = new Float[1]
+		Result[1] = -2.0
+		Return Result
+	EndIf
+	;/ endValidation /;
+
+	Int ModIndex = RSFW._GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST)
+
+	If (ModIndex == -1)	;if no global multipliers changes requested by this mod
+		Float[] Result = new Float[1]
+		Result[1] = -1.0
+		Return Result
+	Else
+		Float[] Result = new Float[20]
+		Result[0] = FloatListGet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+		Result[1] = FloatListGet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+		Result[2] = FloatListGet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+		Result[3] = FloatListGet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+		Result[4] = FloatListGet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+		Result[5] = FloatListGet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+		Result[6] = FloatListGet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+		Result[7] = FloatListGet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+		Result[8] = FloatListGet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+		Result[9] = FloatListGet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+		Result[10] = FloatListGet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+		Result[11] = FloatListGet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+		Result[12] = FloatListGet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+		Result[13] = FloatListGet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+		Result[14] = FloatListGet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+		Result[15] = FloatListGet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+		Result[16] = FloatListGet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+		Result[17] = FloatListGet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+		Result[18] = FloatListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+		Result[19] = FloatListGet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+
+		Return Result
+	EndIf
+EndFunction
+
+Float[] Function MyRelationshipMulti(Quest akToken, Actor akNPC)
+	;/ beginValidation /;
+	If(!akNPC)
+		Exception.Throw(FW_LOG, "Argument akNPC for function MyRelationshipMulti() is None!", "Invalid arguments")
+		Float[] Result = new Float[1]
+		Result[0] = -2.0
+		Return Result
+	ElseIf (RSFW._GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
+		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access MyRelationshipMulti(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Float[] Result = new Float[1]
+		Result[0] = -2.0
+		Return Result
+	ElseIf (RSFW._GetModIndexFromForm(akNPC, SYNC_MODE_NPC_CHANGELIST) == -1)
+		Exception.Notify(FW_LOG, "A mod tried to fetch its changes to the actor" + akNPC.GetActorBase().GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Float[] Result = new Float[1]
+		Result[0] = -2.0
+		Return Result
+	EndIf
+	;/ endValidation /;
+
+	Int ModIndex = RSFW._GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC)
+
+	If (ModIndex == -1)	;if no multipliers for this actor requested by this mod
+		Float[] Result = new Float[1]
+		Result[0] = -1.0
+		Return Result
+	Else
+		Float[] Result = new Float[20]
+		Result[0] = FloatListGet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
+		Result[1] = FloatListGet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
+		Result[2] = FloatListGet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
+		Result[3] = FloatListGet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
+		Result[4] = FloatListGet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
+		Result[5] = FloatListGet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
+		Result[6] = FloatListGet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
+		Result[7] = FloatListGet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
+		Result[8] = FloatListGet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
+		Result[9] = FloatListGet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
+		Result[10] = FloatListGet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
+		Result[11] = FloatListGet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
+		Result[12] = FloatListGet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
+		Result[13] = FloatListGet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
+		Result[14] = FloatListGet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
+		Result[15] = FloatListGet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
+		Result[16] = FloatListGet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
+		Result[17] = FloatListGet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
+		Result[18] = FloatListGet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
+		Result[19] = FloatListGet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
+
+		Return Result
+	EndIf
+EndFunction
+
 String Function _GetNameOfModFromModFormList(String asFormList, Int auiIndex, Actor akNPC = None)
 	Quest Mod = FormListGet(akNPC, asFormList, auiIndex) as Quest
 
@@ -1103,45 +1239,6 @@ Quest Function _GetModFormFromNameOfMod(String asNameOfMod, String asFormList, A
 	EndWhile
 
 	Return None
-EndFunction
-
-Int Function _MyGlobalSyncMode(Quest akToken)
-	;/ startValidation /;
-	If (FormListFind(None, REGISTERED_RS, akToken) == -1)
-		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access _MyGlobalSyncMode(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
-		Return -2
-	EndIf
-	;/ stopValidation /;
-	
-	Int ModIndex = RSFW._GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST)
-	
-	If (ModIndex == -1)	;no GlobalSyncMode changes requested by this mod
-		Return -1
-	Else
-		Return IntListGet(None, SYNC_MODE_CHANGELIST, ModIndex)
-	EndIf
-EndFunction
-
-Int Function _MySyncMode(Quest akToken, Actor akNPC)
-	;/ startValidation /;
-	If (!akToken || !akNPC)
-		Return -2
-	ElseIf (FormListFind(None, REGISTERED_RS, akToken) == -1)
-		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access _MySyncMode(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
-		Return -2
-	ElseIf (FormListFind(None, SYNC_MODE_NPC_CHANGELIST, akNPC) == -1)
-		Exception.Notify(FW_LOG, "A mod tried to fetch its changes to the actor" + akNPC.GetActorBase().GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
-		Return -2
-	EndIf
-	;/ stopValidation /;
-	
-	Int ModIndex = RSFW._GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST, akNPC)
-	
-	If (ModIndex == -1)	;no SyncMode changes on this NPC requested by this mod
-		Return -1
-	Else
-		Return IntListGet(akNPC, SYNC_MODE_CHANGELIST, ModIndex)
-	EndIf
 EndFunction
 
 ;/
