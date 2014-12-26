@@ -1112,7 +1112,7 @@ Float[] Function MyGlobalRelationshipMulti(Quest akToken)
 	If (FormListFind(None, REGISTERED_RS, akToken) == -1)
 		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access MyGlobalRelationshipMulti(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Float[] Result = new Float[1]
-		Result[1] = -2.0
+		Result[0] = -2.0
 		Return Result
 	EndIf
 	;/ endValidation /;
@@ -1121,7 +1121,7 @@ Float[] Function MyGlobalRelationshipMulti(Quest akToken)
 
 	If (ModIndex == -1)	;if no global multipliers changes requested by this mod
 		Float[] Result = new Float[1]
-		Result[1] = -1.0
+		Result[0] = -1.0
 		Return Result
 	Else
 		Float[] Result = new Float[20]
