@@ -1064,47 +1064,50 @@ Function ChangeInitOrder(Quest akInitQuest, Int aiPositionChange)
 EndFunction
 
 Function ChangeModPriority(Quest akMod, Int aiPriorityChange)
-	;ANTONO WIP
+	;/ANTONO WIP
+	TODO: check if mods are the only ones on their lists (no need to reorder them then)
+	/;
 	Int ModIndex = RSFW._GetModIndexFromForm(akMod, REGISTERED_RS)
 	
-	;/ this part of the code may be redundant openFold /;
+	;/ openFold Fetching global values (this part of the code may be redundant) /;
 	;fetching akMod's current requested global values
-	Int myGlobalSyncMode = RequestedGlobalSyncMode(akMod, abVerbose = False)
+	Int myGlobalSyncMode = GetGlobalSyncModeOfMod(akMod, abVerbose = False)
 	
-	If (RequestedGlobalRelationshipMulti(akMod, 0, 1, abVerbose = False) > -2)	;if akMod has requested any global relationship multipliers changes
-		Float myGlobalRelationshipMulti_S0_S1 = RequestedGlobalRelationshipMulti(akMod, 0, 1, False)
-		Float myGlobalRelationshipMulti_S1_S2 = RequestedGlobalRelationshipMulti(akMod, 1, 2, False)
-		Float myGlobalRelationshipMulti_S2_S3 = RequestedGlobalRelationshipMulti(akMod, 2, 3, False)
-		Float myGlobalRelationshipMulti_S3_S4 = RequestedGlobalRelationshipMulti(akMod, 3, 4, False)
-		Float myGlobalRelationshipMulti_S4_S5 = RequestedGlobalRelationshipMulti(akMod, 4, 5, False)
-		Float myGlobalRelationshipMulti_S5_S4 = RequestedGlobalRelationshipMulti(akMod, 5, 4, False)
-		Float myGlobalRelationshipMulti_S4_S3 = RequestedGlobalRelationshipMulti(akMod, 4, 3, False)
-		Float myGlobalRelationshipMulti_S3_S2 = RequestedGlobalRelationshipMulti(akMod, 3, 2, False)
-		Float myGlobalRelationshipMulti_S2_S1 = RequestedGlobalRelationshipMulti(akMod, 2, 1, False)
-		Float myGlobalRelationshipMulti_S1_S0 = RequestedGlobalRelationshipMulti(akMod, 1, 0, False)
-		Float myGlobalRelationshipMulti_S0_SM1 = RequestedGlobalRelationshipMulti(akMod, 0, -1, False)
-		Float myGlobalRelationshipMulti_SM1_SM2 = RequestedGlobalRelationshipMulti(akMod, -1, -2, False)
-		Float myGlobalRelationshipMulti_SM2_SM3 = RequestedGlobalRelationshipMulti(akMod, -2, -3, False)
-		Float myGlobalRelationshipMulti_SM3_SM4 = RequestedGlobalRelationshipMulti(akMod, -3, -4, False)
-		Float myGlobalRelationshipMulti_SM4_SM5 = RequestedGlobalRelationshipMulti(akMod, -4, -5, False)
-		Float myGlobalRelationshipMulti_SM5_SM4 = RequestedGlobalRelationshipMulti(akMod, -5, -4, False)
-		Float myGlobalRelationshipMulti_SM4_SM3 = RequestedGlobalRelationshipMulti(akMod, -4, -3, False)
-		Float myGlobalRelationshipMulti_SM3_SM2 = RequestedGlobalRelationshipMulti(akMod, -3, -2, False)
-		Float myGlobalRelationshipMulti_SM2_SM1 = RequestedGlobalRelationshipMulti(akMod, -2, -1, False)
-		Float myGlobalRelationshipMulti_SM1_S0 = RequestedGlobalRelationshipMulti(akMod, -1, 0, False)
+	If (GetGlobalRelationshipMultiOfMod(akMod, 0, 1, abVerbose = False) > -2)	;if akMod has requested any global relationship multipliers changes
+		Float myGlobalRelationshipMulti_S0_S1 = GetGlobalRelationshipMultiOfMod(akMod, 0, 1, False)
+		Float myGlobalRelationshipMulti_S1_S2 = GetGlobalRelationshipMultiOfMod(akMod, 1, 2, False)
+		Float myGlobalRelationshipMulti_S2_S3 = GetGlobalRelationshipMultiOfMod(akMod, 2, 3, False)
+		Float myGlobalRelationshipMulti_S3_S4 = GetGlobalRelationshipMultiOfMod(akMod, 3, 4, False)
+		Float myGlobalRelationshipMulti_S4_S5 = GetGlobalRelationshipMultiOfMod(akMod, 4, 5, False)
+		Float myGlobalRelationshipMulti_S5_S4 = GetGlobalRelationshipMultiOfMod(akMod, 5, 4, False)
+		Float myGlobalRelationshipMulti_S4_S3 = GetGlobalRelationshipMultiOfMod(akMod, 4, 3, False)
+		Float myGlobalRelationshipMulti_S3_S2 = GetGlobalRelationshipMultiOfMod(akMod, 3, 2, False)
+		Float myGlobalRelationshipMulti_S2_S1 = GetGlobalRelationshipMultiOfMod(akMod, 2, 1, False)
+		Float myGlobalRelationshipMulti_S1_S0 = GetGlobalRelationshipMultiOfMod(akMod, 1, 0, False)
+		Float myGlobalRelationshipMulti_S0_SM1 = GetGlobalRelationshipMultiOfMod(akMod, 0, -1, False)
+		Float myGlobalRelationshipMulti_SM1_SM2 = GetGlobalRelationshipMultiOfMod(akMod, -1, -2, False)
+		Float myGlobalRelationshipMulti_SM2_SM3 = GetGlobalRelationshipMultiOfMod(akMod, -2, -3, False)
+		Float myGlobalRelationshipMulti_SM3_SM4 = GetGlobalRelationshipMultiOfMod(akMod, -3, -4, False)
+		Float myGlobalRelationshipMulti_SM4_SM5 = GetGlobalRelationshipMultiOfMod(akMod, -4, -5, False)
+		Float myGlobalRelationshipMulti_SM5_SM4 = GetGlobalRelationshipMultiOfMod(akMod, -5, -4, False)
+		Float myGlobalRelationshipMulti_SM4_SM3 = GetGlobalRelationshipMultiOfMod(akMod, -4, -3, False)
+		Float myGlobalRelationshipMulti_SM3_SM2 = GetGlobalRelationshipMultiOfMod(akMod, -3, -2, False)
+		Float myGlobalRelationshipMulti_SM2_SM1 = GetGlobalRelationshipMultiOfMod(akMod, -2, -1, False)
+		Float myGlobalRelationshipMulti_SM1_S0 = GetGlobalRelationshipMultiOfMod(akMod, -1, 0, False)
 	EndIf
-	;/ this part of the code may be redundant closeFold /;
+	;/ closeFold (this  part of the code may be redundant) /;
+	;/ openFold fetching local values /;
 	;fetching akMod's current requested local SyncMode values (read them from actors and store them on akMod)
 	Int iActorsWithLocalSyncMode = FormListCount(None, SYNC_MODE_NPC_CHANGELIST)
 	Int i
 	
 	While (i < iActorsWithLocalSyncMode)
 		Actor ActorWithLocalSyncMode = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, i) as Actor
-		Int mySyncMode = RequestedSyncMode(akMod, ActorWithLocalSyncMode, abVerbose = False)
+		Int mySyncMode = GetSyncModeOfMod(akMod, ActorWithLocalSyncMode, abVerbose = False)
 		
-		If (mySyncMode > -1)	;if akMod has requested SyncMode changes for this actor
+		If (mySyncMode > -1 && FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) > 1)	;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
 			FormListAdd(akMod, SYNC_MODE_NPC_CHANGELIST, ActorWithLocalSyncMode)	;a list with all actors whose SyncMode akMod has affected
-			IntListAdd(akMod, SYNC_MODE_CHANGELIST, mySyncMode)	;a list with all the actor SyncMode changes that akMod has requested
+			IntListAdd(akMod, SYNC_MODE_CHANGELIST, mySyncMode)	;a list with all the SyncMode changes that akMod has requested on actors
 		EndIf
 		
 		i += 1
@@ -1117,40 +1120,41 @@ Function ChangeModPriority(Quest akMod, Int aiPriorityChange)
 	While (i < iActorsWithLocalRSMulti)
 		Actor ActorWithLocalRSMulti = FormListGet(None, RS_MULTI_NPC_CHANGELIST, i) as Actor
 		
-		If (RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 0, 1, abVerbose = False) > -2)	;if akMod has requested RS multipliers changes for this actor
+		If (GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 0, 1, abVerbose = False) > -2 && FormListCount(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST) > 1)	;if akMod has requested RS multipliers changes for this actor and it is not the only mod affecting this actor's multipliers
 			FormListAdd(akMod, RS_MULTI_NPC_CHANGELIST, ActorWithLocalRSMulti)	;a list with all actors whose RS multipliers akMod has affected
 			
-			FloatListAdd(akMod, RS_MULTI_S0_S1_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 0, 1, False))
-			FloatListAdd(akMod, RS_MULTI_S1_S2_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 1, 2, False))
-			FloatListAdd(akMod, RS_MULTI_S2_S3_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 2, 3, False))
-			FloatListAdd(akMod, RS_MULTI_S3_S4_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 3, 4, False))
-			FloatListAdd(akMod, RS_MULTI_S4_S5_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 4, 5, False))
-			FloatListAdd(akMod, RS_MULTI_S5_S4_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 5, 4, False))
-			FloatListAdd(akMod, RS_MULTI_S4_S3_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 4, 3, False))
-			FloatListAdd(akMod, RS_MULTI_S3_S2_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 3, 2, False))
-			FloatListAdd(akMod, RS_MULTI_S2_S1_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 2, 1, False))
-			FloatListAdd(akMod, RS_MULTI_S1_S0_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 1, 0, False))
-			FloatListAdd(akMod, RS_MULTI_S0_SM1_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, 0, -1, False))
-			FloatListAdd(akMod, RS_MULTI_SM1_SM2_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, -1, -2, False))
-			FloatListAdd(akMod, RS_MULTI_SM2_SM3_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, -2, -3, False))
-			FloatListAdd(akMod, RS_MULTI_SM3_SM4_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, -3, -4, False))
-			FloatListAdd(akMod, RS_MULTI_SM4_SM5_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, -4, -5, False))
-			FloatListAdd(akMod, RS_MULTI_SM5_SM4_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, -5, -4, False))
-			FloatListAdd(akMod, RS_MULTI_SM4_SM3_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, -4, -3, False))
-			FloatListAdd(akMod, RS_MULTI_SM3_SM2_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, -3, -2, False))
-			FloatListAdd(akMod, RS_MULTI_SM2_SM1_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, -2, -1, False))
-			FloatListAdd(akMod, RS_MULTI_SM1_S0_CHANGELIST, RequestedRelationshipMulti(akMod, ActorWithLocalRSMulti, -1, 0, False))
+			FloatListAdd(akMod, RS_MULTI_S0_S1_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 0, 1, False))
+			FloatListAdd(akMod, RS_MULTI_S1_S2_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 1, 2, False))
+			FloatListAdd(akMod, RS_MULTI_S2_S3_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 2, 3, False))
+			FloatListAdd(akMod, RS_MULTI_S3_S4_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 3, 4, False))
+			FloatListAdd(akMod, RS_MULTI_S4_S5_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 4, 5, False))
+			FloatListAdd(akMod, RS_MULTI_S5_S4_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 5, 4, False))
+			FloatListAdd(akMod, RS_MULTI_S4_S3_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 4, 3, False))
+			FloatListAdd(akMod, RS_MULTI_S3_S2_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 3, 2, False))
+			FloatListAdd(akMod, RS_MULTI_S2_S1_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 2, 1, False))
+			FloatListAdd(akMod, RS_MULTI_S1_S0_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 1, 0, False))
+			FloatListAdd(akMod, RS_MULTI_S0_SM1_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 0, -1, False))
+			FloatListAdd(akMod, RS_MULTI_SM1_SM2_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -1, -2, False))
+			FloatListAdd(akMod, RS_MULTI_SM2_SM3_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -2, -3, False))
+			FloatListAdd(akMod, RS_MULTI_SM3_SM4_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -3, -4, False))
+			FloatListAdd(akMod, RS_MULTI_SM4_SM5_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -4, -5, False))
+			FloatListAdd(akMod, RS_MULTI_SM5_SM4_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -5, -4, False))
+			FloatListAdd(akMod, RS_MULTI_SM4_SM3_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -4, -3, False))
+			FloatListAdd(akMod, RS_MULTI_SM3_SM2_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -3, -2, False))
+			FloatListAdd(akMod, RS_MULTI_SM2_SM1_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -2, -1, False))
+			FloatListAdd(akMod, RS_MULTI_SM1_S0_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -1, 0, False))
 		EndIf
 		
 		i += 1
 	EndWhile
+	;/ closeFold /;
 	
 EndFunction
 
-Int Function RequestedGlobalSyncMode(Quest akToken, Bool abVerbose = True)
+Int Function GetGlobalSyncModeOfMod(Quest akToken, Bool abVerbose = True)
 	;/ beginValidation /;
 	If (RSFW._GetModIndexFromForm(akToken, REGISTERED_RS) == MOD_NOT_FOUND)
-		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access _RequestedGlobalSyncMode(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access _GetGlobalSyncModeOfMod(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Return -2
 	EndIf
 	
@@ -1167,13 +1171,13 @@ Int Function RequestedGlobalSyncMode(Quest akToken, Bool abVerbose = True)
 	Return IntListGet(None, SYNC_MODE_CHANGELIST, ModIndex)
 EndFunction
 
-Int Function RequestedSyncMode(Quest akToken, Actor akNPC, Bool abVerbose = True)
+Int Function GetSyncModeOfMod(Quest akToken, Actor akNPC, Bool abVerbose = True)
 	;/ beginValidation /;
 	If(!akNPC)
-		Exception.Throw(FW_LOG, "Argument akNPC for function RequestedSyncMode() is None!", "Invalid arguments")
+		Exception.Throw(FW_LOG, "Argument akNPC for function GetSyncModeOfMod() is None!", "Invalid arguments")
 		Return -2
 	ElseIf (RSFW._GetModIndexFromForm(akToken, REGISTERED_RS) == MOD_NOT_FOUND)
-		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access RequestedSyncMode(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access GetSyncModeOfMod(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Return -2
 	ElseIf (RSFW._GetModIndexFromForm(akNPC, SYNC_MODE_NPC_CHANGELIST) == -1)
 		Exception.Notify(FW_LOG, "A mod tried to fetch its changes to the actor" + akNPC.GetActorBase().GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
@@ -1193,10 +1197,10 @@ Int Function RequestedSyncMode(Quest akToken, Actor akNPC, Bool abVerbose = True
 	Return IntListGet(akNPC, SYNC_MODE_CHANGELIST, ModIndex)
 EndFunction
 
-Float Function RequestedGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abVerbose = True)
+Float Function GetGlobalRelationshipMultiOfMod(Quest akToken, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abVerbose = True)
 	;/ beginValidation /;
 	If (RSFW._GetModIndexFromForm(akToken, REGISTERED_RS) == MOD_NOT_FOUND)
-		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access RequestedGlobalRelationshipMulti(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access GetGlobalRelationshipMultiOfMod(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Return -3.0		
 	ElseIf (aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
 		Exception.Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
@@ -1411,13 +1415,13 @@ Float Function RequestedGlobalRelationshipMulti(Quest akToken, Int aiFromRelatio
 	
 EndFunction
 
-Float Function RequestedRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abVerbose = True)
+Float Function GetRelationshipMultiOfMod(Quest akToken, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abVerbose = True)
 	;/ beginValidation /;
 	If(!akNPC)
-		Exception.Throw(FW_LOG, "Argument akNPC for function RequestedRelationshipMulti() is None!", "Invalid arguments")
+		Exception.Throw(FW_LOG, "Argument akNPC for function GetRelationshipMultiOfMod() is None!", "Invalid arguments")
 		Return -3.0
 	ElseIf (RSFW._GetModIndexFromForm(akToken, REGISTERED_RS) == MOD_NOT_FOUND)
-		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access RequestedRelationshipMulti(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access GetRelationshipMultiOfMod(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Return -3.0
 	ElseIf (RSFW._GetModIndexFromForm(akNPC, SYNC_MODE_NPC_CHANGELIST) == -1)
 		Exception.Notify(FW_LOG, "A mod tried to fetch its changes to the actor" + akNPC.GetActorBase().GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
