@@ -1063,51 +1063,125 @@ Function ChangeInitOrder(Quest akInitQuest, Int aiPositionChange)
 	EndIf
 EndFunction
 
+Function ChangePriorityOrder(Quest akMod, Int aiPriorityChange)
+	Int ModIndex = RSFW._GetModIndexFromForm(akMod, REGISTERED_RS)
+
+	If (aiPriorityChange == MOVE_TOP)
+		If(ModIndex == 0)
+			Return
+		EndIf
+
+		FormListRemove(None, REGISTERED_RS, akMod)
+		FormListInsert(None, REGISTERED_RS, 0, akMod)
+
+	ElseIf (aiPriorityChange == MOVE_UP)
+		If(ModIndex == 0)
+			Return
+		EndIf
+
+		FormListRemove(None, REGISTERED_RS, akMod)
+		FormListInsert(None, REGISTERED_RS, (ModIndex - 1), akMod)
+
+	ElseIf (aiPriorityChange == MOVE_DOWN)
+		If(ModIndex == (FormListCount(None, REGISTERED_RS) - 1))
+			Return
+		EndIf
+
+		If(ModIndex == (FormListCount(None, REGISTERED_RS) - 2)) ;this is equivalent to MOVE_BOTTOM
+			FormListRemove(None, REGISTERED_RS, akMod)
+			FormListAdd(None, REGISTERED_RS, akMod)
+		Else
+			FormListRemove(None, REGISTERED_RS, akMod)
+			FormListInsert(None, REGISTERED_RS, (ModIndex + 1), akMod)
+		EndIf
+
+	ElseIf (aiPriorityChange == MOVE_BOTTOM)
+		If(ModIndex == FormListCount(None, REGISTERED_RS) - 1)
+			Return
+		EndIf
+
+		FormListRemove(None, REGISTERED_RS, akMod)
+		FormListAdd(None, REGISTERED_RS, akMod)
+
+	EndIf
+EndFunction
+
 Function ChangeModPriority(Quest akMod, Int aiPriorityChange)
 	;/ANTONO WIP
-	TODO: check if mods are the only ones on their lists (no need to reorder them then)
+	TODO:	split function into 4 sub-functions
+			check if mods are the only ones on their lists (no need to reorder them then).
+			check if mods are at the top or bottom (no need to reorder them if also going up or down respectively).
+			cleanup any arrays after we finish.
 	/;
+	;/ openFold Declaring variables to store akMod's requested changes /;
 	Int ModIndex = RSFW._GetModIndexFromForm(akMod, REGISTERED_RS)
+	Int myGlobalSyncMode = -1	;-1 will mean "no need to change global syncmode priority"
+	Float myGlobalRelationshipMulti_S0_S1 = -1.0	;-1.0 will mean "no need to change this global multiplier"
+	Float myGlobalRelationshipMulti_S1_S2 = -1.0
+	Float myGlobalRelationshipMulti_S2_S3 = -1.0
+	Float myGlobalRelationshipMulti_S3_S4 = -1.0
+	Float myGlobalRelationshipMulti_S4_S5 = -1.0
+	Float myGlobalRelationshipMulti_S5_S4 = -1.0
+	Float myGlobalRelationshipMulti_S4_S3 = -1.0
+	Float myGlobalRelationshipMulti_S3_S2 = -1.0
+	Float myGlobalRelationshipMulti_S2_S1 = -1.0
+	Float myGlobalRelationshipMulti_S1_S0 = -1.0
+	Float myGlobalRelationshipMulti_S0_SM1  = -1.0
+	Float myGlobalRelationshipMulti_SM1_SM2 = -1.0
+	Float myGlobalRelationshipMulti_SM2_SM3 = -1.0
+	Float myGlobalRelationshipMulti_SM3_SM4 = -1.0
+	Float myGlobalRelationshipMulti_SM4_SM5 = -1.0
+	Float myGlobalRelationshipMulti_SM5_SM4 = -1.0
+	Float myGlobalRelationshipMulti_SM4_SM3 = -1.0
+	Float myGlobalRelationshipMulti_SM3_SM2 = -1.0
+	Float myGlobalRelationshipMulti_SM2_SM1 = -1.0
+	Float myGlobalRelationshipMulti_SM1_S0 = -1.0	
+	;/ closeFold /;
+	;/ openFold Fetching global changes /;
+	;fetching akMod's global syncmode changes
+	If (RSFW.GetGlobalSyncModeChanges() > 1)	;if more than 1 mods are affecting the global syncmode
+		myGlobalSyncMode = GetGlobalSyncModeOfMod(akMod, abVerbose = False)	;-1 if no global syncmode changes requested by akmod.
+	EndIf
 	
-	;/ openFold Fetching global values (this part of the code may be redundant) /;
-	;fetching akMod's current requested global values
-	Int myGlobalSyncMode = GetGlobalSyncModeOfMod(akMod, abVerbose = False)
-	
-	If (GetGlobalRelationshipMultiOfMod(akMod, 0, 1, abVerbose = False) > -2)	;if akMod has requested any global relationship multipliers changes
-		Float myGlobalRelationshipMulti_S0_S1 = GetGlobalRelationshipMultiOfMod(akMod, 0, 1, False)
-		Float myGlobalRelationshipMulti_S1_S2 = GetGlobalRelationshipMultiOfMod(akMod, 1, 2, False)
-		Float myGlobalRelationshipMulti_S2_S3 = GetGlobalRelationshipMultiOfMod(akMod, 2, 3, False)
-		Float myGlobalRelationshipMulti_S3_S4 = GetGlobalRelationshipMultiOfMod(akMod, 3, 4, False)
-		Float myGlobalRelationshipMulti_S4_S5 = GetGlobalRelationshipMultiOfMod(akMod, 4, 5, False)
-		Float myGlobalRelationshipMulti_S5_S4 = GetGlobalRelationshipMultiOfMod(akMod, 5, 4, False)
-		Float myGlobalRelationshipMulti_S4_S3 = GetGlobalRelationshipMultiOfMod(akMod, 4, 3, False)
-		Float myGlobalRelationshipMulti_S3_S2 = GetGlobalRelationshipMultiOfMod(akMod, 3, 2, False)
-		Float myGlobalRelationshipMulti_S2_S1 = GetGlobalRelationshipMultiOfMod(akMod, 2, 1, False)
-		Float myGlobalRelationshipMulti_S1_S0 = GetGlobalRelationshipMultiOfMod(akMod, 1, 0, False)
-		Float myGlobalRelationshipMulti_S0_SM1 = GetGlobalRelationshipMultiOfMod(akMod, 0, -1, False)
-		Float myGlobalRelationshipMulti_SM1_SM2 = GetGlobalRelationshipMultiOfMod(akMod, -1, -2, False)
-		Float myGlobalRelationshipMulti_SM2_SM3 = GetGlobalRelationshipMultiOfMod(akMod, -2, -3, False)
-		Float myGlobalRelationshipMulti_SM3_SM4 = GetGlobalRelationshipMultiOfMod(akMod, -3, -4, False)
-		Float myGlobalRelationshipMulti_SM4_SM5 = GetGlobalRelationshipMultiOfMod(akMod, -4, -5, False)
-		Float myGlobalRelationshipMulti_SM5_SM4 = GetGlobalRelationshipMultiOfMod(akMod, -5, -4, False)
-		Float myGlobalRelationshipMulti_SM4_SM3 = GetGlobalRelationshipMultiOfMod(akMod, -4, -3, False)
-		Float myGlobalRelationshipMulti_SM3_SM2 = GetGlobalRelationshipMultiOfMod(akMod, -3, -2, False)
-		Float myGlobalRelationshipMulti_SM2_SM1 = GetGlobalRelationshipMultiOfMod(akMod, -2, -1, False)
-		Float myGlobalRelationshipMulti_SM1_S0 = GetGlobalRelationshipMultiOfMod(akMod, -1, 0, False)
+	;fetching akMod's global multipliers changes
+	If (FormListCount(None, RS_MULTI_CHANGELIST) > 1) ;if more than 1 mods are affecting the global multipliers
+		If (GetGlobalRelationshipMultiOfMod(akMod, 0, 1, abVerbose = False) > -2.0)	;if akMod has requested any global relationship multipliers changes
+			;-1 if akMod has not requested changes for a particular global multiplier but it has requested changes for others
+			myGlobalRelationshipMulti_S0_S1 = GetGlobalRelationshipMultiOfMod(akMod, 0, 1, False)
+			myGlobalRelationshipMulti_S1_S2 = GetGlobalRelationshipMultiOfMod(akMod, 1, 2, False)
+			myGlobalRelationshipMulti_S2_S3 = GetGlobalRelationshipMultiOfMod(akMod, 2, 3, False)
+			myGlobalRelationshipMulti_S3_S4 = GetGlobalRelationshipMultiOfMod(akMod, 3, 4, False)
+			myGlobalRelationshipMulti_S4_S5 = GetGlobalRelationshipMultiOfMod(akMod, 4, 5, False)
+			myGlobalRelationshipMulti_S5_S4 = GetGlobalRelationshipMultiOfMod(akMod, 5, 4, False)
+			myGlobalRelationshipMulti_S4_S3 = GetGlobalRelationshipMultiOfMod(akMod, 4, 3, False)
+			myGlobalRelationshipMulti_S3_S2 = GetGlobalRelationshipMultiOfMod(akMod, 3, 2, False)
+			myGlobalRelationshipMulti_S2_S1 = GetGlobalRelationshipMultiOfMod(akMod, 2, 1, False)
+			myGlobalRelationshipMulti_S1_S0 = GetGlobalRelationshipMultiOfMod(akMod, 1, 0, False)
+			myGlobalRelationshipMulti_S0_SM1 = GetGlobalRelationshipMultiOfMod(akMod, 0, -1, False)
+			myGlobalRelationshipMulti_SM1_SM2 = GetGlobalRelationshipMultiOfMod(akMod, -1, -2, False)
+			myGlobalRelationshipMulti_SM2_SM3 = GetGlobalRelationshipMultiOfMod(akMod, -2, -3, False)
+			myGlobalRelationshipMulti_SM3_SM4 = GetGlobalRelationshipMultiOfMod(akMod, -3, -4, False)
+			myGlobalRelationshipMulti_SM4_SM5 = GetGlobalRelationshipMultiOfMod(akMod, -4, -5, False)
+			myGlobalRelationshipMulti_SM5_SM4 = GetGlobalRelationshipMultiOfMod(akMod, -5, -4, False)
+			myGlobalRelationshipMulti_SM4_SM3 = GetGlobalRelationshipMultiOfMod(akMod, -4, -3, False)
+			myGlobalRelationshipMulti_SM3_SM2 = GetGlobalRelationshipMultiOfMod(akMod, -3, -2, False)
+			myGlobalRelationshipMulti_SM2_SM1 = GetGlobalRelationshipMultiOfMod(akMod, -2, -1, False)
+			myGlobalRelationshipMulti_SM1_S0 = GetGlobalRelationshipMultiOfMod(akMod, -1, 0, False)
+		EndIf
 	EndIf
 	;/ closeFold (this  part of the code may be redundant) /;
-	;/ openFold fetching local values /;
+	;/ openFold Fetching local changes /;
 	;fetching akMod's current requested local SyncMode values (read them from actors and store them on akMod)
 	Int iActorsWithLocalSyncMode = FormListCount(None, SYNC_MODE_NPC_CHANGELIST)
-	Int i
+	Int i 
 	
 	While (i < iActorsWithLocalSyncMode)
 		Actor ActorWithLocalSyncMode = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, i) as Actor
 		Int mySyncMode = GetSyncModeOfMod(akMod, ActorWithLocalSyncMode, abVerbose = False)
 		
 		If (mySyncMode > -1 && FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) > 1)	;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
-			FormListAdd(akMod, SYNC_MODE_NPC_CHANGELIST, ActorWithLocalSyncMode)	;a list with all actors whose SyncMode akMod has affected
-			IntListAdd(akMod, SYNC_MODE_CHANGELIST, mySyncMode)	;a list with all the SyncMode changes that akMod has requested on actors
+			FormListAdd(akMod, SYNC_MODE_NPC_CHANGELIST, ActorWithLocalSyncMode)	;a list with all actors whose SyncMode akMod has affected. Will be empty if nothing to reorder!
+			IntListAdd(akMod, SYNC_MODE_CHANGELIST, mySyncMode)	;a list with all the SyncMode changes that akMod has requested on the actors above
 		EndIf
 		
 		i += 1
@@ -1120,9 +1194,10 @@ Function ChangeModPriority(Quest akMod, Int aiPriorityChange)
 	While (i < iActorsWithLocalRSMulti)
 		Actor ActorWithLocalRSMulti = FormListGet(None, RS_MULTI_NPC_CHANGELIST, i) as Actor
 		
-		If (GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 0, 1, abVerbose = False) > -2 && FormListCount(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST) > 1)	;if akMod has requested RS multipliers changes for this actor and it is not the only mod affecting this actor's multipliers
-			FormListAdd(akMod, RS_MULTI_NPC_CHANGELIST, ActorWithLocalRSMulti)	;a list with all actors whose RS multipliers akMod has affected
+		If (GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 0, 1, abVerbose = False) > -2.0 && FormListCount(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST) > 1)	;if akMod has requested RS multipliers changes for this actor and it is not the only mod affecting this actor's multipliers
+			FormListAdd(akMod, RS_MULTI_NPC_CHANGELIST, ActorWithLocalRSMulti)	;a list with all actors whose RS multipliers akMod has affected. Will be empty if nothing to reorder!
 			
+			;-1 will mean "no need to reorder this local multiplier"
 			FloatListAdd(akMod, RS_MULTI_S0_S1_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 0, 1, False))
 			FloatListAdd(akMod, RS_MULTI_S1_S2_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 1, 2, False))
 			FloatListAdd(akMod, RS_MULTI_S2_S3_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 2, 3, False))
@@ -1148,7 +1223,31 @@ Function ChangeModPriority(Quest akMod, Int aiPriorityChange)
 		i += 1
 	EndWhile
 	;/ closeFold /;
+	;/ openFold Removing global changes /;
+	RSFW.RemoveGlobalSyncMode(akMod)
+	RSFW.RemoveAllGlobalRelationshipMulti(akMod)
+	;/ closeFold /;
+	;/ openFold Removing local changes /;
+	Int iActorsAffected = FormListCount(akMod, SYNC_MODE_NPC_CHANGELIST)
+	i = 0
 	
+	While (i < iActorsAffected)
+		Actor ActorAffected = FormListGet(akMod, SYNC_MODE_NPC_CHANGELIST, i) as Actor
+		RSFW.RemoveSyncMode(akMod, ActorAffected)
+		
+		i += 1
+	EndWhile
+	
+	iActorsAffected = FormListCount(akMod, RS_MULTI_NPC_CHANGELIST)
+	i = 0
+	
+	While (i < iActorsAffected)
+		Actor ActorAffected = FormListGet(akMod, RS_MULTI_NPC_CHANGELIST, i) as Actor
+		RSFW.RemoveAllRelationshipMulti(akMod, ActorAffected)
+		
+		i += 1
+	EndWhile
+	;/ closeFold /;
 EndFunction
 
 Int Function GetGlobalSyncModeOfMod(Quest akToken, Bool abVerbose = True)
