@@ -1020,28 +1020,32 @@ Bool Function UninstallMod(Quest ModToUninstall, Bool abSafetyLock = True)
 	Return result
 EndFunction
 
-Function ChangeInitOrder(Quest akInitQuest, Int aiPositionChange)
-	Int ModIndex = RSFW._GetModIndexFromForm(akInitQuest, INIT_MODS)
+Function ChangeInitOrder(Quest akToken, Int aiPositionChange)
+	Int ModIndex = RSFW._GetModIndexFromForm(akToken, INIT_MODS)
 
 	If (aiPositionChange == MOVE_TOP)
 		If(ModIndex == 0)
-			Exception.Notify(FW_LOG, "Mod is at the top, returning")
+			Exception.Notify(FW_LOG, FormListCount(None, INIT_MODS) + " mods in INIT_MODS array")
+			Exception.Notify(FW_LOG, "Mod" + _GetNameOfModFromModForm(akToken) + " is at position " + RSFW._GetModIndexFromForm(akToken, INIT_MODS) + ", returning")
 			Return
 		EndIf
 		
-		Exception.Notify(FW_LOG, "Mod is not at the top, working")
-		FormListRemove(None, INIT_MODS, akInitQuest)
-		FormListInsert(None, INIT_MODS, 0, akInitQuest)
+		Exception.Notify(FW_LOG, FormListCount(None, INIT_MODS) + " mods in INIT_MODS array")
+		Exception.Notify(FW_LOG, "Mod" + _GetNameOfModFromModForm(akToken) + " is at position " + RSFW._GetModIndexFromForm(akToken, INIT_MODS) + ", working")
+		FormListRemove(None, INIT_MODS, akToken)
+		FormListInsert(None, INIT_MODS, 0, akToken)
 
 	ElseIf (aiPositionChange == MOVE_UP)
 		If(ModIndex == 0)
-			Exception.Notify(FW_LOG, "Mod is at the top, returning")
+			Exception.Notify(FW_LOG, FormListCount(None, INIT_MODS) + " mods in INIT_MODS array")
+			Exception.Notify(FW_LOG, "Mod" + _GetNameOfModFromModForm(akToken) + " is at position " + RSFW._GetModIndexFromForm(akToken, INIT_MODS) + ", returning")
 			Return
 		EndIf
 
-		Exception.Notify(FW_LOG, "Mod is not at the top, working")
-		FormListRemove(None, INIT_MODS, akInitQuest)
-		FormListInsert(None, INIT_MODS, (ModIndex - 1), akInitQuest)
+		Exception.Notify(FW_LOG, FormListCount(None, INIT_MODS) + " mods in INIT_MODS array")
+		Exception.Notify(FW_LOG, "Mod" + _GetNameOfModFromModForm(akToken) + " is at position " + RSFW._GetModIndexFromForm(akToken, INIT_MODS) + ", working")
+		FormListRemove(None, INIT_MODS, akToken)
+		FormListInsert(None, INIT_MODS, (ModIndex - 1), akToken)
 
 	ElseIf (aiPositionChange == MOVE_DOWN)
 		If(ModIndex == (FormListCount(None, INIT_MODS) - 1))
@@ -1049,11 +1053,11 @@ Function ChangeInitOrder(Quest akInitQuest, Int aiPositionChange)
 		EndIf
 
 		If(ModIndex == (FormListCount(None, INIT_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
-			FormListRemove(None, INIT_MODS, akInitQuest)
-			FormListAdd(None, INIT_MODS, akInitQuest)
+			FormListRemove(None, INIT_MODS, akToken)
+			FormListAdd(None, INIT_MODS, akToken)
 		Else
-			FormListRemove(None, INIT_MODS, akInitQuest)
-			FormListInsert(None, INIT_MODS, (ModIndex + 1), akInitQuest)
+			FormListRemove(None, INIT_MODS, akToken)
+			FormListInsert(None, INIT_MODS, (ModIndex + 1), akToken)
 		EndIf
 
 	ElseIf (aiPositionChange == MOVE_BOTTOM)
@@ -1061,8 +1065,8 @@ Function ChangeInitOrder(Quest akInitQuest, Int aiPositionChange)
 			Return
 		EndIf
 
-		FormListRemove(None, INIT_MODS, akInitQuest)
-		FormListAdd(None, INIT_MODS, akInitQuest)
+		FormListRemove(None, INIT_MODS, akToken)
+		FormListAdd(None, INIT_MODS, akToken)
 
 	EndIf
 EndFunction
