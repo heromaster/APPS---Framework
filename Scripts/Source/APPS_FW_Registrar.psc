@@ -42,7 +42,7 @@ Bool Function RegisterMod()
 		EndIf
 	Else
 		SetStringValue(Self, MOD_NAME, ModName)
-		FormListInsert(None, REGISTERED_MODS, 0, Self)
+		FormListAdd(None, REGISTERED_MODS, Self)
 		Exception.Notify(FW_LOG, "Mod " + ModName + " is registered.")
 	EndIf
 

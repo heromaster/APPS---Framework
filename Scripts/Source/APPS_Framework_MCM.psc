@@ -1025,17 +1025,21 @@ Function ChangeInitOrder(Quest akInitQuest, Int aiPositionChange)
 
 	If (aiPositionChange == MOVE_TOP)
 		If(ModIndex == 0)
+			Exception.Notify(FW_LOG, "Mod is at the top, returning")
 			Return
 		EndIf
-
+		
+		Exception.Notify(FW_LOG, "Mod is not at the top, working")
 		FormListRemove(None, INIT_MODS, akInitQuest)
 		FormListInsert(None, INIT_MODS, 0, akInitQuest)
 
 	ElseIf (aiPositionChange == MOVE_UP)
 		If(ModIndex == 0)
+			Exception.Notify(FW_LOG, "Mod is at the top, returning")
 			Return
 		EndIf
 
+		Exception.Notify(FW_LOG, "Mod is not at the top, working")
 		FormListRemove(None, INIT_MODS, akInitQuest)
 		FormListInsert(None, INIT_MODS, (ModIndex - 1), akInitQuest)
 
