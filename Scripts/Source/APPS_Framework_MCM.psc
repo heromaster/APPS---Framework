@@ -1108,11 +1108,11 @@ Function ChangeRSPriority(Quest akMod, Int aiPriorityChange)
 	;master priority has changed, updating the global syncmode priority
 	If (aiPriorityChange == MOVE_TOP || aiPriorityChange == MOVE_UP)
 		If (FormListFind(None, SYNC_MODE_CHANGELIST, akMod) > 0 && FormListCount(None, SYNC_MODE_CHANGELIST) > 1)
-			RSFW.SetGlobalSyncMode(akMod, RSFW.RemoveGlobalSyncMode(akMod, False))
+			RSFW.SetGlobalSyncMode(akMod, RSFW.RemoveGlobalSyncMode(akMod, True))
 		EndIf
 	ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)
 		If (FormListFind(None, SYNC_MODE_CHANGELIST, akMod) != FormListCount(None, SYNC_MODE_CHANGELIST) - 1 && FormListCount(None, SYNC_MODE_CHANGELIST) > 1)
-			RSFW.SetGlobalSyncMode(akMod, RSFW.RemoveGlobalSyncMode(akMod, False))
+			RSFW.SetGlobalSyncMode(akMod, RSFW.RemoveGlobalSyncMode(akMod, True))
 		EndIf
 	EndIf
 	
@@ -1122,14 +1122,19 @@ Function ChangeRSPriority(Quest akMod, Int aiPriorityChange)
 
 	While (i < iActorsWithLocalSyncMode)
 		Actor ActorWithLocalSyncMode = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, i) as Actor
+		Exception.Notify(FW_LOG, ActorWithLocalSyncMode.GetActorBase().GetName() + " on position " + i)
 		
 		If (aiPriorityChange == MOVE_TOP || aiPriorityChange == MOVE_UP)
-			If (FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) > 0 && FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) > 1) ;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
-				RSFW.SetSyncMode(akMod, ActorWithLocalSyncMode, RSFW.RemoveSyncMode(akMod, ActorWithLocalSyncMode, False))
+			Exception.Notify(FW_LOG, "Moving Top/Up")
+			If (FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) > 0) ;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
+				Exception.Notify(FW_LOG, "Position of " + _GetNameOfModFromModForm(akMod) + " is " + FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) + " \n" + FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) + " changes in syncmode list")
+				RSFW.SetSyncMode(akMod, ActorWithLocalSyncMode, RSFW.RemoveSyncMode(akMod, ActorWithLocalSyncMode, True))
 			EndIf
 		ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)
-			If (FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) != FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) - 1 && FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) > 1) ;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
-				RSFW.SetSyncMode(akMod, ActorWithLocalSyncMode, RSFW.RemoveSyncMode(akMod, ActorWithLocalSyncMode, False))
+			Exception.Notify(FW_LOG, "Moving Bottom/Down")
+			If(FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) > -1 && FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) != FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) - 1 && FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) > 1) ;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
+				Exception.Notify(FW_LOG, "Position of " + _GetNameOfModFromModForm(akMod) + " is " + FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) + " \n" + FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) + " changes in syncmode list")
+				RSFW.SetSyncMode(akMod, ActorWithLocalSyncMode, RSFW.RemoveSyncMode(akMod, ActorWithLocalSyncMode, True))
 			EndIf
 		EndIf
 		
@@ -1158,7 +1163,7 @@ Function ChangeRSPriority(Quest akMod, Int aiPriorityChange)
 			If (FormListFind(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST, akMod) > 0 && FormListCount(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST) > 1)  ;if akMod has requested multiplier changes for this actor and it is not the only mod affecting this actor's multipliers
 				RSFW.SetRelationshipMultis(akMod, ActorWithLocalRSMulti, RSFW.RemoveRelationshipMultis(akMod, ActorWithLocalRSMulti))
 			EndIf
-		ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)
+		ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)		
 			If (FormListFind(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST, akMod) != FormListCount(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST) - 1)  ;if akMod has requested multiplier changes for this actor and it is not the only mod affecting this actor's multipliers
 				RSFW.SetRelationshipMultis(akMod, ActorWithLocalRSMulti, RSFW.RemoveRelationshipMultis(akMod, ActorWithLocalRSMulti))
 			EndIf
