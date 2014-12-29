@@ -764,14 +764,14 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRa
 	Return True
 EndFunction
 
-Bool Function SetAllGlobalRelationshipMulti(Quest akToken, Int[] auiMultipliers)
+Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
 	
 	;/ beginValidation /;
 	If(ModIndex == -1)
-		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access SetAllGlobalRelationshipMulti(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access SetGlobalRelationshipMultis(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Return False
-	ElseIf (auiMultipliers.Length != 20)
+	ElseIf (auiMultipliers.Length < 20)
 		Throw(FW_LOG, "Argument auiMultipliers was not set correctly. The array has to be 20-items long.", "Invalid arguments")
 		Return False
 	ElseIf (auiMultipliers[0] < 0.0 || \
@@ -1638,7 +1638,7 @@ Float Function RemoveGlobalRelationshipMulti(Quest akToken, Int aiFromRelationsh
 	EndIf
 EndFunction
 
-Float[] Function RemoveAllGlobalRelationshipMulti(Quest akToken)
+Float[] Function RemoveGlobalRelationshipMultis(Quest akToken)
 	Float[] myGlobalRelationshipMulti
 
 	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
@@ -2334,15 +2334,15 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 	Return True
 EndFunction
 
-Bool Function SetAllRelationshipMulti(Quest akToken, Actor akNPC, Float[] auiMultipliers)
+Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMultipliers)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
 
 	;/ beginValidation /;
 	If(ModIndex == -1)
-		Throw(FW_LOG, " A mod, which is not registered or sent an invalid token, tried to access SetAllRelationshipMulti(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Throw(FW_LOG, " A mod, which is not registered or sent an invalid token, tried to access SetRelationshipMultis(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Return False
 	ElseIf(!akNPC)
-		Throw(FW_LOG, "Argument akNPC for function SetAllRelationshipMulti() is None!", "Invalid arguments")
+		Throw(FW_LOG, "Argument akNPC for function SetRelationshipMultis() is None!", "Invalid arguments")
 		Return False	
 	ElseIf (auiMultipliers.Length != 20)
 		Throw(FW_LOG, "Argument auiMultipliers was not set correctly. The array has to be 20-items long.", "Invalid arguments")
@@ -3142,11 +3142,11 @@ Float Function RemoveRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRel
 	EndIf
 EndFunction
 
-Float[] Function RemoveAllRelationshipMulti(Quest akToken, Actor akNPC, Bool abVerbose = True)
+Float[] Function RemoveRelationshipMultis(Quest akToken, Actor akNPC)
 	Float[] myRelationshipMulti
 
 	If(!akNPC)
-		Throw(FW_LOG, "Argument akNPC for function RemoveAllRelationshipMulti() is None!", "Invalid arguments")
+		Throw(FW_LOG, "Argument akNPC for function RemoveRelationshipMultis() is None!", "Invalid arguments")
 		Return myRelationshipMulti
 	EndIf
 

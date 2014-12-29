@@ -882,7 +882,7 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 				If (CurrentPage == Pages[2])	;InitManager
 					ChangeInitOrder(FormListGet(None, MENU_OPTIONS, i) as Quest, aiSelectedOption)	;init order change
 				ElseIf (CurrentPage == Pages[4])	;Priority
-					ChangeModPriority(FormListGet(None, MENU_OPTIONS, i) as Quest, aiSelectedOption)	;priority change
+					ChangeRSPriority(FormListGet(None, MENU_OPTIONS, i) as Quest, aiSelectedOption)	;priority change
 				EndIf
 
 			ElseIf (aiSelectedOption == INITIALIZE_MOD)
@@ -1063,7 +1063,7 @@ Function ChangeInitOrder(Quest akInitQuest, Int aiPositionChange)
 	EndIf
 EndFunction
 
-Function ChangePriorityOrder(Quest akMod, Int aiPriorityChange)
+Function ChangeRSPriority(Quest akMod, Int aiPriorityChange)
 	Int ModIndex = RSFW._GetModIndexFromForm(akMod, REGISTERED_RS)
 
 	If (aiPriorityChange == MOVE_TOP)
@@ -1104,647 +1104,68 @@ Function ChangePriorityOrder(Quest akMod, Int aiPriorityChange)
 		FormListAdd(None, REGISTERED_RS, akMod)
 
 	EndIf
-EndFunction
-
-Function ChangeModPriority(Quest akMod, Int aiPriorityChange)
-	;/ANTONO WIP
-	TODO:	split function into 4 sub-functions
-			check if mods are the only ones on their lists (no need to reorder them then).
-			check if mods are at the top or bottom (no need to reorder them if also going up or down respectively).
-			cleanup any arrays after we finish.
-	/;
-	;/ openFold Declaring variables to store akMod's requested changes /;
-	Int ModIndex = RSFW._GetModIndexFromForm(akMod, REGISTERED_RS)
-	Int myGlobalSyncMode = -1	;-1 will mean "no need to change global syncmode priority"
-	Float myGlobalRelationshipMulti_S0_S1 = -1.0	;-1.0 will mean "no need to change this global multiplier"
-	Float myGlobalRelationshipMulti_S1_S2 = -1.0
-	Float myGlobalRelationshipMulti_S2_S3 = -1.0
-	Float myGlobalRelationshipMulti_S3_S4 = -1.0
-	Float myGlobalRelationshipMulti_S4_S5 = -1.0
-	Float myGlobalRelationshipMulti_S5_S4 = -1.0
-	Float myGlobalRelationshipMulti_S4_S3 = -1.0
-	Float myGlobalRelationshipMulti_S3_S2 = -1.0
-	Float myGlobalRelationshipMulti_S2_S1 = -1.0
-	Float myGlobalRelationshipMulti_S1_S0 = -1.0
-	Float myGlobalRelationshipMulti_S0_SM1  = -1.0
-	Float myGlobalRelationshipMulti_SM1_SM2 = -1.0
-	Float myGlobalRelationshipMulti_SM2_SM3 = -1.0
-	Float myGlobalRelationshipMulti_SM3_SM4 = -1.0
-	Float myGlobalRelationshipMulti_SM4_SM5 = -1.0
-	Float myGlobalRelationshipMulti_SM5_SM4 = -1.0
-	Float myGlobalRelationshipMulti_SM4_SM3 = -1.0
-	Float myGlobalRelationshipMulti_SM3_SM2 = -1.0
-	Float myGlobalRelationshipMulti_SM2_SM1 = -1.0
-	Float myGlobalRelationshipMulti_SM1_S0 = -1.0	
-	;/ closeFold /;
-	;/ openFold Fetching global changes /;
-	;fetching akMod's global syncmode changes
-	If (RSFW.GetGlobalSyncModeChanges() > 1)	;if more than 1 mods are affecting the global syncmode
-		myGlobalSyncMode = GetGlobalSyncModeOfMod(akMod, abVerbose = False)	;-1 if no global syncmode changes requested by akmod.
-	EndIf
 	
-	;fetching akMod's global multipliers changes
-	If (FormListCount(None, RS_MULTI_CHANGELIST) > 1) ;if more than 1 mods are affecting the global multipliers
-		If (GetGlobalRelationshipMultiOfMod(akMod, 0, 1, abVerbose = False) > -2.0)	;if akMod has requested any global relationship multipliers changes
-			;-1 if akMod has not requested changes for a particular global multiplier but it has requested changes for others
-			myGlobalRelationshipMulti_S0_S1 = GetGlobalRelationshipMultiOfMod(akMod, 0, 1, False)
-			myGlobalRelationshipMulti_S1_S2 = GetGlobalRelationshipMultiOfMod(akMod, 1, 2, False)
-			myGlobalRelationshipMulti_S2_S3 = GetGlobalRelationshipMultiOfMod(akMod, 2, 3, False)
-			myGlobalRelationshipMulti_S3_S4 = GetGlobalRelationshipMultiOfMod(akMod, 3, 4, False)
-			myGlobalRelationshipMulti_S4_S5 = GetGlobalRelationshipMultiOfMod(akMod, 4, 5, False)
-			myGlobalRelationshipMulti_S5_S4 = GetGlobalRelationshipMultiOfMod(akMod, 5, 4, False)
-			myGlobalRelationshipMulti_S4_S3 = GetGlobalRelationshipMultiOfMod(akMod, 4, 3, False)
-			myGlobalRelationshipMulti_S3_S2 = GetGlobalRelationshipMultiOfMod(akMod, 3, 2, False)
-			myGlobalRelationshipMulti_S2_S1 = GetGlobalRelationshipMultiOfMod(akMod, 2, 1, False)
-			myGlobalRelationshipMulti_S1_S0 = GetGlobalRelationshipMultiOfMod(akMod, 1, 0, False)
-			myGlobalRelationshipMulti_S0_SM1 = GetGlobalRelationshipMultiOfMod(akMod, 0, -1, False)
-			myGlobalRelationshipMulti_SM1_SM2 = GetGlobalRelationshipMultiOfMod(akMod, -1, -2, False)
-			myGlobalRelationshipMulti_SM2_SM3 = GetGlobalRelationshipMultiOfMod(akMod, -2, -3, False)
-			myGlobalRelationshipMulti_SM3_SM4 = GetGlobalRelationshipMultiOfMod(akMod, -3, -4, False)
-			myGlobalRelationshipMulti_SM4_SM5 = GetGlobalRelationshipMultiOfMod(akMod, -4, -5, False)
-			myGlobalRelationshipMulti_SM5_SM4 = GetGlobalRelationshipMultiOfMod(akMod, -5, -4, False)
-			myGlobalRelationshipMulti_SM4_SM3 = GetGlobalRelationshipMultiOfMod(akMod, -4, -3, False)
-			myGlobalRelationshipMulti_SM3_SM2 = GetGlobalRelationshipMultiOfMod(akMod, -3, -2, False)
-			myGlobalRelationshipMulti_SM2_SM1 = GetGlobalRelationshipMultiOfMod(akMod, -2, -1, False)
-			myGlobalRelationshipMulti_SM1_S0 = GetGlobalRelationshipMultiOfMod(akMod, -1, 0, False)
+	;master priority has changed, updating the global syncmode priority
+	If (aiPriorityChange == MOVE_TOP || aiPriorityChange == MOVE_UP)
+		If (FormListFind(None, SYNC_MODE_CHANGELIST, akMod) > 0 && FormListCount(None, SYNC_MODE_CHANGELIST) > 1)
+			RSFW.SetGlobalSyncMode(akMod, RSFW.RemoveGlobalSyncMode(akMod, False))
+		EndIf
+	ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)
+		If (FormListFind(None, SYNC_MODE_CHANGELIST, akMod) != FormListCount(None, SYNC_MODE_CHANGELIST) - 1 && FormListCount(None, SYNC_MODE_CHANGELIST) > 1)
+			RSFW.SetGlobalSyncMode(akMod, RSFW.RemoveGlobalSyncMode(akMod, False))
 		EndIf
 	EndIf
-	;/ closeFold (this  part of the code may be redundant) /;
-	;/ openFold Fetching local changes /;
-	;fetching akMod's current requested local SyncMode values (read them from actors and store them on akMod)
-	Int iActorsWithLocalSyncMode = FormListCount(None, SYNC_MODE_NPC_CHANGELIST)
-	Int i 
 	
+	;master priority has changed, updating the actors' syncmode priority
+	Int iActorsWithLocalSyncMode = FormListCount(None, SYNC_MODE_NPC_CHANGELIST)
+	Int i
+
 	While (i < iActorsWithLocalSyncMode)
 		Actor ActorWithLocalSyncMode = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, i) as Actor
-		Int mySyncMode = GetSyncModeOfMod(akMod, ActorWithLocalSyncMode, abVerbose = False)
 		
-		If (mySyncMode > -1 && FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) > 1)	;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
-			FormListAdd(akMod, SYNC_MODE_NPC_CHANGELIST, ActorWithLocalSyncMode)	;a list with all actors whose SyncMode akMod has affected. Will be empty if nothing to reorder!
-			IntListAdd(akMod, SYNC_MODE_CHANGELIST, mySyncMode)	;a list with all the SyncMode changes that akMod has requested on the actors above
+		If (aiPriorityChange == MOVE_TOP || aiPriorityChange == MOVE_UP)
+			If (FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) > 0 && FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) > 1) ;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
+				RSFW.SetSyncMode(akMod, ActorWithLocalSyncMode, RSFW.RemoveSyncMode(akMod, ActorWithLocalSyncMode, False))
+			EndIf
+		ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)
+			If (FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) != FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) - 1 && FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) > 1) ;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
+				RSFW.SetSyncMode(akMod, ActorWithLocalSyncMode, RSFW.RemoveSyncMode(akMod, ActorWithLocalSyncMode, False))
+			EndIf
 		EndIf
 		
 		i += 1
 	EndWhile
 	
-	;fetching akMod's current requested local RS multipliers values (copy them from actors and store them on akMod)
+	;master priority has changed, updating the global relationship multipliers priority
+	If (aiPriorityChange == MOVE_TOP || aiPriorityChange == MOVE_UP)
+		If (FormListFind(None, RS_MULTI_CHANGELIST, akMod) > 0 && FormListCount(None, RS_MULTI_CHANGELIST) > 1)
+			RSFW.SetGlobalRelationshipMultis(akMod, RSFW.RemoveGlobalRelationshipMultis(akMod))
+		EndIf
+	ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)
+		If (FormListFind(None, RS_MULTI_CHANGELIST, akMod) != FormListCount(None, RS_MULTI_CHANGELIST) - 1 && FormListCount(None, RS_MULTI_CHANGELIST) > 1)
+			RSFW.SetGlobalRelationshipMultis(akMod, RSFW.RemoveGlobalRelationshipMultis(akMod))
+		EndIf
+	EndIf
+	
+	;master priority has changed, updating the actors' relationship multipliers priority
 	Int iActorsWithLocalRSMulti = FormListCount(None, RS_MULTI_NPC_CHANGELIST)
 	i = 0
 	
 	While (i < iActorsWithLocalRSMulti)
 		Actor ActorWithLocalRSMulti = FormListGet(None, RS_MULTI_NPC_CHANGELIST, i) as Actor
 		
-		If (GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 0, 1, abVerbose = False) > -2.0 && FormListCount(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST) > 1)	;if akMod has requested RS multipliers changes for this actor and it is not the only mod affecting this actor's multipliers
-			FormListAdd(akMod, RS_MULTI_NPC_CHANGELIST, ActorWithLocalRSMulti)	;a list with all actors whose RS multipliers akMod has affected. Will be empty if nothing to reorder!
-			
-			;-1 will mean "no need to reorder this local multiplier"
-			FloatListAdd(akMod, RS_MULTI_S0_S1_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 0, 1, False))
-			FloatListAdd(akMod, RS_MULTI_S1_S2_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 1, 2, False))
-			FloatListAdd(akMod, RS_MULTI_S2_S3_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 2, 3, False))
-			FloatListAdd(akMod, RS_MULTI_S3_S4_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 3, 4, False))
-			FloatListAdd(akMod, RS_MULTI_S4_S5_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 4, 5, False))
-			FloatListAdd(akMod, RS_MULTI_S5_S4_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 5, 4, False))
-			FloatListAdd(akMod, RS_MULTI_S4_S3_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 4, 3, False))
-			FloatListAdd(akMod, RS_MULTI_S3_S2_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 3, 2, False))
-			FloatListAdd(akMod, RS_MULTI_S2_S1_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 2, 1, False))
-			FloatListAdd(akMod, RS_MULTI_S1_S0_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 1, 0, False))
-			FloatListAdd(akMod, RS_MULTI_S0_SM1_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, 0, -1, False))
-			FloatListAdd(akMod, RS_MULTI_SM1_SM2_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -1, -2, False))
-			FloatListAdd(akMod, RS_MULTI_SM2_SM3_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -2, -3, False))
-			FloatListAdd(akMod, RS_MULTI_SM3_SM4_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -3, -4, False))
-			FloatListAdd(akMod, RS_MULTI_SM4_SM5_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -4, -5, False))
-			FloatListAdd(akMod, RS_MULTI_SM5_SM4_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -5, -4, False))
-			FloatListAdd(akMod, RS_MULTI_SM4_SM3_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -4, -3, False))
-			FloatListAdd(akMod, RS_MULTI_SM3_SM2_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -3, -2, False))
-			FloatListAdd(akMod, RS_MULTI_SM2_SM1_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -2, -1, False))
-			FloatListAdd(akMod, RS_MULTI_SM1_S0_CHANGELIST, GetRelationshipMultiOfMod(akMod, ActorWithLocalRSMulti, -1, 0, False))
+		If (aiPriorityChange == MOVE_TOP || aiPriorityChange == MOVE_UP)
+			If (FormListFind(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST, akMod) > 0 && FormListCount(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST) > 1)  ;if akMod has requested multiplier changes for this actor and it is not the only mod affecting this actor's multipliers
+				RSFW.SetRelationshipMultis(akMod, ActorWithLocalRSMulti, RSFW.RemoveRelationshipMultis(akMod, ActorWithLocalRSMulti))
+			EndIf
+		ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)
+			If (FormListFind(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST, akMod) != FormListCount(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST) - 1)  ;if akMod has requested multiplier changes for this actor and it is not the only mod affecting this actor's multipliers
+				RSFW.SetRelationshipMultis(akMod, ActorWithLocalRSMulti, RSFW.RemoveRelationshipMultis(akMod, ActorWithLocalRSMulti))
+			EndIf
 		EndIf
 		
 		i += 1
 	EndWhile
-	;/ closeFold /;
-	;/ openFold Removing global changes /;
-	RSFW.RemoveGlobalSyncMode(akMod)
-	RSFW.RemoveAllGlobalRelationshipMulti(akMod)
-	;/ closeFold /;
-	;/ openFold Removing local changes /;
-	Int iActorsAffected = FormListCount(akMod, SYNC_MODE_NPC_CHANGELIST)
-	i = 0
-	
-	While (i < iActorsAffected)
-		Actor ActorAffected = FormListGet(akMod, SYNC_MODE_NPC_CHANGELIST, i) as Actor
-		RSFW.RemoveSyncMode(akMod, ActorAffected)
-		
-		i += 1
-	EndWhile
-	
-	iActorsAffected = FormListCount(akMod, RS_MULTI_NPC_CHANGELIST)
-	i = 0
-	
-	While (i < iActorsAffected)
-		Actor ActorAffected = FormListGet(akMod, RS_MULTI_NPC_CHANGELIST, i) as Actor
-		RSFW.RemoveAllRelationshipMulti(akMod, ActorAffected)
-		
-		i += 1
-	EndWhile
-	;/ closeFold /;
-EndFunction
-
-Int Function GetGlobalSyncModeOfMod(String asNameOfMod, Bool abVerbose = True)
-	Quest Mod = _GetModFormFromNameOfMod(asNameOfMod, REGISTERED_RS)
-	
-	;/ beginValidation /;
-	If (!Mod)
-		If (abVerbose)
-			Exception.Notify(FW_LOG, "The requested mod " + asNameOfMod + " is not registered with the relationship module")
-			Return -2
-		EndIf
-	EndIf
-	
-	Int ModIndex = RSFW._GetModIndexFromForm(Mod, SYNC_MODE_CHANGELIST)
-
-	If (ModIndex == -1)	;no GlobalSyncMode changes requested by this mod
-		If (abVerbose)
-			Exception.Notify(FW_LOG, "The requested mod " + asNameOfMod + " has not made any global syncmode changes")
-		EndIf
-		Return -1
-	EndIf
-	;/ endValidation /;
-
-	Return IntListGet(None, SYNC_MODE_CHANGELIST, ModIndex)
-EndFunction
-
-Int Function GetSyncModeOfMod(String asNameOfMod, Actor akNPC, Bool abVerbose = True)
-	Quest Mod = _GetModFormFromNameOfMod(asNameOfMod, REGISTERED_RS)
-	
-	;/ beginValidation /;
-	If(!akNPC)
-		Exception.Throw(FW_LOG, "Argument akNPC for function GetSyncModeOfMod() is None!", "Invalid arguments")
-		Return -2
-	ElseIf (!Mod)
-		If (abVerbose)
-			Exception.Notify(FW_LOG, "The requested mod " + asNameOfMod + " is not registered with the relationship module.")
-			Return -2
-		EndIf
-	EndIf
-	
-	Int ModIndex = RSFW._GetModIndexFromForm(Mod, SYNC_MODE_CHANGELIST, akNPC)
-
-	If (ModIndex == -1)	;no SyncMode changes on this NPC requested by this mod
-		If (abVerbose)
-			Exception.Notify(FW_LOG, "The requested mod " + asNameOfMod + " has not made any syncmode changes to the actor " + akNPC.GetActorBase().GetName() + ".")
-		EndIf
-		Return -1
-	EndIf
-	;/ endValidation /;
-
-	Return IntListGet(akNPC, SYNC_MODE_CHANGELIST, ModIndex)
-EndFunction
-
-Float Function GetGlobalRelationshipMultiOfMod(String asNameOfMod, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abVerbose = True)
-	Quest Mod = _GetModFormFromNameOfMod(asNameOfMod, REGISTERED_RS)
-	
-	;/ beginValidation /;
-	If (RSFW._GetModIndexFromForm(Mod, REGISTERED_RS) == MOD_NOT_FOUND)
-		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access GetGlobalRelationshipMultiOfMod(). The FormID of this token is " + Mod.GetFormID() + ".", "Access denied")
-		Return -3.0
-	ElseIf (aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
-		Exception.Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -3.0
-	ElseIf (aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
-		Exception.Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -3.0
-	ElseIf (aiFromRelationshipRank == aiToRelationshipRank)
-		Exception.Throw(FW_LOG, "Argument aiToRelationshipRank can not be the same value as aiFromRelationshipRank.", "Invalid arguments")
-		Return -3.0
-	ElseIf (aiFromRelationshipRank - aiToRelationshipRank != 1 && aiFromRelationshipRank - aiToRelationshipRank != -1)
-		Exception.Throw(FW_LOG, "Multiplier can only be read for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
-		Return -3.0
-	EndIf
-	
-	Int ModIndex = RSFW._GetModIndexFromForm(Mod, RS_MULTI_CHANGELIST)
-	
-	If (ModIndex == -1)	;if no global multipliers changes requested by this mod
-		If (abVerbose)
-			Exception.Notify(FW_LOG, "A mod tried to fetch its changes to global relationship multipliers, but there had been no changes made to the global relationship multipliers by this mod. FormID of the token is " + Mod.GetFormID() + ".")
-		EndIf
-		Return -2.0
-	EndIf
-	
-	String MultiplierString = "S" + aiFromRelationshipRank As String + "_S" + aiToRelationshipRank As String
-	
-	;if the mod has not requested any changes to this multiplier
-	If(MultiplierString == "S0_S1")
-		If (IntListGet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S1_S2")
-		If (IntListGet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S2_S3")
-		If (IntListGet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S3_S4")
-		If (IntListGet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S4_S5")
-		If (IntListGet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S5_S4")
-		If (IntListGet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S4_S3")
-		If (IntListGet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S3_S2")
-		If (IntListGet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S2_S1")
-		If (IntListGet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S1_S0")
-		If (IntListGet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S0_S-1")
-		If (IntListGet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-1_S-2")
-		If (IntListGet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-2_S-3")
-		If (IntListGet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-3_S-4")
-		If (IntListGet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-4_S-5")
-		If (IntListGet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-5_S-4")
-		If (IntListGet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-4_S-3")
-		If (IntListGet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-3_S-2")
-		If (IntListGet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-2_S-1")
-		If (IntListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-1_S0")
-		If (IntListGet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the global relationship multiplier for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	EndIf
-	;/ endValidation /;
-
-	If (MultiplierString == "S0_S1")
-		Return FloatListGet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S1_S2")
-		Return FloatListGet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S2_S3")
-		Return FloatListGet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S3_S4")
-		Return FloatListGet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S4_S5")
-		Return FloatListGet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S5_S4")
-		Return FloatListGet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S4_S3")
-		Return FloatListGet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S3_S2")
-		Return FloatListGet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S2_S1")
-		Return FloatListGet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S1_S0")
-		Return FloatListGet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S0_S-1")
-		Return FloatListGet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-1_S-2")
-		Return FloatListGet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-2_S-3")
-		Return FloatListGet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-3_S-4")
-		Return FloatListGet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-4_S-5")
-		Return FloatListGet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-5_S-4")
-		Return FloatListGet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-4_S-3")
-		Return FloatListGet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-3_S-2")
-		Return FloatListGet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-2_S-1")
-		Return FloatListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-1_S0")
-		Return FloatListGet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
-	EndIf
-	
-EndFunction
-
-Float Function GetRelationshipMultiOfMod(String asNameOfMod, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abVerbose = True)
-	Quest Mod = _GetModFormFromNameOfMod(asNameOfMod, REGISTERED_RS)
-	
-	;/ beginValidation /;
-	If(!akNPC)
-		Exception.Throw(FW_LOG, "Argument akNPC for function GetRelationshipMultiOfMod() is None!", "Invalid arguments")
-		Return -3.0
-	ElseIf (RSFW._GetModIndexFromForm(Mod, REGISTERED_RS) == MOD_NOT_FOUND)
-		Exception.Warn(FW_LOG, "A mod, which is not registered or sent an invalid Token, tried to access GetRelationshipMultiOfMod(). The FormID of this token is " + Mod.GetFormID() + ".", "Access denied")
-		Return -3.0
-	ElseIf (RSFW._GetModIndexFromForm(akNPC, SYNC_MODE_NPC_CHANGELIST) == -1)
-		Exception.Notify(FW_LOG, "A mod tried to fetch its changes to the actor" + akNPC.GetActorBase().GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + Mod.GetFormID() + ".")
-		Return -3.0
-	ElseIf (aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
-		Exception.Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -3.0		
-	ElseIf (aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
-		Exception.Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -3.0
-	ElseIf (aiFromRelationshipRank == aiToRelationshipRank)
-		Exception.Throw(FW_LOG, "Argument aiToRelationshipRank can not be the same value as aiFromRelationshipRank.", "Invalid arguments")
-		Return -3.0	
-	ElseIf (aiFromRelationshipRank - aiToRelationshipRank != 1 && aiFromRelationshipRank - aiToRelationshipRank != -1)
-		Exception.Throw(FW_LOG, "Multiplier can only be read for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
-		Return -3.0
-	EndIf
-
-	Int ModIndex = RSFW._GetModIndexFromForm(Mod, RS_MULTI_CHANGELIST, akNPC)
-
-	If (ModIndex == -1)	;if no multipliers for this actor requested by this mod
-		If (abVerbose)
-			Exception.Notify(FW_LOG, "A mod tried to fetch its changes to the relationship multipliers of actor " + akNPC.GetActorBase().GetName() + ", but there had been no changes made specifically to this actor by this mod. FormID of the token is " + Mod.GetFormID() + ".")
-		EndIf
-		Return -2.0
-	EndIf
-	
-	String MultiplierString = "S" + aiFromRelationshipRank As String + "_S" + aiToRelationshipRank As String
-	
-	;if the mod has not requested any changes to this multiplier for actor akNPC
-	If(MultiplierString == "S0_S1")
-		If (IntListGet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S1_S2")
-		If (IntListGet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S2_S3")
-		If (IntListGet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S3_S4")
-		If (IntListGet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S4_S5")
-		If (IntListGet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S5_S4")
-		If (IntListGet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S4_S3")
-		If (IntListGet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S3_S2")
-		If (IntListGet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S2_S1")
-		If (IntListGet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S1_S0")
-		If (IntListGet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S0_S-1")
-		If (IntListGet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-1_S-2")
-		If (IntListGet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-2_S-3")
-		If (IntListGet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-3_S-4")
-		If (IntListGet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-4_S-5")
-		If (IntListGet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-5_S-4")
-		If (IntListGet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-4_S-3")
-		If (IntListGet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-3_S-2")
-		If (IntListGet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-2_S-1")
-		If (IntListGet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	ElseIf (MultiplierString == "S-1_S0")
-		If (IntListGet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex) == 0)
-			If (abVerbose)
-				Exception.Warn(FW_Log, "A mod tried to fetch its changes to the relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", but there were no changes made by this mod to this multiplier. FormID of the token is " + Mod.GetFormID() + ".")
-			EndIf
-			Return -1.0
-		EndIf
-	EndIf
-	;/ endValidation /;
-	
-	If (MultiplierString == "S0_S1")
-		Return FloatListGet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S1_S2")
-		Return FloatListGet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S2_S3")
-		Return FloatListGet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S3_S4")
-		Return FloatListGet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S4_S5")
-		Return FloatListGet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S5_S4")
-		Return FloatListGet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S4_S3")
-		Return FloatListGet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S3_S2")
-		Return FloatListGet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S2_S1")
-		Return FloatListGet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S1_S0")
-		Return FloatListGet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S0_S-1")
-		Return FloatListGet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-1_S-2")
-		Return FloatListGet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-2_S-3")
-		Return FloatListGet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-3_S-4")
-		Return FloatListGet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-4_S-5")
-		Return FloatListGet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-5_S-4")
-		Return FloatListGet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-4_S-3")
-		Return FloatListGet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-3_S-2")
-		Return FloatListGet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-2_S-1")
-		Return FloatListGet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex)
-	ElseIf (MultiplierString == "S-1_S0")
-		Return FloatListGet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex)
-	EndIf
-	
 EndFunction
 
 String Function _GetNameOfModFromModFormList(String asFormList, Int auiIndex, Actor akNPC = None)
