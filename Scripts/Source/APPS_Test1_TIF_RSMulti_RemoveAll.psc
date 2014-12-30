@@ -6,7 +6,7 @@ Scriptname APPS_Test1_TIF_RSMulti_RemoveAll Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-RSFW.RemoveAllRelationshipMulti(Token, AlvorREF)
+RSFW.RemoveRelationshipMultis(Token, AlvorREF)
 ;END CODE
 EndFunction
 ;END FRAGMENT

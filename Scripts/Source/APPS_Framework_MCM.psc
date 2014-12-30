@@ -420,7 +420,7 @@ Event OnPageReset(String asPage)
 			i = 0
 
 				While (i < iLocalRSMultiMods)
-					LocalRSMultiModsListOptions[i] = _GetNameOfModFromModFormList(RS_MULTI_CHANGELIST, i)
+					LocalRSMultiModsListOptions[i] = _GetNameOfModFromModFormList(RS_MULTI_CHANGELIST, i, LocalRSMultiActor)
 					i += 1
 				EndWhile
 
