@@ -1,5 +1,6 @@
 ScriptName APPS_Framework_MCM Extends SKI_ConfigBase
 Import StorageUtil
+APPS_FW_Relationship Property RSFW Auto
 
 Int FileLogLevel
 String[] InitOrdering
@@ -303,8 +304,7 @@ Event OnPageReset(String asPage)
 			EndIf
 
 			Quest Token = FormListGet(None, SYNC_MODE_CHANGELIST, i) as Quest
-			Int ModIndex = FormListFind(None, REGISTERED_RS, Token)
-			String NameOfMod = StringListGet(None, REGISTERED_RS, ModIndex)
+			String NameOfMod = _GetNameOfModFromModForm(Token)
 
 			AddTextOption(NameOfMod, SyncMode)
 
@@ -358,8 +358,7 @@ Event OnPageReset(String asPage)
 				EndIf
 
 				Quest Token = FormListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) as Quest
-				Int ModIndex = FormListFind(None, REGISTERED_RS, Token)
-				String NameOfMod = StringListGet(None, REGISTERED_RS, ModIndex)
+				String NameOfMod = _GetNameOfModFromModForm(Token)
 
 				AddTextOption(NameOfMod, SyncMode, NPCSyncModeOptionFlag)
 				i += 1
@@ -388,7 +387,7 @@ Event OnPageReset(String asPage)
 		Int GlobalRSMultiModIndex
 
 		If (!GlobalRSMultiMod)
-			GlobalRSMultiOptionFlag = OPTION_FLAG_DISABLED	;;disable options if the user has not yet selected a GlobalRSMultiMod and fetch ModIndex if GlobalRSMultiMod has been selected
+			GlobalRSMultiOptionFlag = OPTION_FLAG_DISABLED	;disable options if the user has not yet selected a GlobalRSMultiMod and fetch ModIndex if GlobalRSMultiMod has been selected
 			AddMenuOptionST("GlobalRSMultiModsList", "", "$SELECT_MOD")
 		Else
 			GlobalRSMultiOptionFlag = OPTION_FLAG_NONE
@@ -869,10 +868,10 @@ Event OnOptionMenuAccept(Int aiOpenedMenu, Int aiSelectedOption)
 	While (i < MenuOptions)
 		If(aiOpenedMenu == IntListGet(None, MENU_OPTIONS, i))
 			If (aiSelectedOption == MOVE_TOP || aiSelectedOption == MOVE_UP || aiSelectedOption == MOVE_DOWN || aiSelectedOption == MOVE_BOTTOM)
-				If (CurrentPage == Pages[2])
-					ChangeOrder(FormListGet(None, MENU_OPTIONS, i) as Quest, INIT_MODS, aiSelectedOption)
-				ElseIf (CurrentPage == Pages[4])
-					ChangeOrder(FormListGet(None, MENU_OPTIONS, i) as Quest, REGISTERED_RS, aiSelectedOption)
+				If (CurrentPage == Pages[2])	;InitManager
+					ChangeInitOrder(FormListGet(None, MENU_OPTIONS, i) as Quest, aiSelectedOption)	;init order change
+				ElseIf (CurrentPage == Pages[4])	;Priority
+					ChangeRSPriority(FormListGet(None, MENU_OPTIONS, i) as Quest, aiSelectedOption)	;priority change
 				EndIf
 
 			ElseIf (aiSelectedOption == INITIALIZE_MOD)
@@ -933,53 +932,6 @@ Event OnConfigClose()
 	StringListClear(None, MENU_OPTIONS)
 	FormListClear(None, MENU_OPTIONS)
 EndEvent
-
-Function ChangeOrder(Quest akMod, String asArray, Int aiPositionChange)
-	If (asArray != INIT_MODS && asArray != REGISTERED_RS)
-		Return
-	EndIf
-
-	Int ModIndex = FormListFind(None, asArray, akMod)
-
-	If(aiPositionChange == MOVE_TOP)
-		If(ModIndex == 0)
-			Return
-		EndIf
-
-		FormListRemove(None, asArray, akMod)
-		FormListInsert(None, asArray, 0, akMod)
-
-	ElseIf(aiPositionChange == MOVE_UP)
-		If(ModIndex == 0)
-			Return
-		EndIf
-
-		FormListRemove(None, asArray, akMod)
-		FormListInsert(None, asArray, (ModIndex - 1), akMod)
-
-	ElseIf(aiPositionChange == MOVE_DOWN)
-		If(ModIndex == (FormListCount(None, asArray) - 1))
-			Return
-		EndIf
-
-		If(ModIndex == (FormListCount(None, asArray) - 2)) ;this is equivalent to MOVE_BOTTOM
-			FormListRemove(None, asArray, akMod)
-			FormListAdd(None, asArray, akMod)
-		Else
-			FormListRemove(None, asArray, akMod)
-			FormListInsert(None, asArray, (ModIndex + 1), akMod)
-		EndIf
-
-	ElseIf(aiPositionChange == MOVE_BOTTOM)
-		If(ModIndex == FormListCount(None, asArray) - 1)
-			Return
-		EndIf
-
-		FormListRemove(None, asArray, akMod)
-		FormListAdd(None, asArray, akMod)
-
-	EndIf
-EndFunction
 
 Bool Function InitializeMod(Quest akModToInit, Bool abSafetyLock = True)
 	Int ModIndex = FormListFind(None, INIT_MODS, akModToInit)
@@ -1055,6 +1007,159 @@ Bool Function UninstallMod(Quest ModToUninstall, Bool abSafetyLock = True)
 	FormListRemove(None, REGISTERED_MODS, ModToUninstall)
 
 	Return result
+EndFunction
+
+Function ChangeInitOrder(Quest akToken, Int aiPositionChange)
+	Int ModIndex = FormListFind(None, INIT_MODS, akToken)
+
+	If (aiPositionChange == MOVE_TOP)
+		If(ModIndex == 0)
+			Return
+		EndIf
+		
+		FormListRemove(None, INIT_MODS, akToken)
+		FormListInsert(None, INIT_MODS, 0, akToken)
+
+	ElseIf (aiPositionChange == MOVE_UP)
+		If(ModIndex == 0)
+			Return
+		EndIf
+
+		FormListRemove(None, INIT_MODS, akToken)
+		FormListInsert(None, INIT_MODS, (ModIndex - 1), akToken)
+
+	ElseIf (aiPositionChange == MOVE_DOWN)
+		If(ModIndex == (FormListCount(None, INIT_MODS) - 1))
+			Return
+		EndIf
+
+		If(ModIndex == (FormListCount(None, INIT_MODS) - 2)) ;this is equivalent to MOVE_BOTTOM
+			FormListRemove(None, INIT_MODS, akToken)
+			FormListAdd(None, INIT_MODS, akToken)
+		Else
+			FormListRemove(None, INIT_MODS, akToken)
+			FormListInsert(None, INIT_MODS, (ModIndex + 1), akToken)
+		EndIf
+
+	ElseIf (aiPositionChange == MOVE_BOTTOM)
+		If(ModIndex == FormListCount(None, INIT_MODS) - 1)
+			Return
+		EndIf
+
+		FormListRemove(None, INIT_MODS, akToken)
+		FormListAdd(None, INIT_MODS, akToken)
+
+	EndIf
+EndFunction
+
+Function ChangeRSPriority(Quest akMod, Int aiPriorityChange)
+	Int ModIndex = FormListFind(None, REGISTERED_RS, akMod)
+
+	If (aiPriorityChange == MOVE_TOP)
+		If(ModIndex == 0)
+			Return
+		EndIf
+
+		FormListRemove(None, REGISTERED_RS, akMod)
+		FormListInsert(None, REGISTERED_RS, 0, akMod)
+
+	ElseIf (aiPriorityChange == MOVE_UP)
+		If(ModIndex == 0)
+			Return
+		EndIf
+
+		FormListRemove(None, REGISTERED_RS, akMod)
+		FormListInsert(None, REGISTERED_RS, (ModIndex - 1), akMod)
+
+	ElseIf (aiPriorityChange == MOVE_DOWN)
+		If(ModIndex == (FormListCount(None, REGISTERED_RS) - 1))
+			Return
+		EndIf
+
+		If(ModIndex == (FormListCount(None, REGISTERED_RS) - 2)) ;this is equivalent to MOVE_BOTTOM
+			FormListRemove(None, REGISTERED_RS, akMod)
+			FormListAdd(None, REGISTERED_RS, akMod)
+		Else
+			FormListRemove(None, REGISTERED_RS, akMod)
+			FormListInsert(None, REGISTERED_RS, (ModIndex + 1), akMod)
+		EndIf
+
+	ElseIf (aiPriorityChange == MOVE_BOTTOM)
+		If(ModIndex == FormListCount(None, REGISTERED_RS) - 1)
+			Return
+		EndIf
+
+		FormListRemove(None, REGISTERED_RS, akMod)
+		FormListAdd(None, REGISTERED_RS, akMod)
+
+	EndIf
+	
+	;master priority has changed, updating the global syncmode priority
+	If (aiPriorityChange == MOVE_TOP || aiPriorityChange == MOVE_UP)
+		If (FormListFind(None, SYNC_MODE_CHANGELIST, akMod) > 0 && FormListCount(None, SYNC_MODE_CHANGELIST) > 1)
+			RSFW.SetGlobalSyncMode(akMod, RSFW.RemoveGlobalSyncMode(akMod, True))
+		EndIf
+	ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)
+		If (FormListFind(None, SYNC_MODE_CHANGELIST, akMod) != FormListCount(None, SYNC_MODE_CHANGELIST) - 1 && FormListCount(None, SYNC_MODE_CHANGELIST) > 1)
+			RSFW.SetGlobalSyncMode(akMod, RSFW.RemoveGlobalSyncMode(akMod, True))
+		EndIf
+	EndIf
+	
+	;master priority has changed, updating the actors' syncmode priority
+	Int iActorsWithLocalSyncMode = FormListCount(None, SYNC_MODE_NPC_CHANGELIST)
+	Int i
+
+	While (i < iActorsWithLocalSyncMode)
+		Actor ActorWithLocalSyncMode = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, i) as Actor
+		Exception.Notify(FW_LOG, ActorWithLocalSyncMode.GetActorBase().GetName() + " on position " + i)
+		
+		If (aiPriorityChange == MOVE_TOP || aiPriorityChange == MOVE_UP)
+			Exception.Notify(FW_LOG, "Moving Top/Up")
+			If (FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) > 0) ;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
+				Exception.Notify(FW_LOG, "Position of " + _GetNameOfModFromModForm(akMod) + " is " + FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) + " \n" + FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) + " changes in syncmode list")
+				RSFW.SetSyncMode(akMod, ActorWithLocalSyncMode, RSFW.RemoveSyncMode(akMod, ActorWithLocalSyncMode, True))
+			EndIf
+		ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)
+			Exception.Notify(FW_LOG, "Moving Bottom/Down")
+			If(FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) > -1 && FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) != FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) - 1 && FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) > 1) ;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
+				Exception.Notify(FW_LOG, "Position of " + _GetNameOfModFromModForm(akMod) + " is " + FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) + " \n" + FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) + " changes in syncmode list")
+				RSFW.SetSyncMode(akMod, ActorWithLocalSyncMode, RSFW.RemoveSyncMode(akMod, ActorWithLocalSyncMode, True))
+			EndIf
+		EndIf
+		
+		i += 1
+	EndWhile
+	
+	;master priority has changed, updating the global relationship multipliers priority
+	If (aiPriorityChange == MOVE_TOP || aiPriorityChange == MOVE_UP)
+		If (FormListFind(None, RS_MULTI_CHANGELIST, akMod) > 0 && FormListCount(None, RS_MULTI_CHANGELIST) > 1)
+			RSFW.SetGlobalRelationshipMultis(akMod, RSFW.RemoveGlobalRelationshipMultis(akMod))
+		EndIf
+	ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)
+		If (FormListFind(None, RS_MULTI_CHANGELIST, akMod) != FormListCount(None, RS_MULTI_CHANGELIST) - 1 && FormListCount(None, RS_MULTI_CHANGELIST) > 1)
+			RSFW.SetGlobalRelationshipMultis(akMod, RSFW.RemoveGlobalRelationshipMultis(akMod))
+		EndIf
+	EndIf
+	
+	;master priority has changed, updating the actors' relationship multipliers priority
+	Int iActorsWithLocalRSMulti = FormListCount(None, RS_MULTI_NPC_CHANGELIST)
+	i = 0
+	
+	While (i < iActorsWithLocalRSMulti)
+		Actor ActorWithLocalRSMulti = FormListGet(None, RS_MULTI_NPC_CHANGELIST, i) as Actor
+		
+		If (aiPriorityChange == MOVE_TOP || aiPriorityChange == MOVE_UP)
+			If (FormListFind(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST, akMod) > 0 && FormListCount(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST) > 1)  ;if akMod has requested multiplier changes for this actor and it is not the only mod affecting this actor's multipliers
+				RSFW.SetRelationshipMultis(akMod, ActorWithLocalRSMulti, RSFW.RemoveRelationshipMultis(akMod, ActorWithLocalRSMulti))
+			EndIf
+		ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)		
+			If (FormListFind(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST, akMod) != FormListCount(ActorWithLocalRSMulti, RS_MULTI_CHANGELIST) - 1)  ;if akMod has requested multiplier changes for this actor and it is not the only mod affecting this actor's multipliers
+				RSFW.SetRelationshipMultis(akMod, ActorWithLocalRSMulti, RSFW.RemoveRelationshipMultis(akMod, ActorWithLocalRSMulti))
+			EndIf
+		EndIf
+		
+		i += 1
+	EndWhile
 EndFunction
 
 String Function _GetNameOfModFromModFormList(String asFormList, Int auiIndex, Actor akNPC = None)

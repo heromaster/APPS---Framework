@@ -2,6 +2,15 @@ ScriptName APPS_RSFW_Test2_MCM Extends SKI_ConfigBase
 Import StorageUtil
 APPS_FW_Relationship Property RSFW Auto
 Actor Property AlvorREF Auto
+Quest Property Token Auto
+
+Event OnInit()
+	If(!Self.IsRunning())
+		Return
+	Else
+		Parent.OnInit()
+	EndIf
+EndEvent
 
 Event OnPageReset(String asPage)
 	SetCursorFillMode(TOP_TO_BOTTOM)
@@ -23,7 +32,7 @@ Event OnPageReset(String asPage)
 	AddEmptyOption()
 	AddTextOption("SyncMode", SyncMode)
 	AddTextOption("SyncMode Changes", RSFW.GetSyncModeChanges(AlvorREF))
-	AddTextOption("SyncMode Position", RSFW.GetSyncModePriority(Self, AlvorREF))
+	AddTextOption("SyncMode Position", RSFW.GetSyncModePriority(Token, AlvorREF))
 	AddEmptyOption()
 	AddTextOption("RS Points", RSFW.GetRelationshipPoints(AlvorREF))
 	AddTextOption("To next rank", RSFW.GetRPForNextRank(AlvorREF))

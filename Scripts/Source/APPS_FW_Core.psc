@@ -44,6 +44,22 @@ Bool Function IsModRegistered(String asModName)
 	Return False
 EndFunction
 
+Bool Function IsModRegisteredWithRSMod(String asModName)
+	Int RegisteredMods = StorageUtil.FormListCount(None, REGISTERED_RS)
+	Int i
+		
+		While (i < RegisteredMods)
+			Quest Mod = StorageUtil.FormListGet(None, REGISTERED_RS, i) as Quest
+			If (StorageUtil.GetStringValue(Mod, MOD_NAME) == asModName)
+				Return True
+			Else
+				i += 1
+			EndIf
+		EndWhile
+	
+	Return False
+EndFunction
+
 ;/ |------------------------------------------------------------------------------------------------------------|
    |Private functions below. Unless you know what you are doing, don't use them.								|
    |------------------------------------------------------------------------------------------------------------| /;
