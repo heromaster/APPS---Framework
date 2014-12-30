@@ -281,8 +281,7 @@ Event OnPageReset(String asPage)
 			EndIf
 
 			Quest Token = FormListGet(None, SYNC_MODE_CHANGELIST, i) as Quest
-			Int ModIndex = FormListFind(None, REGISTERED_RS, Token)
-			String NameOfMod = StringListGet(None, REGISTERED_RS, ModIndex)
+			String NameOfMod = _GetNameOfModFromModForm(Token)
 
 			AddTextOption(NameOfMod, SyncMode)
 
@@ -336,8 +335,7 @@ Event OnPageReset(String asPage)
 				EndIf
 
 				Quest Token = FormListGet(SyncModeNPC, SYNC_MODE_CHANGELIST, i) as Quest
-				Int ModIndex = FormListFind(None, REGISTERED_RS, Token)
-				String NameOfMod = StringListGet(None, REGISTERED_RS, ModIndex)
+				String NameOfMod = _GetNameOfModFromModForm(Token)
 
 				AddTextOption(NameOfMod, SyncMode, NPCSyncModeOptionFlag)
 				i += 1
