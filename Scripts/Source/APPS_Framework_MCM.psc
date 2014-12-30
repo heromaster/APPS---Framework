@@ -207,7 +207,6 @@ Event OnPageReset(String asPage)
 
 		While (i < FormListCount(None, INIT_MODS))
 			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetNameOfModFromModFormList(INIT_MODS, i), InitControlFlag))
-			;StringListAdd(None, MENU_OPTIONS, _GetNameOfModFromModFormList(INIT_MODS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, INIT_MODS, i))
 			i += 1
 		EndWhile
@@ -237,7 +236,6 @@ Event OnPageReset(String asPage)
 
 		While (i < FormListCount(None, UNINSTALL_MODS))
 			IntListAdd(None, MENU_OPTIONS, AddTextOption(_GetNameOfModFromModFormList(UNINSTALL_MODS, i), "", UninstallControlFlag))
-			;StringListAdd(None, MENU_OPTIONS, _GetNameOfModFromModFormList(UNINSTALL_MODS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, UNINSTALL_MODS, i))
 			i += 1
 		EndWhile
@@ -252,7 +250,6 @@ Event OnPageReset(String asPage)
 
 		While (i < FormListCount(None, REGISTERED_RS))
 			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetNameOfModFromModFormList(REGISTERED_RS, i)))
-			;StringListAdd(None, MENU_OPTIONS, StringListGet(None, REGISTERED_RS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, REGISTERED_RS, i))
 			i += 1
 		EndWhile
@@ -1120,18 +1117,13 @@ Function ChangeRSPriority(Quest akMod, Int aiPriorityChange)
 
 	While (i < iActorsWithLocalSyncMode)
 		Actor ActorWithLocalSyncMode = FormListGet(None, SYNC_MODE_NPC_CHANGELIST, i) as Actor
-		Exception.Notify(FW_LOG, ActorWithLocalSyncMode.GetActorBase().GetName() + " on position " + i)
 		
 		If (aiPriorityChange == MOVE_TOP || aiPriorityChange == MOVE_UP)
-			Exception.Notify(FW_LOG, "Moving Top/Up")
 			If (FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) > 0) ;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
-				Exception.Notify(FW_LOG, "Position of " + _GetNameOfModFromModForm(akMod) + " is " + FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) + " \n" + FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) + " changes in syncmode list")
 				RSFW.SetSyncMode(akMod, ActorWithLocalSyncMode, RSFW.RemoveSyncMode(akMod, ActorWithLocalSyncMode, True))
 			EndIf
 		ElseIf (aiPriorityChange == MOVE_BOTTOM || aiPriorityChange == MOVE_DOWN)
-			Exception.Notify(FW_LOG, "Moving Bottom/Down")
 			If(FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) > -1 && FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) != FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) - 1 && FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) > 1) ;if akMod has requested SyncMode changes for this actor and it is not the only mod affecting this actor's syncmode
-				Exception.Notify(FW_LOG, "Position of " + _GetNameOfModFromModForm(akMod) + " is " + FormListFind(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST, akMod) + " \n" + FormListCount(ActorWithLocalSyncMode, SYNC_MODE_CHANGELIST) + " changes in syncmode list")
 				RSFW.SetSyncMode(akMod, ActorWithLocalSyncMode, RSFW.RemoveSyncMode(akMod, ActorWithLocalSyncMode, True))
 			EndIf
 		EndIf
