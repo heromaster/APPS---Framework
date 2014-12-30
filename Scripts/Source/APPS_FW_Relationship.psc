@@ -2330,7 +2330,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 		IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 1)
 	EndIf
 
-	FormListAdd(None, RS_MULTI_NPC_CHANGELIST, akNPC)
+	FormListAdd(None, RS_MULTI_NPC_CHANGELIST, akNPC, False)
 	Return True
 EndFunction
 
@@ -2714,6 +2714,8 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMulti
 		IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 1)
 	EndIf
 	
+	FormListAdd(None, RS_MULTI_NPC_CHANGELIST, akNPC, False)	
+	
 	Return True
 EndFunction
 
@@ -2958,7 +2960,7 @@ Float Function RemoveRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRel
 		If (FormListCount(akNPC, RS_MULTI_CHANGELIST) == 0)
 			FormListClear(akNPC, RS_MULTI_CHANGELIST)
 
-			FormListRemove(None, SYNC_MODE_NPC_CHANGELIST, akNPC) 	;remove the NPC from the list of NPC's with local relationship changes
+			FormListRemove(None, RS_MULTI_NPC_CHANGELIST, akNPC) 	;remove the NPC from the list of NPC's with local relationship changes
 
 			FloatListClear(akNPC, RS_MULTI_S0_S1_CHANGELIST)
 			IntListClear(akNPC, RS_MULTI_S0_S1_CHANGELIST)
@@ -3023,8 +3025,8 @@ Float Function RemoveRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRel
 			UnSetFloatValue(akNPC, RS_MULTI_SM1_S0)
 
 			;if there is no other NPC with local relationship multiplier changes, clear the corresponding array
-			If (FormListCount(None, SYNC_MODE_NPC_CHANGELIST) == 0)
-				FormListClear(None, SYNC_MODE_NPC_CHANGELIST)
+			If (FormListCount(None, RS_MULTI_NPC_CHANGELIST) == 0)
+				FormListClear(None, RS_MULTI_NPC_CHANGELIST)
 			EndIf
 		EndIf
 
@@ -3318,7 +3320,7 @@ Float[] Function RemoveRelationshipMultis(Quest akToken, Actor akNPC)
 	If (FormListCount(akNPC, RS_MULTI_CHANGELIST) == 0)
 		FormListClear(akNPC, RS_MULTI_CHANGELIST)
 
-		FormListRemove(None, SYNC_MODE_NPC_CHANGELIST, akNPC) 	;remove the NPC from the list of NPC's with local relationship changes
+		FormListRemove(None, RS_MULTI_NPC_CHANGELIST, akNPC) 	;remove the NPC from the list of NPC's with local relationship changes
 
 		FloatListClear(akNPC, RS_MULTI_S0_S1_CHANGELIST)
 		IntListClear(akNPC, RS_MULTI_S0_S1_CHANGELIST)
@@ -3383,8 +3385,8 @@ Float[] Function RemoveRelationshipMultis(Quest akToken, Actor akNPC)
 		UnSetFloatValue(akNPC, RS_MULTI_SM1_S0)
 
 		;if there is no other NPC with local relationship multiplier changes, clear the corresponding array
-		If (FormListCount(None, SYNC_MODE_NPC_CHANGELIST) == 0)
-			FormListClear(None, SYNC_MODE_NPC_CHANGELIST)
+		If (FormListCount(None, RS_MULTI_NPC_CHANGELIST) == 0)
+			FormListClear(None, RS_MULTI_NPC_CHANGELIST)
 		EndIf
 	EndIf
 

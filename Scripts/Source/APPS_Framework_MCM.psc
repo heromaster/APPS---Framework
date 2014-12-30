@@ -230,7 +230,6 @@ Event OnPageReset(String asPage)
 
 		While (i < FormListCount(None, INIT_MODS))
 			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetNameOfModFromModFormList(INIT_MODS, i), InitControlFlag))
-			;StringListAdd(None, MENU_OPTIONS, _GetNameOfModFromModFormList(INIT_MODS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, INIT_MODS, i))
 			i += 1
 		EndWhile
@@ -260,7 +259,6 @@ Event OnPageReset(String asPage)
 
 		While (i < FormListCount(None, UNINSTALL_MODS))
 			IntListAdd(None, MENU_OPTIONS, AddTextOption(_GetNameOfModFromModFormList(UNINSTALL_MODS, i), "", UninstallControlFlag))
-			;StringListAdd(None, MENU_OPTIONS, _GetNameOfModFromModFormList(UNINSTALL_MODS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, UNINSTALL_MODS, i))
 			i += 1
 		EndWhile
@@ -275,7 +273,6 @@ Event OnPageReset(String asPage)
 
 		While (i < FormListCount(None, REGISTERED_RS))
 			IntListAdd(None, MENU_OPTIONS, AddMenuOption("#" + (i + 1) As String + ": ", _GetNameOfModFromModFormList(REGISTERED_RS, i)))
-			;StringListAdd(None, MENU_OPTIONS, StringListGet(None, REGISTERED_RS, i))
 			FormListAdd(None, MENU_OPTIONS, FormListGet(None, REGISTERED_RS, i))
 			i += 1
 		EndWhile
@@ -446,7 +443,7 @@ Event OnPageReset(String asPage)
 			i = 0
 
 				While (i < iLocalRSMultiMods)
-					LocalRSMultiModsListOptions[i] = _GetNameOfModFromModFormList(RS_MULTI_CHANGELIST, i)
+					LocalRSMultiModsListOptions[i] = _GetNameOfModFromModFormList(RS_MULTI_CHANGELIST, i, LocalRSMultiActor)
 					i += 1
 				EndWhile
 
