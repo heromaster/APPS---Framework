@@ -1021,29 +1021,21 @@ Bool Function UninstallMod(Quest ModToUninstall, Bool abSafetyLock = True)
 EndFunction
 
 Function ChangeInitOrder(Quest akToken, Int aiPositionChange)
-	Int ModIndex = RSFW._GetModIndexFromForm(akToken, INIT_MODS)
+	Int ModIndex = FormListFind(None, INIT_MODS, akToken)
 
 	If (aiPositionChange == MOVE_TOP)
 		If(ModIndex == 0)
-			Exception.Notify(FW_LOG, FormListCount(None, INIT_MODS) + " mods in INIT_MODS array")
-			Exception.Notify(FW_LOG, "Mod" + _GetNameOfModFromModForm(akToken) + " is at position " + RSFW._GetModIndexFromForm(akToken, INIT_MODS) + ", returning")
 			Return
 		EndIf
 		
-		Exception.Notify(FW_LOG, FormListCount(None, INIT_MODS) + " mods in INIT_MODS array")
-		Exception.Notify(FW_LOG, "Mod" + _GetNameOfModFromModForm(akToken) + " is at position " + RSFW._GetModIndexFromForm(akToken, INIT_MODS) + ", working")
 		FormListRemove(None, INIT_MODS, akToken)
 		FormListInsert(None, INIT_MODS, 0, akToken)
 
 	ElseIf (aiPositionChange == MOVE_UP)
 		If(ModIndex == 0)
-			Exception.Notify(FW_LOG, FormListCount(None, INIT_MODS) + " mods in INIT_MODS array")
-			Exception.Notify(FW_LOG, "Mod" + _GetNameOfModFromModForm(akToken) + " is at position " + RSFW._GetModIndexFromForm(akToken, INIT_MODS) + ", returning")
 			Return
 		EndIf
 
-		Exception.Notify(FW_LOG, FormListCount(None, INIT_MODS) + " mods in INIT_MODS array")
-		Exception.Notify(FW_LOG, "Mod" + _GetNameOfModFromModForm(akToken) + " is at position " + RSFW._GetModIndexFromForm(akToken, INIT_MODS) + ", working")
 		FormListRemove(None, INIT_MODS, akToken)
 		FormListInsert(None, INIT_MODS, (ModIndex - 1), akToken)
 
@@ -1072,7 +1064,7 @@ Function ChangeInitOrder(Quest akToken, Int aiPositionChange)
 EndFunction
 
 Function ChangeRSPriority(Quest akMod, Int aiPriorityChange)
-	Int ModIndex = RSFW._GetModIndexFromForm(akMod, REGISTERED_RS)
+	Int ModIndex = FormListFind(None, REGISTERED_RS, akMod)
 
 	If (aiPriorityChange == MOVE_TOP)
 		If(ModIndex == 0)
