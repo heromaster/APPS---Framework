@@ -147,7 +147,7 @@ Event OnPageReset(String asPage)
 		EndWhile
 
 		SetCursorPosition(1)	;go to top of right column
-		AddToggleOptionST("ResetMenusOnClose", "$RESET_MENUS_ON_CLOSE", False)
+		AddToggleOptionST("ResetMenusOnClose", "$RESET_MENUS_ON_CLOSE", GetIntValue(None, RESET_MENUS_ON_CLOSE))
 
 	ElseIf (asPage == Pages[1])	;info manager
 		SetCursorFillMode(TOP_TO_BOTTOM)
