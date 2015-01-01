@@ -5,10 +5,6 @@ Actor Property SigridREF Auto
 Quest Property Token Auto
 
 Event OnInit()
-	AdjustIntValue(Self, "OnInitCounter", 1)
-
-	Exception.Notify("APPS - Framework", "Counter of " + Self.GetName() + ": " + GetIntValue(Self, "OnInitCounter"))
-	
 	If(!Self.IsRunning())
 		Return
 	Else
