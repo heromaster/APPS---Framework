@@ -3431,8 +3431,14 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 
 	Float NewRP
 	Float CurrentRP = GetRelationshipPoints(akNPC)
-	Int CurrentRank = akNPC.GetFactionRank(RelationshipRankFaction)
+	Int CurrentRank
 	Bool Break
+	
+	If(!akNPC.IsInFaction(RelationshipRankFaction))
+		CurrentRank = 0
+	Else
+		CurrentRank = akNPC.GetFactionRank(RelationshipRankFaction)
+	EndIf
 
 	If(aiRelationshipPoints > 0)
 		While(!Break)
