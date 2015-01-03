@@ -9,7 +9,14 @@ Event OnStoryRelationshipChange(ObjectReference akActor1, ObjectReference akActo
 	Actor NPC
 	Int i
 
-	If(akActor1 == PlayerRef)
+	Exception.Notify("Actor 1: " + (akActor1 As Actor).GetActorBase().GetName() + "\nActor 2: " + (akActor2 As Actor).GetActorBase().GetName() + "\nOld relationship rank: " + auiOldRelationship + "\nNew relationship rank: " + auiNewRelationship, False, False)
+
+	If(auiOldRelationship == auiNewRelationship)
+		Stop()
+		Return
+	EndIf
+
+	If((akActor1 As Actor) == PlayerRef)
 		PC = akActor1 As Actor
 		NPC = akActor2 As Actor
 	Else
