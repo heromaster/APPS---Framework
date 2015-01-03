@@ -3,6 +3,7 @@ Import StorageUtil
 APPS_FW_Relationship Property RSFW Auto
 Actor Property AlvorREF Auto
 Quest Property Token Auto
+Faction Property RelationshipRankFaction Auto
 
 Event OnInit()
 	If(!Self.IsRunning())
@@ -27,6 +28,15 @@ Event OnPageReset(String asPage)
 	ElseIf (RSFW.GetSyncMode(AlvorREF) == 3)
 		SyncMode = "$BOTH_WAYS"
 	EndIf
+	
+	;convert vanilla GetFactionRank() return to a more useful result
+	Int CurrentRank
+	
+	If(!AlvorREF.IsInFaction(RelationshipRankFaction))
+		CurrentRank = 0
+	Else
+		CurrentRank = AlvorREF.GetFactionRank(RelationshipRankFaction)
+	EndIf
 
 	AddHeaderOption(AlvorREF.GetActorBase().GetName())
 	AddEmptyOption()
@@ -34,6 +44,7 @@ Event OnPageReset(String asPage)
 	AddTextOption("SyncMode Changes", RSFW.GetSyncModeChanges(AlvorREF))
 	AddTextOption("SyncMode Position", RSFW.GetSyncModePriority(Token, AlvorREF))
 	AddEmptyOption()
+	AddTextOption("Current rank", CurrentRank)
 	AddTextOption("RS Points", RSFW.GetRelationshipPoints(AlvorREF))
 	AddTextOption("To next rank", RSFW.GetRPForNextRank(AlvorREF))
 	AddTextOption("To previous rank", RSFW.GetRPForPreviousRank(AlvorREF))
