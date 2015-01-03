@@ -170,7 +170,7 @@ Int Function RemoveGlobalSyncMode(Quest akToken, Bool abVerbose = True)
 	Return myGlobalSyncMode
 EndFunction
 
-Int Function GetSyncMode(Actor akNPC, Bool abGetGlobalIfNotFound = True)
+Int Function GetSyncMode(Actor akNPC, Bool abGetGlobalIfNotFound = True, Bool abNotifyIfGetGlobal = True)
 	If(akNPC == None)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
 		Return -1
@@ -178,7 +178,9 @@ Int Function GetSyncMode(Actor akNPC, Bool abGetGlobalIfNotFound = True)
 
 	If(!HasIntValue(akNPC, SYNC_MODE))
 		If(abGetGlobalIfNotFound)
-			Notify(FW_LOG, "Sync mode on " + akNPC.GetActorBase().GetName() + " was not set, returning global sync mode.", False)
+			If (abNotifyIfGetGlobal)
+				Notify(FW_LOG, "Sync mode on " + akNPC.GetActorBase().GetName() + " was not set, returning global sync mode.", False)
+			EndIf
 			Return GetGlobalSyncMode()
 		Else
 			Notify(FW_LOG, "No mod changed the sync mode on " + akNPC.GetActorBase().GetName() + ".", False)
@@ -766,7 +768,7 @@ EndFunction
 
 Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
-	
+
 	;/ beginValidation /;
 	If(ModIndex == -1)
 		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access SetGlobalRelationshipMultis(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
@@ -796,9 +798,9 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 			auiMultipliers[19] < 0.0)
 		Throw(FW_LOG, "Argument auiMultipliers was not set correctly. Every item in the array has to be either a positive float or zero.", "Invalid arguments")
 		Return False
-	EndIf	
+	EndIf
 	;/ endValidation /;
-	
+
 	String ModName = GetStringValue(akToken, MOD_NAME)
 	Int ModIndex2 = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST) ; Get position of current mod in this list
 	Int RSMultiChanges = FormListCount(None, RS_MULTI_CHANGELIST) ;Get the list of mods which do change the global relationship multipliers
@@ -888,7 +890,7 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 			Notify(FW_LOG, "Global multiplier for rank " + -1 + " to " + 0 + " got updated by " + ModName + ".", False)
 		EndIf
 		;/ closeFold /;
-		
+
 		;If the mod is also on the last position then also update the global relationship multipliers
 		If(ModIndex2 == RSMultiChanges - 1)
 			SetFloatValue(None, RS_MULTI_S0_S1_CHANGELIST, auiMultipliers[0])
@@ -968,7 +970,7 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 				IntListInsert(None, RS_MULTI_SM2_SM1_CHANGELIST, i, 0)
 				FloatListInsert(None, RS_MULTI_SM1_S0_CHANGELIST, i, 2.0)
 				IntListInsert(None, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
-				
+
 				If (auiMultipliers[0])
 					FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, auiMultipliers[0])
 					IntListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, 1)	; 0: default framework values, 1: custom mod values
@@ -1030,13 +1032,13 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 					FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, auiMultipliers[19])
 					IntListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, 1)
 				EndIf
-				
+
 				Notify(FW_LOG, "Can't change the global relationship multipliers for " + ModName + " because they are already set by a mod with higher priority. However, they will be set, if this mod has the highest priority.", False)
 				Return True
 			EndIf
 		EndWhile
 	EndIf
-		
+
 	;No changes made to the array, so just add the value to it and apply the changes to the framework
 	FloatListAdd(None, RS_MULTI_S0_S1_CHANGELIST, i, 1.0)	;Add the default values. We will change them to what was requested later
 	IntListAdd(None, RS_MULTI_S0_S1_CHANGELIST, i, 0)	; 0: default framework values, 1: custom mod values
@@ -1078,7 +1080,7 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 	IntListAdd(None, RS_MULTI_SM2_SM1_CHANGELIST, i, 0)
 	FloatListAdd(None, RS_MULTI_SM1_S0_CHANGELIST, i, 2.0)
 	Int i = IntListAdd(None, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
-	
+
 	If (auiMultipliers[0])
 		FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, auiMultipliers[0])
 		IntListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, 1)	; 0: default framework values, 1: custom mod values
@@ -1140,7 +1142,7 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 		FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, i, auiMultipliers[19])
 		IntListSet(None, RS_MULTI_SM1_S0_CHANGELIST, i, 1)
 	EndIf
-	
+
 	Return True
 EndFunction
 
@@ -1875,7 +1877,7 @@ Float[] Function RemoveGlobalRelationshipMultis(Quest akToken)
 	Return myGlobalRelationshipMulti
 EndFunction
 
-Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abGetGlobalIfNotFound = True)
+Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abGetGlobalIfNotFound = True, Bool abNotifyIfGetGlobal = True)
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC for function GetRelationshipMulti() is None!", "Invalid arguments")
 		Return -1.0
@@ -1910,6 +1912,9 @@ Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int
 		Return GetFloatValue(akNPC, MultiplierString)
 	Else
 		If(abGetGlobalIfNotFound)
+			If (abNotifyIfGetGlobal)
+				Notify(FW_LOG, "Relationship multiplier on " + akNPC.GetActorBase().GetName() + " was not set for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", returning global relationship multiplier.", False)
+			EndIf
 			Return GetGlobalRelationshipMulti(aiFromRelationshipRank, aiToRelationshipRank)
 		Else
 			Return -1.0
@@ -2343,7 +2348,7 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMulti
 		Return False
 	ElseIf(!akNPC)
 		Throw(FW_LOG, "Argument akNPC for function SetRelationshipMultis() is None!", "Invalid arguments")
-		Return False	
+		Return False
 	ElseIf (auiMultipliers.Length != 20)
 		Throw(FW_LOG, "Argument auiMultipliers was not set correctly. The array has to be 20-items long.", "Invalid arguments")
 		Return False
@@ -2369,9 +2374,9 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMulti
 			auiMultipliers[19] < 0.0)
 		Throw(FW_LOG, "Argument auiMultipliers was not set correctly. Every item in the array has to be either a positive float or zero.", "Invalid arguments")
 		Return False
-	EndIf	
+	EndIf
 	;/ endValidation /;
-	
+
 	String ModName = GetStringValue(akToken, MOD_NAME)
 	Int ModIndex2 = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) ; Get position of current mod in this list
 	Int RSMultiChanges = FormListCount(akNPC, RS_MULTI_CHANGELIST) ;Get the list of mods which change this actor's relationship multipliers
@@ -2461,7 +2466,7 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMulti
 			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + -1 + " to " + 0 + " got updated by " + ModName + ".", False)
 		EndIf
 		;/ closeFold /;
-		
+
 		;If the mod is also on the last position then also update the actor's relationship multipliers
 		If(ModIndex2 == RSMultiChanges - 1)
 			SetFloatValue(akNPC, RS_MULTI_S0_S1_CHANGELIST, auiMultipliers[0])
@@ -2541,7 +2546,7 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMulti
 				IntListInsert(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, 0)
 				FloatListInsert(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 2.0)
 				IntListInsert(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
-				
+
 				If (auiMultipliers[0])
 					FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, auiMultipliers[0])
 					IntListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, 1)	; 0: default framework values, 1: custom mod values
@@ -2603,13 +2608,13 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMulti
 					FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, auiMultipliers[19])
 					IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, 1)
 				EndIf
-				
+
 				Notify(FW_LOG, "Can't change the global relationship multipliers of " + akNPC.GetActorBase().GetName() + " for " + ModName + " because they are already set by a mod with higher priority. However, they will be set, if this mod has the highest priority.", False)
 				Return True
 			EndIf
 		EndWhile
 	EndIf
-		
+
 	;No changes made to the array, so just add the value to it and apply the changes to the framework
 	FloatListAdd(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, 1.0)	;Add the default values. We will change them to what was requested later
 	IntListAdd(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, 0)	; 0: default framework values, 1: custom mod values
@@ -2651,7 +2656,7 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMulti
 	IntListAdd(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, 0)
 	FloatListAdd(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 2.0)
 	Int i = IntListAdd(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
-	
+
 	If (auiMultipliers[0])
 		FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, auiMultipliers[0])
 		IntListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, 1)	; 0: default framework values, 1: custom mod values
@@ -2713,9 +2718,9 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMulti
 		FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, auiMultipliers[19])
 		IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 1)
 	EndIf
-	
-	FormListAdd(None, RS_MULTI_NPC_CHANGELIST, akNPC, False)	
-	
+
+	FormListAdd(None, RS_MULTI_NPC_CHANGELIST, akNPC, False)
+
 	Return True
 EndFunction
 
