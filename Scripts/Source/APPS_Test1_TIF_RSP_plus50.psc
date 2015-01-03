@@ -6,7 +6,7 @@ Scriptname APPS_Test1_TIF_RSP_plus50 Extends TopicInfo Hidden
 Function Fragment_0(ObjectReference akSpeakerRef)
 Actor akSpeaker = akSpeakerRef as Actor
 ;BEGIN CODE
-RSFW.ModRelationshipPoints(AlvorREF, 50)
+RSFW.ModRelationshipPoints(AlvorREF, 500)
 ;END CODE
 EndFunction
 ;END FRAGMENT

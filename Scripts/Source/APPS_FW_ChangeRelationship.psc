@@ -9,7 +9,9 @@ Event OnStoryRelationshipChange(ObjectReference akActor1, ObjectReference akActo
 	Actor NPC
 	Int i
 
-	If(akActor1 == PlayerRef)
+	Exception.Notify("APPS - Framework", "Actor 1: " + (akActor1 As Actor).GetActorBase().GetName() + "\nActor 2: " + (akActor2 As Actor).GetActorBase().GetName() + "\nOld relationship rank: " + auiOldRelationship + "\nNew relationship rank: " + auiNewRelationship, False, False)
+
+	If((akActor1 As Actor) == PlayerRef)
 		PC = akActor1 As Actor
 		NPC = akActor2 As Actor
 	Else
@@ -39,6 +41,7 @@ Event OnStoryRelationshipChange(ObjectReference akActor1, ObjectReference akActo
 
 	SetIntValue(NPC, "APPS.Framework.Relationship.IgnoreRankChange", 1)
 	RS.SetRelationshipPoints(NPC, auiNewRelationship * 100)
+	UnsetIntValue(NPC, "APPS.Framework.Relationship.IgnoreRankChange")
 
 	Stop()
 EndEvent

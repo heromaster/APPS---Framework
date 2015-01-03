@@ -148,7 +148,7 @@ Event OnPageReset(String asPage)
 		EndWhile
 
 		SetCursorPosition(1)	;go to top of right column
-		AddToggleOptionST("ResetMenusOnClose", "$RESET_MENUS_ON_CLOSE", False)
+		AddToggleOptionST("ResetMenusOnClose", "$RESET_MENUS_ON_CLOSE", GetIntValue(None, RESET_MENUS_ON_CLOSE))
 
 	ElseIf (asPage == Pages[1])	;info manager
 		String TokenLoggingMethod
@@ -314,8 +314,8 @@ Event OnPageReset(String asPage)
 		AddEmptyOption()
 
 		If (!SyncModeNPC)
-			NPCSyncModeOptionFlag = OPTION_FLAG_DISABLED
-			AddMenuOptionST("SyncModeNPCList", "", "$SELECT_NPC")	;disable options if the user has not yet selected a SyncModeNPC
+			NPCSyncModeOptionFlag = OPTION_FLAG_HIDDEN	;hide data if the user has not yet selected a SyncModeNPC
+			AddMenuOptionST("SyncModeNPCList", "", "$SELECT_NPC")
 		Else
 			NPCSyncModeOptionFlag = OPTION_FLAG_NONE
 			AddMenuOptionST("SyncModeNPCList", "", SyncModeNPC.GetActorBase().GetName())
@@ -384,7 +384,7 @@ Event OnPageReset(String asPage)
 		Int GlobalRSMultiModIndex
 
 		If (!GlobalRSMultiMod)
-			GlobalRSMultiOptionFlag = OPTION_FLAG_DISABLED	;disable options if the user has not yet selected a GlobalRSMultiMod and fetch ModIndex if GlobalRSMultiMod has been selected
+			GlobalRSMultiOptionFlag = OPTION_FLAG_HIDDEN	;hide data if the user has not yet selected a GlobalRSMultiMod and fetch ModIndex if GlobalRSMultiMod has been selected
 			AddMenuOptionST("GlobalRSMultiModsList", "", "$SELECT_MOD")
 		Else
 			GlobalRSMultiOptionFlag = OPTION_FLAG_NONE
@@ -434,7 +434,7 @@ Event OnPageReset(String asPage)
 		AddEmptyOption()
 
 		If (!LocalRSMultiActor)
-			LocalRSMultiActorOptionFlag = OPTION_FLAG_DISABLED
+			LocalRSMultiActorOptionFlag = OPTION_FLAG_HIDDEN	;hide data if the user has not yet selected a LocalRSMultiActor
 			AddMenuOptionST("LocalRSMultiActorsList", "", "$SELECT_NPC")
 		Else
 			;filling up the LocalRSMultiModsListOptions array with the names of the mods, to be shown as a menu later.
@@ -456,7 +456,7 @@ Event OnPageReset(String asPage)
 		Int LocalRSMultiModIndex
 
 		If (!LocalRSMultiMod)
-			LocalRSMultiModOptionFlag = OPTION_FLAG_DISABLED
+			LocalRSMultiModOptionFlag = OPTION_FLAG_HIDDEN	;hide data if the user has not yet selected a LocalRSMultiMod
 			AddMenuOptionST("LocalRSMultiModsList", "", "$SELECT_MOD")
 		Else
 			LocalRSMultiModOptionFlag = OPTION_FLAG_NONE
@@ -777,10 +777,13 @@ State LocalRSMultiActorsList
 	EndEvent
 
 	Event OnMenuAcceptST(Int aiSelectedOption)
+		LocalRSMultiActorsListSelection = aiSelectedOption	;store the user's selection as a variable to be used the next time the menu is displayed
+	
 		;set the LocalRSMultiActor, remove the disabled flag, clear the LocalRSMultiMod and let the OnPageReset() handle the rest
 		LocalRSMultiActor = FormListGet(None, RS_MULTI_NPC_CHANGELIST, aiSelectedOption) as Actor
+		LocalRSMultiActorsListSelection = aiSelectedOption
 		LocalRSMultiActorOptionFlag = OPTION_FLAG_NONE
-		LocalRSMultiMod = None
+		LocalRSMultiMod = None	;reset the selected mod, since we changed actor
 
 		ForcePageReset()
 	EndEvent
@@ -799,6 +802,7 @@ State LocalRSMultiModsList
 	Event OnMenuAcceptST(Int aiSelectedOption)
 		;set the LocalRSMultiMod, remove the disabled flag and let the OnPageReset() handle the rest
 		LocalRSMultiMod = FormListGet(LocalRSMultiActor, RS_MULTI_CHANGELIST, aiSelectedOption) as Quest
+		LocalRSMultiModsListSelection = aiSelectedOption
 		LocalRSMultiModOptionFlag = OPTION_FLAG_NONE
 
 		ForcePageReset()
@@ -1231,15 +1235,15 @@ All tabs
 	- disable everything if any mod is initializing or uninstalling
 	- seperate init safety lockup from uninstall safety lockup and display messages accordingly
 	- display instructions to close MCM menu
+	- use OPTION_FLAG_HIDDEN instead of OPTION_FLAG_DISABLED to hide data until user has selected all options
+	- Clear stored menu selections (e.g. SyncModeNPC) OnConfigOpen
 ------------------------------------------------------------------------------------------------------------------------
 TODO:
 All tabs:
-	- Max array size & MCM menu sice: 128
+	? Max array size & MCM menu sice: 128 (should be fixed with new SKSE)
 	- Fix Exception $translations
 	- Optimize all increasing WHILE loops
 	- Translate pages names
-	- Clear stored menu selections (e.g. SyncModeNPC) OnConfigOpen
-	- Experiment with OPTION_FLAG_HIDDEN
 Tab: Uninstall Manager
 	- Test manager
 	- Decide if AddTextOption should work with the Text or the Value, i.e. whether "" should be the text or the value
