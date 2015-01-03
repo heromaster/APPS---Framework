@@ -35,7 +35,7 @@ Event OnPageReset(String asPage)
 	If(!AlvorREF.IsInFaction(RelationshipRankFaction))
 		CurrentRank = 0
 	Else
-		CurrentRank = AlvorREF.GetFactionRank(RelationshipRankFaction)
+		CurrentRank = AlvorREF.GetFactionRank(RelationshipRankFaction) / 10
 	EndIf
 
 	AddHeaderOption(AlvorREF.GetActorBase().GetName())

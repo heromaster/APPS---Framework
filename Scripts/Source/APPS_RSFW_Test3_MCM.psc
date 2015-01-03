@@ -35,7 +35,7 @@ Event OnPageReset(String asPage)
 	If(!SigridREF.IsInFaction(RelationshipRankFaction))
 		CurrentRank = 0
 	Else
-		CurrentRank = SigridREF.GetFactionRank(RelationshipRankFaction)
+		CurrentRank = SigridREF.GetFactionRank(RelationshipRankFaction) / 10
 	EndIf
 
 	AddHeaderOption(SigridREF.GetActorBase().GetName())
