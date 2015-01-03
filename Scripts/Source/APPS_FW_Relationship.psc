@@ -3398,26 +3398,25 @@ Float[] Function RemoveRelationshipMultis(Quest akToken, Actor akNPC)
 	Return myRelationshipMulti
 EndFunction
 
-		Float Function GetRelationshipPoints(Actor akNPC)
-			If(!akNPC)
-				Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
-				Return - 500.0
-			EndIf
+Float Function GetRelationshipPoints(Actor akNPC)
+	If(!akNPC)
+		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
+		Return - 500.0
+	EndIf
 
-			Exception.Notify(FW_LOG, "Has a value is: " + HasFloatValue(akNPC, RSP), False, False)
+	If(!HasFloatValue(akNPC, RSP) && akNPC.GetRelationshipRank(PlayerRef) != 0)
+		If(GetSyncMode(akNPC) == 1 || GetSyncMode(akNPC) == 3)
+			SetIntValue(akNPC, IGNORE_CHANGES, 1)
+			SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(PlayerRef) * 100)
+		Else
+			SetRelationshipPoints(akNPC, 0)
+		EndIf
+	ElseIf(!HasFloatValue(akNPC, RSP) && akNPC.GetRelationshipRank(PlayerRef) == 0)
+		SetRelationshipPoints(akNPC, 0)
+	EndIf
 
-			If(!HasIntValue(akNPC, RSP))
-				SetRelationshipPoints(akNPC, 0)
-			EndIf
-
-			If(akNPC.GetRelationshipRank(PlayerRef) != 0 && GetSyncMode(akNPC) == 1 || GetSyncMode(akNPC) == 3)
-				SetIntValue(akNPC, IGNORE_CHANGES, 1)
-				SetRelationshipPoints(akNPC, akNPC.GetRelationshipRank(PlayerRef) * 100)
-				Exception.Notify(FW_LOG, "GetRP is called and is synching!", False, False)
-			EndIf
-
-			Return GetFloatValue(akNPC, RSP)
-		EndFunction
+	Return GetFloatValue(akNPC, RSP)
+EndFunction
 
 Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bool abIsSurplusCarryingOver = True)
 	If(!akNPC)
