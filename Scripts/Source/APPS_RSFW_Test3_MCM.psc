@@ -28,15 +28,6 @@ Event OnPageReset(String asPage)
 	ElseIf (RSFW.GetSyncMode(SigridREF, abNotifyIfGetGlobal = False) == 3)
 		SyncMode = "$BOTH_WAYS"
 	EndIf
-	
-	;convert vanilla GetFactionRank() return to a more useful result
-	Int CurrentRank
-	
-	If(!SigridREF.IsInFaction(RelationshipRankFaction))
-		CurrentRank = 0
-	Else
-		CurrentRank = SigridREF.GetFactionRank(RelationshipRankFaction) / 10
-	EndIf
 
 	AddHeaderOption(SigridREF.GetActorBase().GetName())
 	AddEmptyOption()
@@ -44,7 +35,7 @@ Event OnPageReset(String asPage)
 	AddTextOption("SyncMode Changes", RSFW.GetSyncModeChanges(SigridREF))
 	AddTextOption("SyncMode Position", RSFW.GetSyncModePriority(Token, SigridREF))
 	AddEmptyOption()
-	AddTextOption("Current rank", CurrentRank)
+	AddTextOption("Current rank", SigridREF.GetFactionRank(RelationshipRankFaction) / 10)
 	AddTextOption("RS Points", RSFW.GetRelationshipPoints(SigridREF))
 	AddTextOption("To next rank", RSFW.GetRPForNextRank(SigridREF))
 	AddTextOption("To previous rank", RSFW.GetRPForPreviousRank(SigridREF))
