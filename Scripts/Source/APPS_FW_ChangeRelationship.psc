@@ -37,7 +37,7 @@ Event OnStoryRelationshipChange(ObjectReference akActor1, ObjectReference akActo
 		i += 1
 	EndWhile
 
-	SetIntValue(NPC, "APPS.Framework.Relationship.IgnoreRankChange", 1)
+	SetIntValue(NPC, "APPS.Framework.Relationship.IgnoreRankChange", 2)
 	RS.SetRelationshipPoints(NPC, auiNewRelationship * 100)
 	UnsetIntValue(NPC, "APPS.Framework.Relationship.IgnoreRankChange")
 
