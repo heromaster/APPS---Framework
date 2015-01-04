@@ -5,7 +5,6 @@ Import Exception
 Actor Property PlayerRef Auto
 Faction Property RelationshipPointsFaction Auto
 Faction Property RelationshipRankFaction Auto
-Quest Property ChangeRelationship Auto
 
 Bool IsUninstallingAll = False
 String Property SYNC_MODE = "APPS.Framework.Relationship.SyncMode" AutoReadOnly Hidden
@@ -3446,8 +3445,6 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 			Float TempRP = CurrentRP + CleanedRP
 			Float RequiredRP = GetRPForNextRank(akNPC)
 
-			Exception.Notify(FW_LOG, "aiRelationshipPoints: " + aiRelationshipPoints + "\nCleanedRP: " + CleanedRP + "\nTempRP: " + TempRP + "\nRequiredRP: " + RequiredRP, False, False)
-
 			If(CleanedRP <= (RequiredRP * CurrentMulti))
 				NewRP = TempRP
 				Break = True
@@ -3460,7 +3457,6 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 					aiRelationshipPoints -= RequiredRP
 					CurrentRP = CurrentRank * 100
 					SetIntValue(akNPC, IGNORE_CHANGES, 1)
-					Exception.Notify(FW_LOG, CurrentRP + " are given to actor " + akNPC.GetActorBase().GetName(), False, False)
 					SetRelationshipPoints(akNPC, CurrentRP)
 				Else
 					NewRP = (CurrentRank + 1) * 100
@@ -3470,28 +3466,24 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 		EndWhile
 	Else
 		While(!Break)
-			Float CurrentMulti = GetRelationshipMulti(akNPC, CurrentRank, CurrentRank - 1)	;1 to 0	. 0 to -1 is 1
-			Float CleanedRP = aiRelationshipPoints * CurrentMulti	;-50 * 2.0 = -100. -37 * 1 = -37
-			Float TempRP = CurrentRP + CleanedRP ;125 + -100 = 25.	99 + - 37 = 62
-			Float RequiredRP = GetRPForPreviousRank(akNPC)	;-13.	-200
-
-			Exception.Notify(FW_LOG, "aiRelationshipPoints: " + aiRelationshipPoints + "\nCleanedRP: " + CleanedRP + "\nTempRP: " + TempRP + "\nRequiredRP: " + RequiredRP, False, False)
+			Float CurrentMulti = GetRelationshipMulti(akNPC, CurrentRank, CurrentRank - 1)
+			Float CleanedRP = aiRelationshipPoints * CurrentMulti
+			Float TempRP = CurrentRP + CleanedRP
+			Float RequiredRP = GetRPForPreviousRank(akNPC)
 
 			If(CleanedRP >= (RequiredRP * CurrentMulti))
-				Exception.Notify(FW_LOG, "Expected branch!")
-				NewRP = TempRP	;12
+				NewRP = TempRP
 				Break = True
 			ElseIf(CleanedRP < (RequiredRP * CurrentMulti) && CurrentRank == -4)
 				NewRP = -499
 				Break = True
 			ElseIf(CleanedRP < (RequiredRP * CurrentMulti))
 				If(abIsSurplusCarryingOver)
-					aiRelationshipPoints -= RequiredRP ;-50 - -13 = -37
-					CurrentRP = CurrentRank * 100 - 1	;99
-					CurrentRank -= 1	;0
+					aiRelationshipPoints -= RequiredRP
+					CurrentRP = CurrentRank * 100 - 1
+					CurrentRank -= 1
 					SetIntValue(akNPC, IGNORE_CHANGES, 1)
-					Exception.Notify(FW_LOG, CurrentRP + " partial RP are given to actor " + akNPC.GetActorBase().GetName(), False, False)
-					SetRelationshipPoints(akNPC, CurrentRP)	;99
+					SetRelationshipPoints(akNPC, CurrentRP)
 				Else
 					NewRP = (CurrentRank - 1) * 100
 					Break = True
@@ -3500,7 +3492,6 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 		EndWhile
 	EndIf
 
-	Exception.Notify(FW_LOG, NewRP + " RP are given to actor " + akNPC.GetActorBase().GetName(), False, False)
 	SetRelationshipPoints(akNPC, NewRP)
 	Return NewRP
 EndFunction
@@ -3510,24 +3501,19 @@ Bool Function SetRelationshipPoints(Actor akNPC, Float aiRelationshipPoints)
 		Return False
 	EndIf
 
-	Exception.Notify(FW_LOG, aiRelationshipPoints + " RP are set to actor " + akNPC.GetActorBase().GetName(), False, False)
 	SetFloatValue(akNPC, RSP, aiRelationshipPoints)
 
 	If(!akNPC.IsInFaction(RelationshipPointsFaction))
 		akNPC.AddToFaction(RelationshipPointsFaction)
 		akNPC.AddToFaction(RelationshipRankFaction)
-		akNPC.SetFactionRank(RelationshipRankFaction, -10)
-		Exception.Notify(FW_LOG, "RelationshipRankFaction: " + akNPC.GetFactionRank(RelationshipRankFaction))
 	EndIf
 
 	akNPC.SetFactionRank(RelationshipPointsFaction, aiRelationshipPoints As Int % 100)
 	
 	If(aiRelationshipPoints >= 0)
 		akNPC.SetFactionRank(RelationshipRankFaction, Math.Floor(aiRelationshipPoints / 100) * 10)
-		Exception.Notify(FW_LOG, "RelationshipRankFaction: " + akNPC.GetFactionRank(RelationshipRankFaction))
 	Else
 		akNPC.SetFactionRank(RelationshipRankFaction, Math.Ceiling(aiRelationshipPoints / 100) * 10)
-		Exception.Notify(FW_LOG, "RelationshipRankFaction: " + akNPC.GetFactionRank(RelationshipRankFaction))
 	EndIf
 
 	If(GetSyncMode(akNPC) > 1 && !HasIntValue(akNPC, IGNORE_CHANGES))
