@@ -956,7 +956,7 @@ Bool Function InitializeMod(Quest akModToInit, Bool abSafetyLock = True)
 	EndIf
 
 	If(result)
-		Exception.Notify(FW_LOG, NameOfMod + "$INITIALIZED")
+		Exception.Notify(FW_LOG, "$INITIALIZED{" + NameOfMod + "}")
 	Else
 		Exception.Throw(FW_LOG, "Failed to initialize mod", NameOfMod + "$FAILED_TO_INITIALIZE")
 		FormListRemove(None, REGISTERED_MODS, akModToInit)
