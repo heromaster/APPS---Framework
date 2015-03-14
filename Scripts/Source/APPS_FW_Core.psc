@@ -28,6 +28,12 @@ String Property MOD_NAME = "APPS.Framework.RegisteredMods.ModName" AutoReadOnly 
    |Returns True if the specified mod is registered with the framework.											|
    |Returns False if the specified mod was not found in the registration list.									|
    |------------------------------------------------------------------------------------------------------------| /;
+
+APPS_FW_Registrar Function GetBaseAPI() Global
+	Return Game.GetFormFromFile(0xD62, "APPS - Framework.esm") As APPS_FW_Registrar
+EndFunction
+
+
 Bool Function IsModRegistered(String asModName)
 	Int RegisteredMods = StorageUtil.FormListCount(None, REGISTERED_MODS)
 	Int i

@@ -3418,6 +3418,26 @@ Float Function GetRelationshipPoints(Actor akNPC)
 	Return GetFloatValue(akNPC, RSP)
 EndFunction
 
+Float Function WouldGiveRP(Actor akNPC, Float aiRelationshipPoints, Bool abIsSurplusCarryingOver = True)
+	If(!akNPC)
+		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
+		Return 0.0
+	EndIf
+
+	If(!akNPC.GetActorBase().IsUnique())
+		Throw(FW_LOG, "Actor " + akNPC.GetActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
+		Return 0.0
+	EndIf
+
+	If(aiRelationshipPoints == 0)
+		Warn(FW_LOG, "Argument aiRelationshipPoints was 0. Function will not be executed.")
+	EndIf
+
+	Float PreviousRP = GetRelationshipPoints(akNPC)
+
+	Return (_CalculateRP(akNPC, aiRelationshipPoints, abIsSurplusCarryingOver) - PreviousRP)
+EndFunction
+
 Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bool abIsSurplusCarryingOver = True)
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
@@ -3433,67 +3453,80 @@ Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bo
 		Warn(FW_LOG, "Argument aiRelationshipPoints was 0. Function will not be executed.")
 	EndIf
 
-	Bool Break
-	Float NewRP
-	Float CurrentRP = GetRelationshipPoints(akNPC)
-	Int CurrentRank = akNPC.GetFactionRank(RelationshipRankFaction) / 10
+	SetRelationshipPoints(akNPC, _CalculateRP(akNPC, aiRelationshipPoints, abIsSurplusCarryingOver))
 
-	If(aiRelationshipPoints > 0)
-		While(!Break)
-			Float CurrentMulti = GetRelationshipMulti(akNPC, CurrentRank, CurrentRank + 1)
-			Float CleanedRP = aiRelationshipPoints * CurrentMulti
-			Float TempRP = CurrentRP + CleanedRP
-			Float RequiredRP = GetRPForNextRank(akNPC)
+	Return _CalculateRP(akNPC, aiRelationshipPoints, abIsSurplusCarryingOver)
+EndFunction
 
-			If(CleanedRP <= (RequiredRP * CurrentMulti))
-				NewRP = TempRP
-				Break = True
-			ElseIf(CleanedRP > (RequiredRP * CurrentMulti) && CurrentRank == 4)
-				NewRP = 499
-				Break = True
-			ElseIf(CleanedRP > (RequiredRP * CurrentMulti))
-				If(abIsSurplusCarryingOver)
-					CurrentRank += 1
-					aiRelationshipPoints -= RequiredRP
-					CurrentRP = CurrentRank * 100
-					SetIntValue(akNPC, IGNORE_CHANGES, 1)
-					SetRelationshipPoints(akNPC, CurrentRP)
-				Else
-					NewRP = (CurrentRank + 1) * 100
-					Break = True
-				EndIf
-			EndIf
-		EndWhile
-	Else
-		While(!Break)
-			Float CurrentMulti = GetRelationshipMulti(akNPC, CurrentRank, CurrentRank - 1)
-			Float CleanedRP = aiRelationshipPoints * CurrentMulti
-			Float TempRP = CurrentRP + CleanedRP
-			Float RequiredRP = GetRPForPreviousRank(akNPC)
-
-			If(CleanedRP >= (RequiredRP * CurrentMulti))
-				NewRP = TempRP
-				Break = True
-			ElseIf(CleanedRP < (RequiredRP * CurrentMulti) && CurrentRank == -4)
-				NewRP = -499
-				Break = True
-			ElseIf(CleanedRP < (RequiredRP * CurrentMulti))
-				If(abIsSurplusCarryingOver)
-					aiRelationshipPoints -= RequiredRP
-					CurrentRP = CurrentRank * 100 - 1
-					CurrentRank -= 1
-					SetIntValue(akNPC, IGNORE_CHANGES, 1)
-					SetRelationshipPoints(akNPC, CurrentRP)
-				Else
-					NewRP = (CurrentRank - 1) * 100
-					Break = True
-				EndIf
-			EndIf
-		EndWhile
+Bool Function CreatePrivateGroup(Quest akToken, String asGroupName)
+	;/If(ModIndex == -1)
+		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access CreatePrivateGroup(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Return False
+	ElseIf(asGroupName == "")
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
 	EndIf
 
-	SetRelationshipPoints(akNPC, NewRP)
-	Return NewRP
+	If(StringListAdd(akToken, "APPS.Framework.Relationship.Groups", asGroupName, False) == -1)
+		Throw(FW_LOG, asGroupName + " already exists for token " + akToken.GetFormID() + "! Nothing changed.", "Invalid arguments")
+		Return False
+	EndIf
+
+	Return True /;
+EndFunction
+
+Bool Function CreatePublicGroup(String asGroupName)
+	If(asGroupName == "")
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(StringListAdd(None, "APPS.Framework.Relationship.Groups", asGroupName, False) == -1)
+		Throw(FW_LOG, asGroupName + " already exists as a public group! Nothing changed.", "Invalid arguments")
+		Return False
+	EndIf
+
+	Return True
+EndFunction
+
+Bool Function DeletePrivateGroup(Quest akToken, String asGroupName)
+
+EndFunction
+
+Bool Function IsPublicGroupCreated(String asGroupName)
+
+EndFunction
+
+Bool Function AddToPrivateGroup(Quest akToken, String asGroupName, Actor akNPC)
+
+EndFunction
+
+Bool Function AddToPublicGroup(String asGroupName, Actor akNPC)
+
+EndFunction
+
+Bool Function RemoveFromPrivateGroup(Quest akToken, String asGroupName, Actor akNPC)
+
+EndFunction
+
+Bool Function RemoveFromPublicGroup(String asGroupName, Actor akNPC)
+
+EndFunction
+
+Actor[] Function GetPrivateGroupMembers(Quest akToken, String asGroupName)
+
+EndFunction
+
+Actor[] Function GetPublicGroupMembers(String asGroupName)
+
+EndFunction
+
+Bool Function ModPrivateGroupRS(Quest akToken, String asGroupName, Float afValue)
+
+EndFunction
+
+Bool Function ModPublicGroupRS(String asGroupName, Float afValue)
+
 EndFunction
 
 Bool Function SetRelationshipPoints(Actor akNPC, Float aiRelationshipPoints)
@@ -3572,4 +3605,71 @@ Float Function GetRPForPreviousRank(Actor akNPC)
 	Else
 		Return ((RelationshipRank  - 1) * 100 - RP) / GetRelationshipMulti(akNPC, RelationshipRank, RelationshipRank - 1)
 	EndIf
+EndFunction
+
+Float Function _CalculateRP(Actor akNPC, Float aiRelationshipPoints, Bool abIsSurplusCarryingOver = True)
+	Bool Break
+	Float NewRP
+	Float CurrentRP = GetRelationshipPoints(akNPC)
+	Float PreviousRP = CurrentRP
+	Int CurrentRank = akNPC.GetFactionRank(RelationshipRankFaction) / 10
+
+	If(aiRelationshipPoints > 0)
+		While(!Break)
+			Float CurrentMulti = GetRelationshipMulti(akNPC, CurrentRank, CurrentRank + 1)
+			Float CleanedRP = aiRelationshipPoints * CurrentMulti
+			Float TempRP = CurrentRP + CleanedRP
+			Float RequiredRP = GetRPForNextRank(akNPC)
+
+			If(CleanedRP <= (RequiredRP * CurrentMulti))
+				NewRP = TempRP
+				Break = True
+			ElseIf(CleanedRP > (RequiredRP * CurrentMulti) && CurrentRank == 4)
+				NewRP = 499
+				Break = True
+			ElseIf(CleanedRP > (RequiredRP * CurrentMulti))
+				If(abIsSurplusCarryingOver)
+					CurrentRank += 1
+					aiRelationshipPoints -= RequiredRP
+					CurrentRP = CurrentRank * 100
+					SetIntValue(akNPC, IGNORE_CHANGES, 1)
+					SetRelationshipPoints(akNPC, CurrentRP)
+				Else
+					NewRP = (CurrentRank + 1) * 100
+					Break = True
+				EndIf
+			EndIf
+		EndWhile
+	Else
+		While(!Break)
+			Float CurrentMulti = GetRelationshipMulti(akNPC, CurrentRank, CurrentRank - 1)
+			Float CleanedRP = aiRelationshipPoints * CurrentMulti
+			Float TempRP = CurrentRP + CleanedRP
+			Float RequiredRP = GetRPForPreviousRank(akNPC)
+
+			If(CleanedRP >= (RequiredRP * CurrentMulti))
+				NewRP = TempRP
+				Break = True
+			ElseIf(CleanedRP < (RequiredRP * CurrentMulti) && CurrentRank == -4)
+				NewRP = -499
+				Break = True
+			ElseIf(CleanedRP < (RequiredRP * CurrentMulti))
+				If(abIsSurplusCarryingOver)
+					aiRelationshipPoints -= RequiredRP
+					CurrentRP = CurrentRank * 100 - 1
+					CurrentRank -= 1
+					SetIntValue(akNPC, IGNORE_CHANGES, 1)
+					SetRelationshipPoints(akNPC, CurrentRP)
+				Else
+					NewRP = (CurrentRank - 1) * 100
+					Break = True
+				EndIf
+			EndIf
+		EndWhile
+	EndIf
+
+	SetIntValue(akNPC, IGNORE_CHANGES, 1)
+	SetRelationshipPoints(akNPC, PreviousRP)
+
+	Return NewRP
 EndFunction
