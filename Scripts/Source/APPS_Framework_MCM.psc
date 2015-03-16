@@ -2,7 +2,6 @@ ScriptName APPS_Framework_MCM Extends SKI_ConfigBase
 Import StorageUtil
 APPS_FW_Relationship Property RSFW Auto
 
-Int FileLogLevel
 String[] InitOrdering
 String[] LogLevel
 String[] InfoManagerModsListOptions
@@ -125,8 +124,6 @@ Event OnConfigInit()
 	LoggingMethod[0] = "$USE_MOD_USER_LOG"
 	LoggingMethod[1] = "$USE_FRAMEWORK_LOG"
 	LoggingMethod[2] = "$USE_PAPYRUS_LOG"
-
-	NPCSyncModeOptionFlag = OPTION_FLAG_HIDDEN
 EndEvent
 
 Event OnPageReset(String asPage)
@@ -212,7 +209,7 @@ Event OnPageReset(String asPage)
 		EndIf
 
 		SetCursorFillMode(TOP_TO_BOTTOM)
-		AddSliderOptionST("WaitingTimeBetweenInits", "$WAITING_TIME_BETWEEN_INITS", 1.0, "{1} seconds", InitControlFlag)
+		AddSliderOptionST("WaitingTimeBetweenInits", "$WAITING_TIME_BETWEEN_INITS", 1.0, "{1} sec", InitControlFlag)
 
 		If (InitSafetyLock)
 			AddHeaderOption("$INIT_IN_PROGRESS")
