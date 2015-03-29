@@ -2,6 +2,7 @@ ScriptName APPS_FW_Core Extends Quest
 String Property DISPLAY_ERRORS = "APPS.Framework.InfoManager.DisplayErrors" AutoReadOnly Hidden
 String Property DISPLAY_INFOS = "APPS.Framework.InfoManager.DisplayInfos" AutoReadOnly Hidden
 String Property DISPLAY_WARNINGS = "APPS.Framework.InfoManager.DisplayWarnings" AutoReadOnly Hidden
+String Property FW_LOG = "APPS - Framework" AutoReadOnly Hidden
 String Property INIT_MODS = "APPS.Framework.InitMods" AutoReadOnly Hidden
 String Property INIT_QUEST = "APPS.Framework.InitMods.InitQuest" AutoReadOnly Hidden
 String Property INIT_STAGE = "APPS.Framework.InitMods.InitStage" AutoReadOnly Hidden
@@ -16,6 +17,7 @@ String Property REGISTERED_RS = "APPS.Framework.Relationship.RegisteredMods" Aut
 String Property UNINSTALL_MODS = "APPS.Framework.UninstallMods" AutoReadOnly Hidden
 String Property UNINSTALL_QUEST = "APPS.Framework.UninstallMods.UninstallQuest" AutoReadOnly Hidden
 String Property UNINSTALL_STAGE = "APPS.Framework.UninstallMods.UninstallStage" AutoReadOnly Hidden
+String Property MOD_IS_INITIALIZED = "APPS.Framework.RegisteredMods.IsInitialized" AutoReadOnly Hidden
 String Property MOD_NAME = "APPS.Framework.RegisteredMods.ModName" AutoReadOnly Hidden
 
 ;/ |------------------------------------------------------------------------------------------------------------|
@@ -33,11 +35,10 @@ APPS_FW_Registrar Function GetBaseAPI() Global
 	Return Game.GetFormFromFile(0xD62, "APPS - Framework.esm") As APPS_FW_Registrar
 EndFunction
 
-
 Bool Function IsModRegistered(String asModName)
 	Int RegisteredMods = StorageUtil.FormListCount(None, REGISTERED_MODS)
 	Int i
-		
+
 		While (i < RegisteredMods)
 			Quest Mod = StorageUtil.FormListGet(None, REGISTERED_MODS, i) as Quest
 			If (StorageUtil.GetStringValue(Mod, MOD_NAME) == asModName)
@@ -46,14 +47,14 @@ Bool Function IsModRegistered(String asModName)
 				i += 1
 			EndIf
 		EndWhile
-	
+
 	Return False
 EndFunction
 
 Bool Function IsModRegisteredWithRSMod(String asModName)
 	Int RegisteredMods = StorageUtil.FormListCount(None, REGISTERED_RS)
 	Int i
-		
+
 		While (i < RegisteredMods)
 			Quest Mod = StorageUtil.FormListGet(None, REGISTERED_RS, i) as Quest
 			If (StorageUtil.GetStringValue(Mod, MOD_NAME) == asModName)
@@ -62,7 +63,7 @@ Bool Function IsModRegisteredWithRSMod(String asModName)
 				i += 1
 			EndIf
 		EndWhile
-	
+
 	Return False
 EndFunction
 
