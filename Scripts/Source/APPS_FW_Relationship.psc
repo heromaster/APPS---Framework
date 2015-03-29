@@ -61,6 +61,8 @@ String Property RS_MULTI_CHANGELIST_SUFFIX = ".ChangeList" AutoReadOnly Hidden
 String Property RSP = "APPS.Framework.Relationship.RelationshipPoints" AutoReadOnly Hidden
 String Property IGNORE_CHANGES = "APPS.Framework.Relationship.IgnoreRankChange" AutoReadOnly Hidden
 String Property GROUPS = "APPS.Framework.Relationship.Groups" AutoReadOnly Hidden
+String Property GROUPS_PRIVATE_MEMBERS = "APPS.Framework.Relationship.Groups.Private.Actors" AutoReadOnly Hidden
+String Property GROUPS_PUBLIC_MEMBERS = "APPS.Framework.Relationship.Groups.Public.Actors" AutoReadOnly Hidden
 String Property GROUPS_LINK = "APPS.Framework.Relationship.Groups.Global" AutoReadOnly Hidden
 
 Int Function GetGlobalSyncMode()
@@ -3407,10 +3409,13 @@ Bool Function CreatePrivateGroup(Quest akToken, String asGroupName)
 		Return False
 	EndIf
 
-	If(StringListAdd(akToken, GROUPS, asGroupName, False) == -1)
+	If(StringListAdd(None, GROUPS + ".Private", asGroupName, False) == -1)
 		Throw(FW_LOG, asGroupName + " already exists for token " + akToken.GetFormID() + "! Nothing changed.", "Invalid arguments")
 		Return False
 	EndIf
+
+	StringListAdd(akToken, GROUPS, asGroupName)
+	FormListAdd(None, GROUPS, akToken, False)
 
 	Return True
 EndFunction
@@ -3430,6 +3435,7 @@ Bool Function CreatePublicGroup(String asGroupName)
 EndFunction
 
 Bool Function DeletePrivateGroup(Quest akToken, String asGroupName)
+	Int i
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
 
 	If(ModIndex == -1)
@@ -3443,7 +3449,29 @@ Bool Function DeletePrivateGroup(Quest akToken, String asGroupName)
 	EndIf
 
 	StringListRemove(akToken, GROUPS, asGroupName)
+	StringListRemove(None, GROUPS + ".Private", asGroupName)
+
+	While(i < FormListCount(akToken, "APPS.Framework.Relationship.Groups." + asGroupName))
+		Form NPC = FormListGet(akToken, "APPS.Framework.Relationship.Groups." + asGroupName, i)
+
+		AdjustIntValue(NPC, GROUPS_PRIVATE_MEMBERS, -1)
+
+		If(GetIntValue(NPC, GROUPS_PRIVATE_MEMBERS) == 0)
+			UnsetIntValue(NPC, GROUPS_PRIVATE_MEMBERS)
+		EndIf
+
+		Int Index = StringListFind(NPC, GROUPS_PRIVATE_MEMBERS, asGroupName)
+
+		FormListRemoveAt(NPC, GROUPS_PRIVATE_MEMBERS, Index)
+		StringListRemoveAt(NPC, GROUPS_PRIVATE_MEMBERS, Index)
+
+		i += 1
+	EndWhile
+
 	FormListClear(akToken, "APPS.Framework.Relationship.Groups." + asGroupName)
+
+	_UpdateGV(asGroupName, akToken)
+
 	UnsetFormValue(akToken, GROUPS_LINK + asGroupName)
 	UnsetIntValue(akToken, GROUPS_LINK + asGroupName)
 
@@ -3451,13 +3479,33 @@ Bool Function DeletePrivateGroup(Quest akToken, String asGroupName)
 EndFunction
 
 Bool Function DeletePublicGroup(String asGroupName)
+	Int i
+
 	If(!asGroupName)
 		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
 		Return False
 	EndIf
 
 	StringListRemove(None, GROUPS, asGroupName)
+
+	While(i < FormListCount(None, "APPS.Framework.Relationship.Groups." + asGroupName))
+		Form NPC = FormListGet(None, "APPS.Framework.Relationship.Groups." + asGroupName, i)
+
+		AdjustIntValue(NPC, GROUPS_PUBLIC_MEMBERS, -1)
+
+		If(GetIntValue(NPC, GROUPS_PUBLIC_MEMBERS) == 0)
+			UnsetIntValue(NPC, GROUPS_PUBLIC_MEMBERS)
+		EndIf
+
+		StringListRemove(NPC, GROUPS_PUBLIC_MEMBERS, asGroupName)
+
+		i += 1
+	EndWhile
+
 	FormListClear(None, "APPS.Framework.Relationship.Groups." + asGroupName)
+
+	_UpdateGV(asGroupName)
+
 	FormListClear(None, GROUPS_LINK + asGroupName)
 	UnsetIntValue(None, GROUPS_LINK + asGroupName)
 
@@ -3496,6 +3544,12 @@ Bool Function AddToPrivateGroup(Quest akToken, String asGroupName, Actor akNPC)
 		Return False
 	EndIf
 
+	_UpdateGV(asGroupName, akToken)
+
+	AdjustIntValue(akNPC, GROUPS_PRIVATE_MEMBERS, 1)
+	FormListAdd(akNPC, GROUPS_PRIVATE_MEMBERS, akToken)
+	StringListAdd(akNPC, GROUPS_PRIVATE_MEMBERS, asGroupName)
+
 	Return True
 EndFunction
 
@@ -3519,6 +3573,11 @@ Bool Function AddToPublicGroup(String asGroupName, Actor akNPC)
 		Throw(FW_LOG, "Actor "+ akNPC.GetLeveledActorBase().GetName() + " is already added to the group " + asGroupName + "!", "Invalid arguments")
 		Return False
 	EndIf
+
+	_UpdateGV(asGroupName)
+
+	AdjustIntValue(akNPC, GROUPS_PUBLIC_MEMBERS, 1)
+	StringListAdd(akNPC, GROUPS_PUBLIC_MEMBERS, asGroupName)
 
 	Return True
 EndFunction
@@ -3547,6 +3606,20 @@ Bool Function RemoveFromPrivateGroup(Quest akToken, String asGroupName, Actor ak
 	EndIf
 
 	FormListRemove(akToken, "APPS.Framework.Relationship.Groups." + asGroupName, akNPC)
+
+	_UpdateGV(asGroupName, akToken)
+
+	AdjustIntValue(akNPC, GROUPS_PRIVATE_MEMBERS, -1)
+
+	If(GetIntValue(akNPC, GROUPS_PRIVATE_MEMBERS) == 0)
+		UnsetIntValue(akNPC, GROUPS_PRIVATE_MEMBERS)
+	EndIf
+
+	Int Index = StringListFind(akNPC, GROUPS_PRIVATE_MEMBERS, asGroupName)
+
+	FormListRemoveAt(akNPC, GROUPS_PRIVATE_MEMBERS, Index)
+	StringListRemoveAt(akNPC, GROUPS_PRIVATE_MEMBERS, Index)
+
 	Return True
 EndFunction
 
@@ -3567,6 +3640,17 @@ Bool Function RemoveFromPublicGroup(String asGroupName, Actor akNPC)
 	EndIf
 
 	FormListRemove(None, "APPS.Framework.Relationship.Groups." + asGroupName, akNPC)
+
+	_UpdateGV(asGroupName)
+
+	AdjustIntValue(akNPC, GROUPS_PRIVATE_MEMBERS, -1)
+
+	If(GetIntValue(akNPC, GROUPS_PUBLIC_MEMBERS) == 0)
+		UnsetIntValue(akNPC, GROUPS_PUBLIC_MEMBERS)
+	EndIf
+
+	StringListRemove(akNPC, GROUPS_PUBLIC_MEMBERS, asGroupName)
+
 	Return True
 EndFunction
 
@@ -3584,6 +3668,7 @@ Bool Function ModPrivateGroupRP(Quest akToken, String asGroupName, Float afRelat
 	Float TotalValue
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
 	Int i
+	Int j
 
 	If(ModIndex == -1)
 		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access ModPrivateGroupRS(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
@@ -3600,15 +3685,15 @@ Bool Function ModPrivateGroupRP(Quest akToken, String asGroupName, Float afRelat
 		Return False
 	EndIf
 
-	While(i < FormListCount(akToken, "APPS.Framework.Relationship.Groups." + asGroupName))
+		While(i < FormListCount(akToken, "APPS.Framework.Relationship.Groups." + asGroupName))
 		Float ReturnValue = ModRelationshipPoints(FormListGet(akToken, "APPS.Framework.Relationship.Groups." + asGroupName, i) As Actor, afRelationshipPoints, abIsSurplusCarryingOver)
 
-		If(HasFormValue(akToken, GROUPS_LINK + asGroupName))
+		If(FormListCount(akToken, GROUPS_LINK + asGroupName) > 0)
 			If(i == 0)
 				HighestValue = ReturnValue
 				LowestValue = ReturnValue
 			EndIf
-
+			
 			If(ReturnValue > HighestValue)
 				HighestValue = ReturnValue
 			EndIf
@@ -3623,15 +3708,17 @@ Bool Function ModPrivateGroupRP(Quest akToken, String asGroupName, Float afRelat
 		i += 1
 	EndWhile
 
-	If(HasFormValue(akToken, GROUPS_LINK + asGroupName))
-		If(GetIntValue(akToken, GROUPS_LINK + asGroupName) == 1)
-			(GetFormValue(akToken, GROUPS_LINK + asGroupName) As GlobalVariable).SetValue(HighestValue)
-		ElseIf(GetIntValue(akToken, GROUPS_LINK + asGroupName) == 2)
-			(GetFormValue(akToken, GROUPS_LINK + asGroupName) As GlobalVariable).SetValue(LowestValue)
+	While(j < FormListCount(akToken, GROUPS_LINK + asGroupName))
+		If(IntListGet(akToken, GROUPS_LINK + asGroupName, j) == 1)
+			(FormListGet(akToken, GROUPS_LINK + asGroupName, j) As GlobalVariable).SetValue(HighestValue)
+		ElseIf(IntListGet(akToken, GROUPS_LINK + asGroupName, j) == 2)
+			(FormListGet(akToken, GROUPS_LINK + asGroupName, j) As GlobalVariable).SetValue(LowestValue)
 		Else
-			(GetFormValue(akToken, GROUPS_LINK + asGroupName) As GlobalVariable).SetValue(TotalValue / i)
+			(FormListGet(akToken, GROUPS_LINK + asGroupName, j) As GlobalVariable).SetValue(TotalValue / i)
 		EndIf
-	EndIf
+
+		j += 1
+	EndWhile
 
 	Return True
 EndFunction
@@ -3653,7 +3740,7 @@ Bool Function ModPublicGroupRP(String asGroupName, Float afRelationshipPoints, B
 		Return False
 	EndIf
 
-	While(i < FormListCount(None, "APPS.Framework.Relationship.Groups." + asGroupName))
+		While(i < FormListCount(None, "APPS.Framework.Relationship.Groups." + asGroupName))
 		Float ReturnValue = ModRelationshipPoints(FormListGet(None, "APPS.Framework.Relationship.Groups." + asGroupName, i) As Actor, afRelationshipPoints, abIsSurplusCarryingOver)
 
 		If(FormListCount(None, GROUPS_LINK + asGroupName) > 0)
@@ -3717,13 +3804,12 @@ Bool Function LinkPrivateGroupWithGV(Quest akToken, String asGroupName, GlobalVa
 		Return False
 	EndIf
 
-	If(HasFormValue(akToken, GROUPS_LINK + asGroupName))
-		Throw(FW_LOG, "This group has already a global var linked!", "Invalid arguments")
+	If(FormListAdd(akToken, GROUPS_LINK + asGroupName, akGlobalVar, False) == -1)
+		Throw(FW_LOG, "This group is already linked with this global var!", "Invalid arguments")
 		Return False
 	EndIf
 
-	SetFormValue(akToken, GROUPS_LINK + asGroupName, akGlobalVar)
-	SetIntValue(akToken, GROUPS_LINK + asGroupName, auiReturnType)
+	IntListAdd(akToken, GROUPS_LINK + asGroupName, auiReturnType)
 
 	Return True
 EndFunction
@@ -3815,6 +3901,8 @@ Float Function ModRelationshipPoints(Actor akNPC, Float afRelationshipPoints, Bo
 EndFunction
 
 Bool Function SetRelationshipPoints(Actor akNPC, Float afRelationshipPoints)
+	Int i
+
 	If(!akNPC || afRelationshipPoints < -499 || afRelationshipPoints > 499)
 		Return False
 	EndIf
@@ -3848,8 +3936,46 @@ Bool Function SetRelationshipPoints(Actor akNPC, Float afRelationshipPoints)
 		UnsetIntValue(akNPC, IGNORE_CHANGES)
 	EndIf
 
-	Return True
 
+	If(HasIntValue(akNPC, GROUPS_PRIVATE_MEMBERS))
+		Int j
+		
+		While(j < StringListCount(akNPC, GROUPS_PRIVATE_MEMBERS))
+			_UpdateGV(StringListGet(akNPC, GROUPS_PRIVATE_MEMBERS, j), FormListGet(akNPC, GROUPS_PRIVATE_MEMBERS, j))
+
+			j += 1
+		EndWhile
+	EndIf
+
+	If(HasIntValue(akNPC, GROUPS_PUBLIC_MEMBERS))
+		Int j
+		
+		While(j < StringListCount(akNPC, GROUPS_PUBLIC_MEMBERS))
+			_UpdateGV(StringListGet(akNPC, GROUPS_PUBLIC_MEMBERS, j))
+
+			j += 1
+		EndWhile
+	EndIf
+;/	If(FormListCount(None, GROUPS) > 0)
+		While(i < FormListCount(None, GROUPS))
+		Form Token = FormListGet(None, GROUPS, i)
+
+		Int j
+
+		While(j < StringListCount(Token, GROUPS))
+			String Group = StringListGet(Token, GROUPS, j)
+
+			If(FormListHas(Token, GROUPS + "." + Group, akNPC))
+				Int ReturnType = GetIntValue(akToken, GROUPS_LINK + Group)
+				GlobalVariable ThisGV = GetFormValue(akToken, GROUPS_LINK + Group)
+
+				If(ReturnType == 1)
+					
+			j += 1
+		i += 1
+		EndWhile /;
+
+		Return True
 EndFunction
 
 Float Function GetRPForNextRank(Actor akNPC)
@@ -3957,4 +4083,49 @@ Float Function _CalculateRP(Actor akNPC, Float afRelationshipPoints, Bool abIsSu
 	SetRelationshipPoints(akNPC, PreviousRP)
 
 	Return NewRP
+EndFunction
+
+Function _UpdateGV(String asGroupName, Form akToken = None)
+	Float HighestValue
+	Float LowestValue
+	Float TotalValue
+	Int i
+	Int j
+
+	If(FormListCount(akToken, GROUPS_LINK + asGroupName) > 0)
+		While(i < FormListCount(akToken, "APPS.Framework.Relationship.Groups." + asGroupName))
+			Float ReturnValue = GetRelationshipPoints(FormListGet(akToken, "APPS.Framework.Relationship.Groups." + asGroupName, i) As Actor)
+
+			If(i == 0)
+				HighestValue = ReturnValue
+				LowestValue = ReturnValue
+			EndIf
+			
+			If(ReturnValue > HighestValue)
+				HighestValue = ReturnValue
+			EndIf
+
+			If(ReturnValue < LowestValue)
+				LowestValue = ReturnValue
+			EndIf
+
+			TotalValue += ReturnValue
+
+			i += 1
+		EndWhile
+	Else
+		Return
+	EndIf
+
+	While(j < FormListCount(akToken, GROUPS_LINK + asGroupName))
+		If(IntListGet(akToken, GROUPS_LINK + asGroupName, j) == 1)
+			(FormListGet(akToken, GROUPS_LINK + asGroupName, j) As GlobalVariable).SetValue(HighestValue)
+		ElseIf(IntListGet(akToken, GROUPS_LINK + asGroupName, j) == 2)
+			(FormListGet(akToken, GROUPS_LINK + asGroupName, j) As GlobalVariable).SetValue(LowestValue)
+		Else
+			(FormListGet(akToken, GROUPS_LINK + asGroupName, j) As GlobalVariable).SetValue(TotalValue / i)
+		EndIf
+
+		j += 1
+	EndWhile
 EndFunction
