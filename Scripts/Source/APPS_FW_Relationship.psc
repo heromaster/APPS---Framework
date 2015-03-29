@@ -7,6 +7,10 @@ Faction Property RelationshipPointsFaction Auto
 Faction Property RelationshipRankFaction Auto
 
 Bool IsUninstallingAll = False
+
+Int Property AVERAGE = 3 AutoReadOnly Hidden
+Int Property HIGHEST = 1 AutoReadOnly Hidden
+Int Property LOWEST = 2 AutoReadOnly Hidden
 String Property SYNC_MODE = "APPS.Framework.Relationship.SyncMode" AutoReadOnly Hidden
 String Property SYNC_MODE_CHANGELIST = "APPS.Framework.Relationship.SyncMode.ChangeList" AutoReadOnly Hidden
 String Property SYNC_MODE_NPC_CHANGELIST = "APPS.Framework.Relationship.SyncMode.NPC.ChangeList" AutoReadOnly Hidden
@@ -56,15 +60,8 @@ String Property RS_MULTI_PREFIX = "APPS.Framework.Relationship.RelationshipMulti
 String Property RS_MULTI_CHANGELIST_SUFFIX = ".ChangeList" AutoReadOnly Hidden
 String Property RSP = "APPS.Framework.Relationship.RelationshipPoints" AutoReadOnly Hidden
 String Property IGNORE_CHANGES = "APPS.Framework.Relationship.IgnoreRankChange" AutoReadOnly Hidden
-String Property FW_LOG = "APPS - Framework" AutoReadOnly Hidden
-
-;/
-Global SyncMode convention:
-0 - disabled
-1 - from vanilla to rs
-2 - from rs to vanilla
-3 - both ways
-/;
+String Property GROUPS = "APPS.Framework.Relationship.Groups" AutoReadOnly Hidden
+String Property GROUPS_LINK = "APPS.Framework.Relationship.Groups.Global" AutoReadOnly Hidden
 
 Int Function GetGlobalSyncMode()
 	Return GetIntValue(None, SYNC_MODE)
@@ -179,11 +176,11 @@ Int Function GetSyncMode(Actor akNPC, Bool abGetGlobalIfNotFound = True, Bool ab
 	If(!HasIntValue(akNPC, SYNC_MODE))
 		If(abGetGlobalIfNotFound)
 			If (abNotifyIfGetGlobal)
-				Notify(FW_LOG, "Sync mode on " + akNPC.GetActorBase().GetName() + " was not set, returning global sync mode.", False)
+				Notify(FW_LOG, "Sync mode on " + akNPC.GetLeveledActorBase().GetName() + " was not set, returning global sync mode.", False)
 			EndIf
 			Return GetGlobalSyncMode()
 		Else
-			Notify(FW_LOG, "No mod changed the sync mode on " + akNPC.GetActorBase().GetName() + ".", False)
+			Notify(FW_LOG, "No mod changed the sync mode on " + akNPC.GetLeveledActorBase().GetName() + ".", False)
 			Return -1
 		EndIf
 	EndIf
@@ -222,15 +219,15 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 		Return False
 	EndIf
 
-	If(!akNPC.GetActorBase().IsUnique())
-		Throw(FW_LOG, "Actor " + akNPC.GetActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
+	If(!akNPC.GetLeveledActorBase().IsUnique())
+		Throw(FW_LOG, "Actor " + akNPC.GetLeveledActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
 		Return False
 	EndIf
 
 	String ModName = GetStringValue(akToken, MOD_NAME)
 
 	If(aiSyncMode < 0 || aiSyncMode > 3)
-		Throw(FW_LOG, "Sync mode for " + akNPC.GetActorBase().GetName() + " was not correctly set by " + ModName + ". The lower limit is 0 and the upper limit is 3.", "Invalid arguments")
+		Throw(FW_LOG, "Sync mode for " + akNPC.GetLeveledActorBase().GetName() + " was not correctly set by " + ModName + ". The lower limit is 0 and the upper limit is 3.", "Invalid arguments")
 		Return False
 	EndIf
 
@@ -242,14 +239,14 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	If(ModIndex2 >= 0)
 		IntListSet(akNPC, SYNC_MODE_CHANGELIST, ModIndex2, aiSyncMode)
 
-		Notify(FW_LOG, "Sync mode on " + akNPC.GetActorBase().GetName() + " got updated by " + ModName + ".", False)
+		Notify(FW_LOG, "Sync mode on " + akNPC.GetLeveledActorBase().GetName() + " got updated by " + ModName + ".", False)
 
 		;If the mod is also on the last position then also update the global sync mode
 		If(ModIndex2 == SyncModeChanges - 1)
 			SetIntValue(akNPC, SYNC_MODE, aiSyncMode)
 			Return True
 		Else
-			Notify(FW_LOG, "Can't change the sync mode on " + akNPC.GetActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
+			Notify(FW_LOG, "Can't change the sync mode on " + akNPC.GetLeveledActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
 			Return True
 		EndIf
 	Else
@@ -266,7 +263,7 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 			Else
 				FormListInsert(akNPC, SYNC_MODE_CHANGELIST, i, akToken) ;Insert the actual mod into the list before the comparing mod
 				IntListInsert(akNPC, SYNC_MODE_CHANGELIST, i, aiSyncMode) ;Insert the sync mode value as well
-				Notify(FW_LOG, "Can't change the sync mode on " + akNPC.GetActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
+				Notify(FW_LOG, "Can't change the sync mode on " + akNPC.GetLeveledActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
 				Return True
 			EndIf
 		EndWhile
@@ -280,29 +277,28 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	Return True
 EndFunction
 
-Int Function RemoveSyncMode(Quest akToken, Actor akNPC, Bool abVerbose = True)
+Int Function RemoveSyncMode(Quest akToken, Actor akNPC)
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC for function RemoveSyncMode() is None!", "Invalid arguments")
 		Return -2
 	EndIf
 
 	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
-		Warn(FW_LOG, "A mod tried to remove its changes to the actor " + akNPC.GetActorBase().GetName() + ". It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Warn(FW_LOG, "A mod tried to remove its changes to the actor " + akNPC.GetLeveledActorBase().GetName() + ". It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return -2
 	EndIf
 
-	If (FormListFind(None, SYNC_MODE_NPC_CHANGELIST, akNPC) == -1)
-		Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetActorBase().GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
+	If(!FormListHas(None, SYNC_MODE_NPC_CHANGELIST, akNPC))
+		Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetLeveledActorBase().GetName() + ", but there had been no changes made specifically to this actor by any mod. FormID of the token is " + akToken.GetFormID() + ".")
 		Return -1
-	ElseIf (_GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST, akNPC) == -1)
-		If (abVerbose)
-			Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetActorBase().GetName() + ", but there had been no changes made to this actor by this mod. FormID of the token is " + akToken.GetFormID() + ".")
-		EndIf
+	ElseIf(_GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST, akNPC) == -1)
+		Notify(FW_LOG, "A mod tried to remove its changes to the actor" + akNPC.GetLeveledActorBase().GetName() + ", but there had been no changes made to this actor by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+
 		Return -1
 	EndIf
 
 	Int ModIndex = _GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST, akNPC)
-	Int mySyncMode = IntListGet(akNPC, SYNC_MODE_CHANGELIST, ModIndex)
+	Int SyncMode = IntListGet(akNPC, SYNC_MODE_CHANGELIST, ModIndex)
 
 	;If the npc sync mode changelist only contains one element, remove the sync mode completely from that npc and remove him from the list of npc's with local changelists
 	If(IntListCount(akNPC, SYNC_MODE_CHANGELIST) == 1)
@@ -327,7 +323,7 @@ Int Function RemoveSyncMode(Quest akToken, Actor akNPC, Bool abVerbose = True)
 		IntListClear(akNPC, SYNC_MODE_CHANGELIST)
 	EndIf
 
-	Return mySyncMode
+	Return SyncMode
 EndFunction
 
 Float Function GetGlobalRelationshipMulti(Int aiFromRelationshipRank, Int aiToRelationshipRank)
@@ -362,7 +358,7 @@ Int Function GetGlobalRelationshipMultiPriority(Quest akToken)
 	Return _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST) + 1
 EndFunction
 
-Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRank, Int aiToRelationshipRank, Float auiMultiplier)
+Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRank, Int aiToRelationshipRank, Float afMultiplier)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
 
 	If(ModIndex == -1)
@@ -393,7 +389,7 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRa
 		Return False
 	EndIf
 
-	If(auiMultiplier <= 0)
+	If(afMultiplier <= 0.0)
 		Throw(FW_LOG, "Multiplier can not be set to 0 or lower", "Invalid arguments")
 		Return False
 	EndIf
@@ -406,64 +402,64 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRa
 	;If the mod was found, update its new value
 	If(ModIndex2 >= 0)
 		If(MultiplierString == "S0_S1")
-			FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, 1)	; 0: default framework values, 1: custom mod values
 		ElseIf(MultiplierString == "S1_S2")
-			FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S2_S3")
-			FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S3_S4")
-			FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S4_S5")
-			FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S5_S4")
-			FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S4_S3")
-			FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S3_S2")
-			FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S2_S1")
-			FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S1_S0")
-			FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S0_S-1")
-			FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-1_S-2")
-			FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-2_S-3")
-			FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-3_S-4")
-			FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-4_S-5")
-			FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-5_S-4")
-			FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-4_S-3")
-			FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-3_S-2")
-			FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-2_S-1")
-			FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-1_S0")
-			FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, 1)
 		EndIf
 
@@ -472,45 +468,45 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRa
 		;If the mod is also on the last position then also update the global relationship multiplier
 		If(ModIndex2 == RSMultiChanges - 1)
 			If(MultiplierString == "S0_S1")
-				SetFloatValue(None, RS_MULTI_S0_S1, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_S0_S1, afMultiplier)
 			ElseIf(MultiplierString == "S1_S2")
-				SetFloatValue(None, RS_MULTI_S1_S2, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_S1_S2, afMultiplier)
 			ElseIf(MultiplierString == "S2_S3")
-				SetFloatValue(None, RS_MULTI_S2_S3, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_S2_S3, afMultiplier)
 			ElseIf(MultiplierString == "S3_S4")
-				SetFloatValue(None, RS_MULTI_S3_S4, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_S3_S4, afMultiplier)
 			ElseIf(MultiplierString == "S4_S5")
-				SetFloatValue(None, RS_MULTI_S4_S5, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_S4_S5, afMultiplier)
 			ElseIf(MultiplierString == "S5_S4")
-				SetFloatValue(None, RS_MULTI_S5_S4, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_S5_S4, afMultiplier)
 			ElseIf(MultiplierString == "S4_S3")
-				SetFloatValue(None, RS_MULTI_S4_S3, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_S4_S3, afMultiplier)
 			ElseIf(MultiplierString == "S3_S2")
-				SetFloatValue(None, RS_MULTI_S3_S2, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_S3_S2, afMultiplier)
 			ElseIf(MultiplierString == "S2_S1")
-				SetFloatValue(None, RS_MULTI_S2_S1, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_S2_S1, afMultiplier)
 			ElseIf(MultiplierString == "S1_S0")
-				SetFloatValue(None, RS_MULTI_S1_S0, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_S1_S0, afMultiplier)
 			ElseIf(MultiplierString == "S0_S-1")
-				SetFloatValue(None, RS_MULTI_S0_SM1, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_S0_SM1, afMultiplier)
 			ElseIf(MultiplierString == "S-1_S-2")
-				SetFloatValue(None, RS_MULTI_SM1_SM2, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_SM1_SM2, afMultiplier)
 			ElseIf(MultiplierString == "S-2_S-3")
-				SetFloatValue(None, RS_MULTI_SM2_SM3, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_SM2_SM3, afMultiplier)
 			ElseIf(MultiplierString == "S-3_S-4")
-				SetFloatValue(None, RS_MULTI_SM3_SM4, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_SM3_SM4, afMultiplier)
 			ElseIf(MultiplierString == "S-4_S-5")
-				SetFloatValue(None, RS_MULTI_SM4_SM5, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_SM4_SM5, afMultiplier)
 			ElseIf(MultiplierString == "S-5_S-4")
-				SetFloatValue(None, RS_MULTI_SM5_SM4, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_SM5_SM4, afMultiplier)
 			ElseIf(MultiplierString == "S-4_S-3")
-				SetFloatValue(None, RS_MULTI_SM4_SM3, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_SM4_SM3, afMultiplier)
 			ElseIf(MultiplierString == "S-3_S-2")
-				SetFloatValue(None, RS_MULTI_SM3_SM2, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_SM3_SM2, afMultiplier)
 			ElseIf(MultiplierString == "S-2_S-1")
-				SetFloatValue(None, RS_MULTI_SM2_SM1, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_SM2_SM1, afMultiplier)
 			ElseIf(MultiplierString == "S-1_S0")
-				SetFloatValue(None, RS_MULTI_SM1_S0, auiMultiplier)
+				SetFloatValue(None, RS_MULTI_SM1_S0, afMultiplier)
 			EndIf
 		Else
 			Notify(FW_LOG, "Can't change the global relationship multiplier for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
@@ -571,64 +567,64 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRa
 				IntListInsert(None, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
 
 				If(MultiplierString == "S0_S1")
-					FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S1_S2")
-					FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_S1_S2_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S2_S3")
-					FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_S2_S3_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S3_S4")
-					FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_S3_S4_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S4_S5")
-					FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_S4_S5_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S5_S4")
-					FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_S5_S4_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S4_S3")
-					FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_S4_S3_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S3_S2")
-					FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_S3_S2_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S2_S1")
-					FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_S2_S1_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S1_S0")
-					FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_S1_S0_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S0_S-1")
-					FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_S0_SM1_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-1_S-2")
-					FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-2_S-3")
-					FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-3_S-4")
-					FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-4_S-5")
-					FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-5_S-4")
-					FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-4_S-3")
-					FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-3_S-2")
-					FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-2_S-1")
-					FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-1_S0")
-					FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, i, auiMultiplier)
+					FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, i, afMultiplier)
 					IntListSet(None, RS_MULTI_SM1_S0_CHANGELIST, i, 1)
 				EndIf
 
@@ -682,121 +678,121 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRa
 	Int i = IntListAdd(None, RS_MULTI_SM1_S0_CHANGELIST, 0)
 
 	If(MultiplierString == "S0_S1")
-		SetFloatValue(None, RS_MULTI_S0_S1, auiMultiplier)
-		FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_S0_S1, afMultiplier)
+		FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S1_S2")
-		SetFloatValue(None, RS_MULTI_S1_S2, auiMultiplier)
-		FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_S1_S2, afMultiplier)
+		FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_S1_S2_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S2_S3")
-		SetFloatValue(None, RS_MULTI_S2_S3, auiMultiplier)
-		FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_S2_S3, afMultiplier)
+		FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_S2_S3_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S3_S4")
-		SetFloatValue(None, RS_MULTI_S3_S4, auiMultiplier)
-		FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_S3_S4, afMultiplier)
+		FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_S3_S4_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S4_S5")
-		SetFloatValue(None, RS_MULTI_S4_S5, auiMultiplier)
-		FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_S4_S5, afMultiplier)
+		FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_S4_S5_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S5_S4")
-		SetFloatValue(None, RS_MULTI_S5_S4, auiMultiplier)
-		FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_S5_S4, afMultiplier)
+		FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_S5_S4_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S4_S3")
-		SetFloatValue(None, RS_MULTI_S4_S3, auiMultiplier)
-		FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_S4_S3, afMultiplier)
+		FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_S4_S3_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S3_S2")
-		SetFloatValue(None, RS_MULTI_S3_S2, auiMultiplier)
-		FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_S3_S2, afMultiplier)
+		FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_S3_S2_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S2_S1")
-		SetFloatValue(None, RS_MULTI_S2_S1, auiMultiplier)
-		FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_S2_S1, afMultiplier)
+		FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_S2_S1_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S1_S0")
-		SetFloatValue(None, RS_MULTI_S1_S0, auiMultiplier)
-		FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_S1_S0, afMultiplier)
+		FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_S1_S0_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S0_S-1")
-		SetFloatValue(None, RS_MULTI_S0_SM1, auiMultiplier)
-		FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_S0_SM1, afMultiplier)
+		FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_S0_SM1_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-1_S-2")
-		SetFloatValue(None, RS_MULTI_SM1_SM2, auiMultiplier)
-		FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_SM1_SM2, afMultiplier)
+		FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-2_S-3")
-		SetFloatValue(None, RS_MULTI_SM2_SM3, auiMultiplier)
-		FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_SM2_SM3, afMultiplier)
+		FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-3_S-4")
-		SetFloatValue(None, RS_MULTI_SM3_SM4, auiMultiplier)
-		FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_SM3_SM4, afMultiplier)
+		FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-4_S-5")
-		SetFloatValue(None, RS_MULTI_SM4_SM5, auiMultiplier)
-		FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_SM4_SM5, afMultiplier)
+		FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-5_S-4")
-		SetFloatValue(None, RS_MULTI_SM5_SM4, auiMultiplier)
-		FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_SM5_SM4, afMultiplier)
+		FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-4_S-3")
-		SetFloatValue(None, RS_MULTI_SM4_SM3, auiMultiplier)
-		FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_SM4_SM3, afMultiplier)
+		FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-3_S-2")
-		SetFloatValue(None, RS_MULTI_SM3_SM2, auiMultiplier)
-		FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_SM3_SM2, afMultiplier)
+		FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-2_S-1")
-		SetFloatValue(None, RS_MULTI_SM2_SM1, auiMultiplier)
-		FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_SM2_SM1, afMultiplier)
+		FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-1_S0")
-		SetFloatValue(None, RS_MULTI_SM1_S0, auiMultiplier)
-		FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(None, RS_MULTI_SM1_S0, afMultiplier)
+		FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, i, afMultiplier)
 		IntListSet(None, RS_MULTI_SM1_S0_CHANGELIST, i, 1)
 	EndIf
 
 	Return True
 EndFunction
 
-Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
+Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] afMultipliers)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
 
 	;/ beginValidation /;
 	If(ModIndex == -1)
 		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access SetGlobalRelationshipMultis(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Return False
-	ElseIf (auiMultipliers.Length < 20)
-		Throw(FW_LOG, "Argument auiMultipliers was not set correctly. The array has to be 20-items long.", "Invalid arguments")
+	ElseIf (afMultipliers.Length < 20)
+		Throw(FW_LOG, "Argument afMultipliers was not set correctly. The array has to be 20-items long.", "Invalid arguments")
 		Return False
-	ElseIf (auiMultipliers[0] < 0.0 || \
-			auiMultipliers[1] < 0.0 || \
-			auiMultipliers[2] < 0.0 || \
-			auiMultipliers[3] < 0.0 || \
-			auiMultipliers[4] < 0.0 || \
-			auiMultipliers[5] < 0.0 || \
-			auiMultipliers[6] < 0.0 || \
-			auiMultipliers[7] < 0.0 || \
-			auiMultipliers[8] < 0.0 || \
-			auiMultipliers[9] < 0.0 || \
-			auiMultipliers[10] < 0.0 || \
-			auiMultipliers[11] < 0.0 || \
-			auiMultipliers[12] < 0.0 || \
-			auiMultipliers[13] < 0.0 || \
-			auiMultipliers[14] < 0.0 || \
-			auiMultipliers[15] < 0.0 || \
-			auiMultipliers[16] < 0.0 || \
-			auiMultipliers[17] < 0.0 || \
-			auiMultipliers[18] < 0.0 || \
-			auiMultipliers[19] < 0.0)
-		Throw(FW_LOG, "Argument auiMultipliers was not set correctly. Every item in the array has to be either a positive float or zero.", "Invalid arguments")
+	ElseIf (afMultipliers[0] < 0.0 || \
+			afMultipliers[1] < 0.0 || \
+			afMultipliers[2] < 0.0 || \
+			afMultipliers[3] < 0.0 || \
+			afMultipliers[4] < 0.0 || \
+			afMultipliers[5] < 0.0 || \
+			afMultipliers[6] < 0.0 || \
+			afMultipliers[7] < 0.0 || \
+			afMultipliers[8] < 0.0 || \
+			afMultipliers[9] < 0.0 || \
+			afMultipliers[10] < 0.0 || \
+			afMultipliers[11] < 0.0 || \
+			afMultipliers[12] < 0.0 || \
+			afMultipliers[13] < 0.0 || \
+			afMultipliers[14] < 0.0 || \
+			afMultipliers[15] < 0.0 || \
+			afMultipliers[16] < 0.0 || \
+			afMultipliers[17] < 0.0 || \
+			afMultipliers[18] < 0.0 || \
+			afMultipliers[19] < 0.0)
+		Throw(FW_LOG, "Argument afMultipliers was not set correctly. Every item in the array has to be either a positive float or zero.", "Invalid arguments")
 		Return False
 	EndIf
 	;/ endValidation /;
@@ -808,84 +804,84 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 	;If the mod was found, update its new value
 	If(ModIndex2 >= 0)
 		;/ openFold Repeat 20 times /;
-		If (auiMultipliers[0])
-			FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, auiMultipliers[0])
+		If (afMultipliers[0] > 0.0)
+			FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, afMultipliers[0])
 			IntListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, 1)	; 0: default framework values, 1: custom mod values
 			Notify(FW_LOG, "Global multiplier for rank " + 0 + " to " + 1 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[1])
-			FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, auiMultipliers[1])
+		ElseIf (afMultipliers[1] > 0.0)
+			FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, afMultipliers[1])
 			IntListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + 1 + " to " + 2 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[2])
-			FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, auiMultipliers[2])
+		ElseIf (afMultipliers[2] > 0.0)
+			FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, afMultipliers[2])
 			IntListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + 2 + " to " + 3 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[3])
-			FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, auiMultipliers[3])
+		ElseIf (afMultipliers[3] > 0.0)
+			FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, afMultipliers[3])
 			IntListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + 3 + " to " + 4 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[4])
-			FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, auiMultipliers[4])
+		ElseIf (afMultipliers[4] > 0.0)
+			FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, afMultipliers[4])
 			IntListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + 4 + " to " + 5 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[5])
-			FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, auiMultipliers[5])
+		ElseIf (afMultipliers[5] > 0.0)
+			FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, afMultipliers[5])
 			IntListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + 5 + " to " + 4 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[6])
-			FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, auiMultipliers[6])
+		ElseIf (afMultipliers[6] > 0.0)
+			FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, afMultipliers[6])
 			IntListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + 4 + " to " + 3 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[7])
-			FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, auiMultipliers[7])
+		ElseIf (afMultipliers[7] > 0.0)
+			FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, afMultipliers[7])
 			IntListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + 3 + " to " + 2 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[8])
-			FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, auiMultipliers[8])
+		ElseIf (afMultipliers[8] > 0.0)
+			FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, afMultipliers[8])
 			IntListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + 2 + " to " + 1 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[9])
-			FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, auiMultipliers[9])
+		ElseIf (afMultipliers[9] > 0.0)
+			FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, afMultipliers[9])
 			IntListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + 1 + " to " + 0 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[10])
-			FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, auiMultipliers[10])
+		ElseIf (afMultipliers[10] > 0.0)
+			FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, afMultipliers[10])
 			IntListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + 0 + " to " + -1 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[11])
-			FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, auiMultipliers[11])
+		ElseIf (afMultipliers[11] > 0.0)
+			FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, afMultipliers[11])
 			IntListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + -1 + " to " + -2 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[12])
-			FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, auiMultipliers[12])
+		ElseIf (afMultipliers[12] > 0.0)
+			FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, afMultipliers[12])
 			IntListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + -2 + " to " + -3 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[13])
-			FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, auiMultipliers[13])
+		ElseIf (afMultipliers[13] > 0.0)
+			FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, afMultipliers[13])
 			IntListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + -3 + " to " + -4 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[14])
-			FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, auiMultipliers[14])
+		ElseIf (afMultipliers[14] > 0.0)
+			FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, afMultipliers[14])
 			IntListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + -4 + " to " + -5 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[15])
-			FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, auiMultipliers[15])
+		ElseIf (afMultipliers[15] > 0.0)
+			FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, afMultipliers[15])
 			IntListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + -5 + " to " + -4 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[16])
-			FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, auiMultipliers[16])
+		ElseIf (afMultipliers[16] > 0.0)
+			FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, afMultipliers[16])
 			IntListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + -4 + " to " + -3 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[17])
-			FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, auiMultipliers[17])
+		ElseIf (afMultipliers[17] > 0.0)
+			FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, afMultipliers[17])
 			IntListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + -3 + " to " + -2 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[18])
-			FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, auiMultipliers[18])
+		ElseIf (afMultipliers[18] > 0.0)
+			FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, afMultipliers[18])
 			IntListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + -2 + " to " + -1 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[19])
-			FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, auiMultipliers[19])
+		ElseIf (afMultipliers[19] > 0.0)
+			FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, afMultipliers[19])
 			IntListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + -1 + " to " + 0 + " got updated by " + ModName + ".", False)
 		EndIf
@@ -893,26 +889,26 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 
 		;If the mod is also on the last position then also update the global relationship multipliers
 		If(ModIndex2 == RSMultiChanges - 1)
-			SetFloatValue(None, RS_MULTI_S0_S1_CHANGELIST, auiMultipliers[0])
-			SetFloatValue(None, RS_MULTI_S1_S2_CHANGELIST, auiMultipliers[1])
-			SetFloatValue(None, RS_MULTI_S2_S3_CHANGELIST, auiMultipliers[2])
-			SetFloatValue(None, RS_MULTI_S3_S4_CHANGELIST, auiMultipliers[3])
-			SetFloatValue(None, RS_MULTI_S4_S5_CHANGELIST, auiMultipliers[4])
-			SetFloatValue(None, RS_MULTI_S5_S4_CHANGELIST, auiMultipliers[5])
-			SetFloatValue(None, RS_MULTI_S4_S3_CHANGELIST, auiMultipliers[6])
-			SetFloatValue(None, RS_MULTI_S3_S2_CHANGELIST, auiMultipliers[7])
-			SetFloatValue(None, RS_MULTI_S2_S1_CHANGELIST, auiMultipliers[8])
-			SetFloatValue(None, RS_MULTI_S1_S0_CHANGELIST, auiMultipliers[9])
-			SetFloatValue(None, RS_MULTI_S0_SM1_CHANGELIST, auiMultipliers[10])
-			SetFloatValue(None, RS_MULTI_SM1_SM2_CHANGELIST, auiMultipliers[11])
-			SetFloatValue(None, RS_MULTI_SM2_SM3_CHANGELIST, auiMultipliers[12])
-			SetFloatValue(None, RS_MULTI_SM3_SM4_CHANGELIST, auiMultipliers[13])
-			SetFloatValue(None, RS_MULTI_SM4_SM5_CHANGELIST, auiMultipliers[14])
-			SetFloatValue(None, RS_MULTI_SM5_SM4_CHANGELIST, auiMultipliers[15])
-			SetFloatValue(None, RS_MULTI_SM4_SM3_CHANGELIST, auiMultipliers[16])
-			SetFloatValue(None, RS_MULTI_SM3_SM2_CHANGELIST, auiMultipliers[17])
-			SetFloatValue(None, RS_MULTI_SM2_SM1_CHANGELIST, auiMultipliers[18])
-			SetFloatValue(None, RS_MULTI_SM1_S0_CHANGELIST, auiMultipliers[19])
+			SetFloatValue(None, RS_MULTI_S0_S1_CHANGELIST, afMultipliers[0])
+			SetFloatValue(None, RS_MULTI_S1_S2_CHANGELIST, afMultipliers[1])
+			SetFloatValue(None, RS_MULTI_S2_S3_CHANGELIST, afMultipliers[2])
+			SetFloatValue(None, RS_MULTI_S3_S4_CHANGELIST, afMultipliers[3])
+			SetFloatValue(None, RS_MULTI_S4_S5_CHANGELIST, afMultipliers[4])
+			SetFloatValue(None, RS_MULTI_S5_S4_CHANGELIST, afMultipliers[5])
+			SetFloatValue(None, RS_MULTI_S4_S3_CHANGELIST, afMultipliers[6])
+			SetFloatValue(None, RS_MULTI_S3_S2_CHANGELIST, afMultipliers[7])
+			SetFloatValue(None, RS_MULTI_S2_S1_CHANGELIST, afMultipliers[8])
+			SetFloatValue(None, RS_MULTI_S1_S0_CHANGELIST, afMultipliers[9])
+			SetFloatValue(None, RS_MULTI_S0_SM1_CHANGELIST, afMultipliers[10])
+			SetFloatValue(None, RS_MULTI_SM1_SM2_CHANGELIST, afMultipliers[11])
+			SetFloatValue(None, RS_MULTI_SM2_SM3_CHANGELIST, afMultipliers[12])
+			SetFloatValue(None, RS_MULTI_SM3_SM4_CHANGELIST, afMultipliers[13])
+			SetFloatValue(None, RS_MULTI_SM4_SM5_CHANGELIST, afMultipliers[14])
+			SetFloatValue(None, RS_MULTI_SM5_SM4_CHANGELIST, afMultipliers[15])
+			SetFloatValue(None, RS_MULTI_SM4_SM3_CHANGELIST, afMultipliers[16])
+			SetFloatValue(None, RS_MULTI_SM3_SM2_CHANGELIST, afMultipliers[17])
+			SetFloatValue(None, RS_MULTI_SM2_SM1_CHANGELIST, afMultipliers[18])
+			SetFloatValue(None, RS_MULTI_SM1_S0_CHANGELIST, afMultipliers[19])
 		Else
 			Notify(FW_LOG, "Can't change the global relationship multipliers for " + ModName + " because they are already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
 			Return True
@@ -971,65 +967,65 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 				FloatListInsert(None, RS_MULTI_SM1_S0_CHANGELIST, i, 2.0)
 				IntListInsert(None, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
 
-				If (auiMultipliers[0])
-					FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, auiMultipliers[0])
+				If (afMultipliers[0])
+					FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, afMultipliers[0])
 					IntListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, 1)	; 0: default framework values, 1: custom mod values
-				ElseIf (auiMultipliers[1])
-					FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, auiMultipliers[1])
+				ElseIf (afMultipliers[1])
+					FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, afMultipliers[1])
 					IntListSet(None, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[2])
-					FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, auiMultipliers[2])
+				ElseIf (afMultipliers[2])
+					FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, afMultipliers[2])
 					IntListSet(None, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[3])
-					FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, auiMultipliers[3])
+				ElseIf (afMultipliers[3])
+					FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, afMultipliers[3])
 					IntListSet(None, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[4])
-					FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, auiMultipliers[4])
+				ElseIf (afMultipliers[4])
+					FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, afMultipliers[4])
 					IntListSet(None, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[5])
-					FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, auiMultipliers[5])
+				ElseIf (afMultipliers[5])
+					FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, afMultipliers[5])
 					IntListSet(None, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[6])
-					FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, auiMultipliers[6])
+				ElseIf (afMultipliers[6])
+					FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, afMultipliers[6])
 					IntListSet(None, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[7])
-					FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, auiMultipliers[7])
+				ElseIf (afMultipliers[7])
+					FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, afMultipliers[7])
 					IntListSet(None, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[8])
-					FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, auiMultipliers[8])
+				ElseIf (afMultipliers[8])
+					FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, afMultipliers[8])
 					IntListSet(None, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[9])
-					FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, auiMultipliers[9])
+				ElseIf (afMultipliers[9])
+					FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, afMultipliers[9])
 					IntListSet(None, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[10])
-					FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, auiMultipliers[10])
+				ElseIf (afMultipliers[10])
+					FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, afMultipliers[10])
 					IntListSet(None, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[11])
-					FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, auiMultipliers[11])
+				ElseIf (afMultipliers[11])
+					FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, afMultipliers[11])
 					IntListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[12])
-					FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, auiMultipliers[12])
+				ElseIf (afMultipliers[12])
+					FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, afMultipliers[12])
 					IntListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[13])
-					FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, auiMultipliers[13])
+				ElseIf (afMultipliers[13])
+					FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, afMultipliers[13])
 					IntListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[14])
-					FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, auiMultipliers[14])
+				ElseIf (afMultipliers[14])
+					FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, afMultipliers[14])
 					IntListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[15])
-					FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, auiMultipliers[15])
+				ElseIf (afMultipliers[15])
+					FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, afMultipliers[15])
 					IntListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[16])
-					FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, auiMultipliers[16])
+				ElseIf (afMultipliers[16])
+					FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, afMultipliers[16])
 					IntListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[17])
-					FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, auiMultipliers[17])
+				ElseIf (afMultipliers[17])
+					FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, afMultipliers[17])
 					IntListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[18])
-					FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, auiMultipliers[18])
+				ElseIf (afMultipliers[18])
+					FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, afMultipliers[18])
 					IntListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[19])
-					FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, auiMultipliers[19])
+				ElseIf (afMultipliers[19])
+					FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, afMultipliers[19])
 					IntListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, 1)
 				EndIf
 
@@ -1081,65 +1077,65 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] auiMultipliers)
 	FloatListAdd(None, RS_MULTI_SM1_S0_CHANGELIST, i, 2.0)
 	Int i = IntListAdd(None, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
 
-	If (auiMultipliers[0])
-		FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, auiMultipliers[0])
+	If (afMultipliers[0])
+		FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, afMultipliers[0])
 		IntListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, 1)	; 0: default framework values, 1: custom mod values
-	ElseIf (auiMultipliers[1])
-		FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, i, auiMultipliers[1])
+	ElseIf (afMultipliers[1])
+		FloatListSet(None, RS_MULTI_S1_S2_CHANGELIST, i, afMultipliers[1])
 		IntListSet(None, RS_MULTI_S1_S2_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[2])
-		FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, i, auiMultipliers[2])
+	ElseIf (afMultipliers[2])
+		FloatListSet(None, RS_MULTI_S2_S3_CHANGELIST, i, afMultipliers[2])
 		IntListSet(None, RS_MULTI_S2_S3_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[3])
-		FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, i, auiMultipliers[3])
+	ElseIf (afMultipliers[3])
+		FloatListSet(None, RS_MULTI_S3_S4_CHANGELIST, i, afMultipliers[3])
 		IntListSet(None, RS_MULTI_S3_S4_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[4])
-		FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, i, auiMultipliers[4])
+	ElseIf (afMultipliers[4])
+		FloatListSet(None, RS_MULTI_S4_S5_CHANGELIST, i, afMultipliers[4])
 		IntListSet(None, RS_MULTI_S4_S5_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[5])
-		FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, i, auiMultipliers[5])
+	ElseIf (afMultipliers[5])
+		FloatListSet(None, RS_MULTI_S5_S4_CHANGELIST, i, afMultipliers[5])
 		IntListSet(None, RS_MULTI_S5_S4_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[6])
-		FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, i, auiMultipliers[6])
+	ElseIf (afMultipliers[6])
+		FloatListSet(None, RS_MULTI_S4_S3_CHANGELIST, i, afMultipliers[6])
 		IntListSet(None, RS_MULTI_S4_S3_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[7])
-		FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, i, auiMultipliers[7])
+	ElseIf (afMultipliers[7])
+		FloatListSet(None, RS_MULTI_S3_S2_CHANGELIST, i, afMultipliers[7])
 		IntListSet(None, RS_MULTI_S3_S2_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[8])
-		FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, i, auiMultipliers[8])
+	ElseIf (afMultipliers[8])
+		FloatListSet(None, RS_MULTI_S2_S1_CHANGELIST, i, afMultipliers[8])
 		IntListSet(None, RS_MULTI_S2_S1_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[9])
-		FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, i, auiMultipliers[9])
+	ElseIf (afMultipliers[9])
+		FloatListSet(None, RS_MULTI_S1_S0_CHANGELIST, i, afMultipliers[9])
 		IntListSet(None, RS_MULTI_S1_S0_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[10])
-		FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, i, auiMultipliers[10])
+	ElseIf (afMultipliers[10])
+		FloatListSet(None, RS_MULTI_S0_SM1_CHANGELIST, i, afMultipliers[10])
 		IntListSet(None, RS_MULTI_S0_SM1_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[11])
-		FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, i, auiMultipliers[11])
+	ElseIf (afMultipliers[11])
+		FloatListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, i, afMultipliers[11])
 		IntListSet(None, RS_MULTI_SM1_SM2_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[12])
-		FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, i, auiMultipliers[12])
+	ElseIf (afMultipliers[12])
+		FloatListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, i, afMultipliers[12])
 		IntListSet(None, RS_MULTI_SM2_SM3_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[13])
-		FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, i, auiMultipliers[13])
+	ElseIf (afMultipliers[13])
+		FloatListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, i, afMultipliers[13])
 		IntListSet(None, RS_MULTI_SM3_SM4_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[14])
-		FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, i, auiMultipliers[14])
+	ElseIf (afMultipliers[14])
+		FloatListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, i, afMultipliers[14])
 		IntListSet(None, RS_MULTI_SM4_SM5_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[15])
-		FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, i, auiMultipliers[15])
+	ElseIf (afMultipliers[15])
+		FloatListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, i, afMultipliers[15])
 		IntListSet(None, RS_MULTI_SM5_SM4_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[16])
-		FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, i, auiMultipliers[16])
+	ElseIf (afMultipliers[16])
+		FloatListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, i, afMultipliers[16])
 		IntListSet(None, RS_MULTI_SM4_SM3_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[17])
-		FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, i, auiMultipliers[17])
+	ElseIf (afMultipliers[17])
+		FloatListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, i, afMultipliers[17])
 		IntListSet(None, RS_MULTI_SM3_SM2_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[18])
-		FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, i, auiMultipliers[18])
+	ElseIf (afMultipliers[18])
+		FloatListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, i, afMultipliers[18])
 		IntListSet(None, RS_MULTI_SM2_SM1_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[19])
-		FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, i, auiMultipliers[19])
+	ElseIf (afMultipliers[19])
+		FloatListSet(None, RS_MULTI_SM1_S0_CHANGELIST, i, afMultipliers[19])
 		IntListSet(None, RS_MULTI_SM1_S0_CHANGELIST, i, 1)
 	EndIf
 
@@ -1913,7 +1909,7 @@ Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int
 	Else
 		If(abGetGlobalIfNotFound)
 			If (abNotifyIfGetGlobal)
-				Notify(FW_LOG, "Relationship multiplier on " + akNPC.GetActorBase().GetName() + " was not set for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", returning global relationship multiplier.", False)
+				Notify(FW_LOG, "Relationship multiplier on " + akNPC.GetLeveledActorBase().GetName() + " was not set for " + aiFromRelationshipRank + " to " + aiToRelationshipRank + ", returning global relationship multiplier.", False)
 			EndIf
 			Return GetGlobalRelationshipMulti(aiFromRelationshipRank, aiToRelationshipRank)
 		Else
@@ -1931,7 +1927,7 @@ Int Function GetRelationshipMultiPriority(Quest akToken, Actor akNPC)
 	Return _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) + 1
 EndFunction
 
-Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Float auiMultiplier)
+Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Float afMultiplier)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
 
 	If(ModIndex == -1)
@@ -1967,7 +1963,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 		Return False
 	EndIf
 
-	If(auiMultiplier <= 0)
+	If(afMultiplier <= 0)
 		Throw(FW_LOG, "Multiplier can not be set to 0 or lower", "Invalid arguments")
 		False
 	EndIf
@@ -1980,64 +1976,64 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 	;If the mod was found, update its new value
 	If(ModIndex2 >= 0)
 		If(MultiplierString == "S0_S1")
-			FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S1_S2")
-			FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S2_S3")
-			FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S3_S4")
-			FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S4_S5")
-			FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S5_S4")
-			FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S4_S3")
-			FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S3_S2")
-			FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S2_S1")
-			FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S1_S0")
-			FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S0_S-1")
-			FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-1_S-2")
-			FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-2_S-3")
-			FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-3_S-4")
-			FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-4_S-5")
-			FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-5_S-4")
-			FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-4_S-3")
-			FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-3_S-2")
-			FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-2_S-1")
-			FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, 1)
 		ElseIf(MultiplierString == "S-1_S0")
-			FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, auiMultiplier)
+			FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, afMultiplier)
 			IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, 1)
 		EndIf
 
@@ -2046,48 +2042,48 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 		;If the mod is also on the last position then also update the relationship multiplier
 		If(ModIndex2 == RSMultiChanges - 1)
 			If(MultiplierString == "S0_S1")
-				SetFloatValue(akNPC, RS_MULTI_S0_S1, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_S0_S1, afMultiplier)
 			ElseIf(MultiplierString == "S1_S2")
-				SetFloatValue(akNPC, RS_MULTI_S1_S2, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_S1_S2, afMultiplier)
 			ElseIf(MultiplierString == "S2_S3")
-				SetFloatValue(akNPC, RS_MULTI_S2_S3, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_S2_S3, afMultiplier)
 			ElseIf(MultiplierString == "S3_S4")
-				SetFloatValue(akNPC, RS_MULTI_S3_S4, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_S3_S4, afMultiplier)
 			ElseIf(MultiplierString == "S4_S5")
-				SetFloatValue(akNPC, RS_MULTI_S4_S5, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_S4_S5, afMultiplier)
 			ElseIf(MultiplierString == "S5_S4")
-				SetFloatValue(akNPC, RS_MULTI_S5_S4, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_S5_S4, afMultiplier)
 			ElseIf(MultiplierString == "S4_S3")
-				SetFloatValue(akNPC, RS_MULTI_S4_S3, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_S4_S3, afMultiplier)
 			ElseIf(MultiplierString == "S3_S2")
-				SetFloatValue(akNPC, RS_MULTI_S3_S2, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_S3_S2, afMultiplier)
 			ElseIf(MultiplierString == "S2_S1")
-				SetFloatValue(akNPC, RS_MULTI_S2_S1, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_S2_S1, afMultiplier)
 			ElseIf(MultiplierString == "S1_S0")
-				SetFloatValue(akNPC, RS_MULTI_S1_S0, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_S1_S0, afMultiplier)
 			ElseIf(MultiplierString == "S0_S-1")
-				SetFloatValue(akNPC, RS_MULTI_S0_SM1, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_S0_SM1, afMultiplier)
 			ElseIf(MultiplierString == "S-1_S-2")
-				SetFloatValue(akNPC, RS_MULTI_SM1_SM2, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_SM1_SM2, afMultiplier)
 			ElseIf(MultiplierString == "S-2_S-3")
-				SetFloatValue(akNPC, RS_MULTI_SM2_SM3, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_SM2_SM3, afMultiplier)
 			ElseIf(MultiplierString == "S-3_S-4")
-				SetFloatValue(akNPC, RS_MULTI_SM3_SM4, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_SM3_SM4, afMultiplier)
 			ElseIf(MultiplierString == "S-4_S-5")
-				SetFloatValue(akNPC, RS_MULTI_SM4_SM5, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_SM4_SM5, afMultiplier)
 			ElseIf(MultiplierString == "S-5_S-4")
-				SetFloatValue(akNPC, RS_MULTI_SM5_SM4, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_SM5_SM4, afMultiplier)
 			ElseIf(MultiplierString == "S-4_S-3")
-				SetFloatValue(akNPC, RS_MULTI_SM4_SM3, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_SM4_SM3, afMultiplier)
 			ElseIf(MultiplierString == "S-3_S-2")
-				SetFloatValue(akNPC, RS_MULTI_SM3_SM2, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_SM3_SM2, afMultiplier)
 			ElseIf(MultiplierString == "S-2_S-1")
-				SetFloatValue(akNPC, RS_MULTI_SM2_SM1, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_SM2_SM1, afMultiplier)
 			ElseIf(MultiplierString == "S-1_S0")
-				SetFloatValue(akNPC, RS_MULTI_SM1_S0, auiMultiplier)
+				SetFloatValue(akNPC, RS_MULTI_SM1_S0, afMultiplier)
 			EndIf
 		Else
-			Notify(FW_LOG, "Can't change the relationship multiplier on " + akNPC.GetActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
+			Notify(FW_LOG, "Can't change the relationship multiplier on " + akNPC.GetLeveledActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
 			Return True
 		EndIf
 	Else
@@ -2145,68 +2141,68 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 				IntListInsert(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, 0)
 
 				If(MultiplierString == "S0_S1")
-					FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S1_S2")
-					FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S2_S3")
-					FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S3_S4")
-					FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S4_S5")
-					FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S5_S4")
-					FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S4_S3")
-					FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S3_S2")
-					FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S2_S1")
-					FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S1_S0")
-					FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S0_S-1")
-					FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-1_S-2")
-					FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-2_S-3")
-					FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-3_S-4")
-					FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-4_S-5")
-					FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-5_S-4")
-					FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-4_S-3")
-					FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-3_S-2")
-					FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-2_S-1")
-					FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, 1)
 				ElseIf(MultiplierString == "S-1_S0")
-					FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, auiMultiplier)
+					FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, afMultiplier)
 					IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 1)
 				EndIf
 
-				Notify(FW_LOG, "Can't change the relationship multiplier on " + akNPC.GetActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
+				Notify(FW_LOG, "Can't change the relationship multiplier on " + akNPC.GetLeveledActorBase().GetName() + " for " + ModName + " because it is already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
 				Return True
 			EndIf
 		EndWhile
@@ -2254,84 +2250,84 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 	Int i = IntListAdd(akNPC, RS_MULTI_SM1_S0_CHANGELIST, 0)
 
 	If(MultiplierString == "S0_S1")
-		SetFloatValue(akNPC, RS_MULTI_S0_S1, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_S0_S1, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S1_S2")
-		SetFloatValue(akNPC, RS_MULTI_S1_S2, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_S1_S2, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S2_S3")
-		SetFloatValue(akNPC, RS_MULTI_S2_S3, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_S2_S3, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S3_S4")
-		SetFloatValue(akNPC, RS_MULTI_S3_S4, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_S3_S4, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S4_S5")
-		SetFloatValue(akNPC, RS_MULTI_S4_S5, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_S4_S5, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S5_S4")
-		SetFloatValue(akNPC, RS_MULTI_S5_S4, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_S5_S4, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S4_S3")
-		SetFloatValue(akNPC, RS_MULTI_S4_S3, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_S4_S3, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S3_S2")
-		SetFloatValue(akNPC, RS_MULTI_S3_S2, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_S3_S2, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S2_S1")
-		SetFloatValue(akNPC, RS_MULTI_S2_S1, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_S2_S1, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S1_S0")
-		SetFloatValue(akNPC, RS_MULTI_S1_S0, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_S1_S0, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S0_S-1")
-		SetFloatValue(akNPC, RS_MULTI_S0_SM1, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_S0_SM1, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-1_S-2")
-		SetFloatValue(akNPC, RS_MULTI_SM1_SM2, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_SM1_SM2, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-2_S-3")
-		SetFloatValue(akNPC, RS_MULTI_SM2_SM3, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_SM2_SM3, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-3_S-4")
-		SetFloatValue(akNPC, RS_MULTI_SM3_SM4, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_SM3_SM4, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-4_S-5")
-		SetFloatValue(akNPC, RS_MULTI_SM4_SM5, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_SM4_SM5, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-5_S-4")
-		SetFloatValue(akNPC, RS_MULTI_SM5_SM4, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_SM5_SM4, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-4_S-3")
-		SetFloatValue(akNPC, RS_MULTI_SM4_SM3, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_SM4_SM3, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-3_S-2")
-		SetFloatValue(akNPC, RS_MULTI_SM3_SM2, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_SM3_SM2, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-2_S-1")
-		SetFloatValue(akNPC, RS_MULTI_SM2_SM1, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_SM2_SM1, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, 1)
 	ElseIf(MultiplierString == "S-1_S0")
-		SetFloatValue(akNPC, RS_MULTI_SM1_S0, auiMultiplier)
-		FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, auiMultiplier)
+		SetFloatValue(akNPC, RS_MULTI_SM1_S0, afMultiplier)
+		FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, afMultiplier)
 		IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 1)
 	EndIf
 
@@ -2339,7 +2335,7 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 	Return True
 EndFunction
 
-Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMultipliers)
+Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] afMultipliers)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
 
 	;/ beginValidation /;
@@ -2349,148 +2345,148 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMulti
 	ElseIf(!akNPC)
 		Throw(FW_LOG, "Argument akNPC for function SetRelationshipMultis() is None!", "Invalid arguments")
 		Return False
-	ElseIf (auiMultipliers.Length != 20)
-		Throw(FW_LOG, "Argument auiMultipliers was not set correctly. The array has to be 20-items long.", "Invalid arguments")
+	ElseIf (afMultipliers.Length != 20)
+		Throw(FW_LOG, "Argument afMultipliers was not set correctly. The array has to be 20-items long.", "Invalid arguments")
 		Return False
-	ElseIf (auiMultipliers[0] < 0.0 || \
-			auiMultipliers[1] < 0.0 || \
-			auiMultipliers[2] < 0.0 || \
-			auiMultipliers[3] < 0.0 || \
-			auiMultipliers[4] < 0.0 || \
-			auiMultipliers[5] < 0.0 || \
-			auiMultipliers[6] < 0.0 || \
-			auiMultipliers[7] < 0.0 || \
-			auiMultipliers[8] < 0.0 || \
-			auiMultipliers[9] < 0.0 || \
-			auiMultipliers[10] < 0.0 || \
-			auiMultipliers[11] < 0.0 || \
-			auiMultipliers[12] < 0.0 || \
-			auiMultipliers[13] < 0.0 || \
-			auiMultipliers[14] < 0.0 || \
-			auiMultipliers[15] < 0.0 || \
-			auiMultipliers[16] < 0.0 || \
-			auiMultipliers[17] < 0.0 || \
-			auiMultipliers[18] < 0.0 || \
-			auiMultipliers[19] < 0.0)
-		Throw(FW_LOG, "Argument auiMultipliers was not set correctly. Every item in the array has to be either a positive float or zero.", "Invalid arguments")
+	ElseIf (afMultipliers[0] < 0.0 || \
+			afMultipliers[1] < 0.0 || \
+			afMultipliers[2] < 0.0 || \
+			afMultipliers[3] < 0.0 || \
+			afMultipliers[4] < 0.0 || \
+			afMultipliers[5] < 0.0 || \
+			afMultipliers[6] < 0.0 || \
+			afMultipliers[7] < 0.0 || \
+			afMultipliers[8] < 0.0 || \
+			afMultipliers[9] < 0.0 || \
+			afMultipliers[10] < 0.0 || \
+			afMultipliers[11] < 0.0 || \
+			afMultipliers[12] < 0.0 || \
+			afMultipliers[13] < 0.0 || \
+			afMultipliers[14] < 0.0 || \
+			afMultipliers[15] < 0.0 || \
+			afMultipliers[16] < 0.0 || \
+			afMultipliers[17] < 0.0 || \
+			afMultipliers[18] < 0.0 || \
+			afMultipliers[19] < 0.0)
+		Throw(FW_LOG, "Argument afMultipliers was not set correctly. Every item in the array has to be either a positive float or zero.", "Invalid arguments")
 		Return False
 	EndIf
 	;/ endValidation /;
 
-	String ModName = GetStringValue(akToken, MOD_NAME)
 	Int ModIndex2 = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) ; Get position of current mod in this list
 	Int RSMultiChanges = FormListCount(akNPC, RS_MULTI_CHANGELIST) ;Get the list of mods which change this actor's relationship multipliers
+	String ModName = GetStringValue(akToken, MOD_NAME)
 
 	;If the mod was found, update its new value
 	If(ModIndex2 >= 0)
 		;/ openFold Repeat 20 times /;
-		If (auiMultipliers[0])
-			FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, auiMultipliers[0])
+		If (afMultipliers[0])
+			FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, afMultipliers[0])
 			IntListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, 1)	; 0: default framework values, 1: custom mod values
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + 0 + " to " + 1 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[1])
-			FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, auiMultipliers[1])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + 0 + " to " + 1 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[1])
+			FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, afMultipliers[1])
 			IntListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + 1 + " to " + 2 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[2])
-			FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, auiMultipliers[2])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + 1 + " to " + 2 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[2])
+			FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, afMultipliers[2])
 			IntListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + 2 + " to " + 3 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[3])
-			FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, auiMultipliers[3])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + 2 + " to " + 3 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[3])
+			FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, afMultipliers[3])
 			IntListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + 3 + " to " + 4 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[4])
-			FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, auiMultipliers[4])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + 3 + " to " + 4 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[4])
+			FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, afMultipliers[4])
 			IntListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + 4 + " to " + 5 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[5])
-			FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, auiMultipliers[5])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + 4 + " to " + 5 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[5])
+			FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, afMultipliers[5])
 			IntListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + 5 + " to " + 4 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[6])
-			FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, auiMultipliers[6])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + 5 + " to " + 4 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[6])
+			FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, afMultipliers[6])
 			IntListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + 4 + " to " + 3 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[7])
-			FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, auiMultipliers[7])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + 4 + " to " + 3 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[7])
+			FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, afMultipliers[7])
 			IntListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + 3 + " to " + 2 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[8])
-			FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, auiMultipliers[8])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + 3 + " to " + 2 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[8])
+			FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, afMultipliers[8])
 			IntListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + 2 + " to " + 1 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[9])
-			FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, auiMultipliers[9])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + 2 + " to " + 1 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[9])
+			FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, afMultipliers[9])
 			IntListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + 1 + " to " + 0 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[10])
-			FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, auiMultipliers[10])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + 1 + " to " + 0 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[10])
+			FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, afMultipliers[10])
 			IntListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + 0 + " to " + -1 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[11])
-			FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, auiMultipliers[11])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + 0 + " to " + -1 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[11])
+			FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, afMultipliers[11])
 			IntListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + -1 + " to " + -2 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[12])
-			FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, auiMultipliers[12])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + -1 + " to " + -2 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[12])
+			FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, afMultipliers[12])
 			IntListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + -2 + " to " + -3 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[13])
-			FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, auiMultipliers[13])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + -2 + " to " + -3 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[13])
+			FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, afMultipliers[13])
 			IntListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + -3 + " to " + -4 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[14])
-			FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, auiMultipliers[14])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + -3 + " to " + -4 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[14])
+			FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, afMultipliers[14])
 			IntListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + -4 + " to " + -5 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[15])
-			FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, auiMultipliers[15])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + -4 + " to " + -5 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[15])
+			FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, afMultipliers[15])
 			IntListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + -5 + " to " + -4 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[16])
-			FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, auiMultipliers[16])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + -5 + " to " + -4 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[16])
+			FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, afMultipliers[16])
 			IntListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + -4 + " to " + -3 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[17])
-			FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, auiMultipliers[17])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + -4 + " to " + -3 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[17])
+			FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, afMultipliers[17])
 			IntListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + -3 + " to " + -2 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[18])
-			FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, auiMultipliers[18])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + -3 + " to " + -2 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[18])
+			FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, afMultipliers[18])
 			IntListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + -2 + " to " + -1 + " got updated by " + ModName + ".", False)
-		ElseIf (auiMultipliers[19])
-			FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, auiMultipliers[19])
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + -2 + " to " + -1 + " got updated by " + ModName + ".", False)
+		ElseIf (afMultipliers[19])
+			FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, afMultipliers[19])
 			IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, 1)
-			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetActorBase().GetName() + " for rank " + -1 + " to " + 0 + " got updated by " + ModName + ".", False)
+			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + -1 + " to " + 0 + " got updated by " + ModName + ".", False)
 		EndIf
 		;/ closeFold /;
 
 		;If the mod is also on the last position then also update the actor's relationship multipliers
 		If(ModIndex2 == RSMultiChanges - 1)
-			SetFloatValue(akNPC, RS_MULTI_S0_S1_CHANGELIST, auiMultipliers[0])
-			SetFloatValue(akNPC, RS_MULTI_S1_S2_CHANGELIST, auiMultipliers[1])
-			SetFloatValue(akNPC, RS_MULTI_S2_S3_CHANGELIST, auiMultipliers[2])
-			SetFloatValue(akNPC, RS_MULTI_S3_S4_CHANGELIST, auiMultipliers[3])
-			SetFloatValue(akNPC, RS_MULTI_S4_S5_CHANGELIST, auiMultipliers[4])
-			SetFloatValue(akNPC, RS_MULTI_S5_S4_CHANGELIST, auiMultipliers[5])
-			SetFloatValue(akNPC, RS_MULTI_S4_S3_CHANGELIST, auiMultipliers[6])
-			SetFloatValue(akNPC, RS_MULTI_S3_S2_CHANGELIST, auiMultipliers[7])
-			SetFloatValue(akNPC, RS_MULTI_S2_S1_CHANGELIST, auiMultipliers[8])
-			SetFloatValue(akNPC, RS_MULTI_S1_S0_CHANGELIST, auiMultipliers[9])
-			SetFloatValue(akNPC, RS_MULTI_S0_SM1_CHANGELIST, auiMultipliers[10])
-			SetFloatValue(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, auiMultipliers[11])
-			SetFloatValue(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, auiMultipliers[12])
-			SetFloatValue(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, auiMultipliers[13])
-			SetFloatValue(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, auiMultipliers[14])
-			SetFloatValue(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, auiMultipliers[15])
-			SetFloatValue(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, auiMultipliers[16])
-			SetFloatValue(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, auiMultipliers[17])
-			SetFloatValue(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, auiMultipliers[18])
-			SetFloatValue(akNPC, RS_MULTI_SM1_S0_CHANGELIST, auiMultipliers[19])
+			SetFloatValue(akNPC, RS_MULTI_S0_S1_CHANGELIST, afMultipliers[0])
+			SetFloatValue(akNPC, RS_MULTI_S1_S2_CHANGELIST, afMultipliers[1])
+			SetFloatValue(akNPC, RS_MULTI_S2_S3_CHANGELIST, afMultipliers[2])
+			SetFloatValue(akNPC, RS_MULTI_S3_S4_CHANGELIST, afMultipliers[3])
+			SetFloatValue(akNPC, RS_MULTI_S4_S5_CHANGELIST, afMultipliers[4])
+			SetFloatValue(akNPC, RS_MULTI_S5_S4_CHANGELIST, afMultipliers[5])
+			SetFloatValue(akNPC, RS_MULTI_S4_S3_CHANGELIST, afMultipliers[6])
+			SetFloatValue(akNPC, RS_MULTI_S3_S2_CHANGELIST, afMultipliers[7])
+			SetFloatValue(akNPC, RS_MULTI_S2_S1_CHANGELIST, afMultipliers[8])
+			SetFloatValue(akNPC, RS_MULTI_S1_S0_CHANGELIST, afMultipliers[9])
+			SetFloatValue(akNPC, RS_MULTI_S0_SM1_CHANGELIST, afMultipliers[10])
+			SetFloatValue(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, afMultipliers[11])
+			SetFloatValue(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, afMultipliers[12])
+			SetFloatValue(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, afMultipliers[13])
+			SetFloatValue(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, afMultipliers[14])
+			SetFloatValue(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, afMultipliers[15])
+			SetFloatValue(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, afMultipliers[16])
+			SetFloatValue(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, afMultipliers[17])
+			SetFloatValue(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, afMultipliers[18])
+			SetFloatValue(akNPC, RS_MULTI_SM1_S0_CHANGELIST, afMultipliers[19])
 		Else
-			Notify(FW_LOG, "Can't change the relationship multipliers of " + akNPC.GetActorBase().GetName() + " for " + ModName + " because they are already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
+			Notify(FW_LOG, "Can't change the relationship multipliers of " + akNPC.GetLeveledActorBase().GetName() + " for " + ModName + " because they are already set by a mod with higher priority. However, it will be set, if this mod has the highest priority.", False)
 			Return True
 		EndIf
 	Else
@@ -2547,69 +2543,69 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMulti
 				FloatListInsert(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 2.0)
 				IntListInsert(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
 
-				If (auiMultipliers[0])
-					FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, auiMultipliers[0])
+				If (afMultipliers[0])
+					FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, afMultipliers[0])
 					IntListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, 1)	; 0: default framework values, 1: custom mod values
-				ElseIf (auiMultipliers[1])
-					FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, auiMultipliers[1])
+				ElseIf (afMultipliers[1])
+					FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, afMultipliers[1])
 					IntListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[2])
-					FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, auiMultipliers[2])
+				ElseIf (afMultipliers[2])
+					FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, afMultipliers[2])
 					IntListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[3])
-					FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, auiMultipliers[3])
+				ElseIf (afMultipliers[3])
+					FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, afMultipliers[3])
 					IntListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[4])
-					FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, auiMultipliers[4])
+				ElseIf (afMultipliers[4])
+					FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, afMultipliers[4])
 					IntListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[5])
-					FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, auiMultipliers[5])
+				ElseIf (afMultipliers[5])
+					FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, afMultipliers[5])
 					IntListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[6])
-					FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, auiMultipliers[6])
+				ElseIf (afMultipliers[6])
+					FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, afMultipliers[6])
 					IntListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[7])
-					FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, auiMultipliers[7])
+				ElseIf (afMultipliers[7])
+					FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, afMultipliers[7])
 					IntListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[8])
-					FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, auiMultipliers[8])
+				ElseIf (afMultipliers[8])
+					FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, afMultipliers[8])
 					IntListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[9])
-					FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, auiMultipliers[9])
+				ElseIf (afMultipliers[9])
+					FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, afMultipliers[9])
 					IntListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[10])
-					FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, auiMultipliers[10])
+				ElseIf (afMultipliers[10])
+					FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, afMultipliers[10])
 					IntListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[11])
-					FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, auiMultipliers[11])
+				ElseIf (afMultipliers[11])
+					FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, afMultipliers[11])
 					IntListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[12])
-					FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, auiMultipliers[12])
+				ElseIf (afMultipliers[12])
+					FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, afMultipliers[12])
 					IntListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[13])
-					FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, auiMultipliers[13])
+				ElseIf (afMultipliers[13])
+					FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, afMultipliers[13])
 					IntListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[14])
-					FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, auiMultipliers[14])
+				ElseIf (afMultipliers[14])
+					FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, afMultipliers[14])
 					IntListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[15])
-					FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, auiMultipliers[15])
+				ElseIf (afMultipliers[15])
+					FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, afMultipliers[15])
 					IntListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[16])
-					FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, auiMultipliers[16])
+				ElseIf (afMultipliers[16])
+					FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, afMultipliers[16])
 					IntListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[17])
-					FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, auiMultipliers[17])
+				ElseIf (afMultipliers[17])
+					FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, afMultipliers[17])
 					IntListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[18])
-					FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, auiMultipliers[18])
+				ElseIf (afMultipliers[18])
+					FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, afMultipliers[18])
 					IntListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, ModIndex2, 1)
-				ElseIf (auiMultipliers[19])
-					FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, auiMultipliers[19])
+				ElseIf (afMultipliers[19])
+					FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, afMultipliers[19])
 					IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, 1)
 				EndIf
 
-				Notify(FW_LOG, "Can't change the global relationship multipliers of " + akNPC.GetActorBase().GetName() + " for " + ModName + " because they are already set by a mod with higher priority. However, they will be set, if this mod has the highest priority.", False)
+				Notify(FW_LOG, "Can't change the global relationship multipliers of " + akNPC.GetLeveledActorBase().GetName() + " for " + ModName + " because they are already set by a mod with higher priority. However, they will be set, if this mod has the highest priority.", False)
 				Return True
 			EndIf
 		EndWhile
@@ -2657,65 +2653,65 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] auiMulti
 	FloatListAdd(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 2.0)
 	Int i = IntListAdd(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
 
-	If (auiMultipliers[0])
-		FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, auiMultipliers[0])
+	If (afMultipliers[0])
+		FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, afMultipliers[0])
 		IntListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, 1)	; 0: default framework values, 1: custom mod values
-	ElseIf (auiMultipliers[1])
-		FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, i, auiMultipliers[1])
+	ElseIf (afMultipliers[1])
+		FloatListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, i, afMultipliers[1])
 		IntListSet(akNPC, RS_MULTI_S1_S2_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[2])
-		FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, i, auiMultipliers[2])
+	ElseIf (afMultipliers[2])
+		FloatListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, i, afMultipliers[2])
 		IntListSet(akNPC, RS_MULTI_S2_S3_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[3])
-		FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, i, auiMultipliers[3])
+	ElseIf (afMultipliers[3])
+		FloatListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, i, afMultipliers[3])
 		IntListSet(akNPC, RS_MULTI_S3_S4_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[4])
-		FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, i, auiMultipliers[4])
+	ElseIf (afMultipliers[4])
+		FloatListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, i, afMultipliers[4])
 		IntListSet(akNPC, RS_MULTI_S4_S5_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[5])
-		FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, i, auiMultipliers[5])
+	ElseIf (afMultipliers[5])
+		FloatListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, i, afMultipliers[5])
 		IntListSet(akNPC, RS_MULTI_S5_S4_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[6])
-		FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, i, auiMultipliers[6])
+	ElseIf (afMultipliers[6])
+		FloatListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, i, afMultipliers[6])
 		IntListSet(akNPC, RS_MULTI_S4_S3_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[7])
-		FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, i, auiMultipliers[7])
+	ElseIf (afMultipliers[7])
+		FloatListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, i, afMultipliers[7])
 		IntListSet(akNPC, RS_MULTI_S3_S2_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[8])
-		FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, i, auiMultipliers[8])
+	ElseIf (afMultipliers[8])
+		FloatListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, i, afMultipliers[8])
 		IntListSet(akNPC, RS_MULTI_S2_S1_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[9])
-		FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, i, auiMultipliers[9])
+	ElseIf (afMultipliers[9])
+		FloatListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, i, afMultipliers[9])
 		IntListSet(akNPC, RS_MULTI_S1_S0_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[10])
-		FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, i, auiMultipliers[10])
+	ElseIf (afMultipliers[10])
+		FloatListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, i, afMultipliers[10])
 		IntListSet(akNPC, RS_MULTI_S0_SM1_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[11])
-		FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, i, auiMultipliers[11])
+	ElseIf (afMultipliers[11])
+		FloatListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, i, afMultipliers[11])
 		IntListSet(akNPC, RS_MULTI_SM1_SM2_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[12])
-		FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, i, auiMultipliers[12])
+	ElseIf (afMultipliers[12])
+		FloatListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, i, afMultipliers[12])
 		IntListSet(akNPC, RS_MULTI_SM2_SM3_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[13])
-		FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, i, auiMultipliers[13])
+	ElseIf (afMultipliers[13])
+		FloatListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, i, afMultipliers[13])
 		IntListSet(akNPC, RS_MULTI_SM3_SM4_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[14])
-		FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, i, auiMultipliers[14])
+	ElseIf (afMultipliers[14])
+		FloatListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, i, afMultipliers[14])
 		IntListSet(akNPC, RS_MULTI_SM4_SM5_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[15])
-		FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, i, auiMultipliers[15])
+	ElseIf (afMultipliers[15])
+		FloatListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, i, afMultipliers[15])
 		IntListSet(akNPC, RS_MULTI_SM5_SM4_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[16])
-		FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, i, auiMultipliers[16])
+	ElseIf (afMultipliers[16])
+		FloatListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, i, afMultipliers[16])
 		IntListSet(akNPC, RS_MULTI_SM4_SM3_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[17])
-		FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, i, auiMultipliers[17])
+	ElseIf (afMultipliers[17])
+		FloatListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, i, afMultipliers[17])
 		IntListSet(akNPC, RS_MULTI_SM3_SM2_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[18])
-		FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, auiMultipliers[18])
+	ElseIf (afMultipliers[18])
+		FloatListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, afMultipliers[18])
 		IntListSet(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, 1)
-	ElseIf (auiMultipliers[19])
-		FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, auiMultipliers[19])
+	ElseIf (afMultipliers[19])
+		FloatListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, afMultipliers[19])
 		IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 1)
 	EndIf
 
@@ -2731,11 +2727,11 @@ Float Function RemoveRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRel
 	EndIf
 
 	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
-		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetActorBase().GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetLeveledActorBase().GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return -2.0
 	ElseIf(_GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) == -1)
 		If (abVerbose)
-			Notify(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetActorBase().GetName() + "'s relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+			Notify(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetLeveledActorBase().GetName() + "'s relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
 			Return -1.0
 		EndIf
 	EndIf
@@ -3158,10 +3154,10 @@ Float[] Function RemoveRelationshipMultis(Quest akToken, Actor akNPC)
 	EndIf
 
 	If(_GetModIndexFromForm(akToken, REGISTERED_RS) == -1)
-		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetActorBase().GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
+		Warn(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetLeveledActorBase().GetName() + "'s relationship multipliers. It passed a wrong token, however. FormID of the token is " + akToken.GetFormID() + ".")
 		Return myRelationshipMulti
 	ElseIf(_GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) == -1)
-		Notify(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetActorBase().GetName() + "'s relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
+		Notify(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetLeveledActorBase().GetName() + "'s relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
 		Return myRelationshipMulti
 	EndIf
 
@@ -3398,6 +3394,366 @@ Float[] Function RemoveRelationshipMultis(Quest akToken, Actor akNPC)
 	Return myRelationshipMulti
 EndFunction
 
+Bool Function CreatePrivateGroup(Quest akToken, String asGroupName)
+	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
+
+	If(ModIndex == -1)
+		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access CreatePrivateGroup(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Return False
+	EndIf
+
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(StringListAdd(akToken, GROUPS, asGroupName, False) == -1)
+		Throw(FW_LOG, asGroupName + " already exists for token " + akToken.GetFormID() + "! Nothing changed.", "Invalid arguments")
+		Return False
+	EndIf
+
+	Return True
+EndFunction
+
+Bool Function CreatePublicGroup(String asGroupName)
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(StringListAdd(None, GROUPS, asGroupName, False) == -1)
+		Throw(FW_LOG, asGroupName + " already exists as a public group! Nothing changed.", "Invalid arguments")
+		Return False
+	EndIf
+
+	Return True
+EndFunction
+
+Bool Function DeletePrivateGroup(Quest akToken, String asGroupName)
+	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
+
+	If(ModIndex == -1)
+		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access DeletePrivateGroup(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Return False
+	EndIf
+
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	StringListRemove(akToken, GROUPS, asGroupName)
+	FormListClear(akToken, "APPS.Framework.Relationship.Groups." + asGroupName)
+	UnsetFormValue(akToken, GROUPS_LINK + asGroupName)
+	UnsetIntValue(akToken, GROUPS_LINK + asGroupName)
+
+	Return True
+EndFunction
+
+Bool Function DeletePublicGroup(String asGroupName)
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	StringListRemove(None, GROUPS, asGroupName)
+	FormListClear(None, "APPS.Framework.Relationship.Groups." + asGroupName)
+	FormListClear(None, GROUPS_LINK + asGroupName)
+	UnsetIntValue(None, GROUPS_LINK + asGroupName)
+
+	Return True
+EndFunction
+
+Bool Function IsPublicGroupCreated(String asGroupName)
+	Return StringListHas(None, GROUPS, asGroupName)
+EndFunction
+
+Bool Function AddToPrivateGroup(Quest akToken, String asGroupName, Actor akNPC)
+	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
+
+	If(ModIndex == -1)
+		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access AddToPrivateGroup(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Return False
+	EndIf
+
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(!akNPC)
+		Throw(FW_LOG, "Argument akNPC for function AddToPrivateGroup() is None!", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(!akNPC.GetLeveledActorBase().IsUnique())
+		Throw(FW_LOG, "Actor " + akNPC.GetLeveledActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(FormListAdd(akToken, "APPS.Framework.Relationship.Groups." + asGroupName, akNPC, False) == -1)
+		Throw(FW_LOG, "Actor "+ akNPC.GetLeveledActorBase().GetName() + " is already added to the group " + asGroupName + "!", "Invalid arguments")
+		Return False
+	EndIf
+
+	Return True
+EndFunction
+
+Bool Function AddToPublicGroup(String asGroupName, Actor akNPC)
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(!akNPC)
+		Throw(FW_LOG, "Argument akNPC for function AddToPublicGroup() is None!", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(!akNPC.GetLeveledActorBase().IsUnique())
+		Throw(FW_LOG, "Actor " + akNPC.GetLeveledActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(FormListAdd(None, "APPS.Framework.Relationship.Groups." + asGroupName, akNPC, False) == -1)
+		Throw(FW_LOG, "Actor "+ akNPC.GetLeveledActorBase().GetName() + " is already added to the group " + asGroupName + "!", "Invalid arguments")
+		Return False
+	EndIf
+
+	Return True
+EndFunction
+
+Bool Function RemoveFromPrivateGroup(Quest akToken, String asGroupName, Actor akNPC)
+	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
+
+	If(ModIndex == -1)
+		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access RemoveFromPrivateGroup(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Return False
+	EndIf
+
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(!akNPC)
+		Throw(FW_LOG, "Argument akNPC for function RemoveFromPrivateGroup() is None!", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(!akNPC.GetLeveledActorBase().IsUnique())
+		Throw(FW_LOG, "Actor " + akNPC.GetLeveledActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
+		Return False
+	EndIf
+
+	FormListRemove(akToken, "APPS.Framework.Relationship.Groups." + asGroupName, akNPC)
+	Return True
+EndFunction
+
+Bool Function RemoveFromPublicGroup(String asGroupName, Actor akNPC)
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(!akNPC)
+		Throw(FW_LOG, "Argument akNPC for function RemoveFromPublicGroup() is None!", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(!akNPC.GetLeveledActorBase().IsUnique())
+		Throw(FW_LOG, "Actor " + akNPC.GetLeveledActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
+		Return False
+	EndIf
+
+	FormListRemove(None, "APPS.Framework.Relationship.Groups." + asGroupName, akNPC)
+	Return True
+EndFunction
+
+;/ Actor[] Function GetPrivateGroupMembers(Quest akToken, String asGroupName)
+
+EndFunction
+
+Actor[] Function GetPublicGroupMembers(String asGroupName)
+
+EndFunction /;
+
+Bool Function ModPrivateGroupRP(Quest akToken, String asGroupName, Float afRelationshipPoints, Bool abIsSurplusCarryingOver = True)
+	Float HighestValue
+	Float LowestValue
+	Float TotalValue
+	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
+	Int i
+
+	If(ModIndex == -1)
+		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access ModPrivateGroupRS(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Return False
+	EndIf
+
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(afRelationshipPoints == 0.0)
+		Warn(FW_LOG, "Argument afRelationshipPoints was 0. Function will not be executed.")
+		Return False
+	EndIf
+
+	While(i < FormListCount(akToken, "APPS.Framework.Relationship.Groups." + asGroupName))
+		Float ReturnValue = ModRelationshipPoints(FormListGet(akToken, "APPS.Framework.Relationship.Groups." + asGroupName, i) As Actor, afRelationshipPoints, abIsSurplusCarryingOver)
+
+		If(HasFormValue(akToken, GROUPS_LINK + asGroupName))
+			If(i == 0)
+				HighestValue = ReturnValue
+				LowestValue = ReturnValue
+			EndIf
+
+			If(ReturnValue > HighestValue)
+				HighestValue = ReturnValue
+			EndIf
+
+			If(ReturnValue < LowestValue)
+				LowestValue = ReturnValue
+			EndIf
+
+			TotalValue += ReturnValue
+		EndIf
+
+		i += 1
+	EndWhile
+
+	If(HasFormValue(akToken, GROUPS_LINK + asGroupName))
+		If(GetIntValue(akToken, GROUPS_LINK + asGroupName) == 1)
+			(GetFormValue(akToken, GROUPS_LINK + asGroupName) As GlobalVariable).SetValue(HighestValue)
+		ElseIf(GetIntValue(akToken, GROUPS_LINK + asGroupName) == 2)
+			(GetFormValue(akToken, GROUPS_LINK + asGroupName) As GlobalVariable).SetValue(LowestValue)
+		Else
+			(GetFormValue(akToken, GROUPS_LINK + asGroupName) As GlobalVariable).SetValue(TotalValue / i)
+		EndIf
+	EndIf
+
+	Return True
+EndFunction
+
+Bool Function ModPublicGroupRP(String asGroupName, Float afRelationshipPoints, Bool abIsSurplusCarryingOver = True)
+	Float HighestValue
+	Float LowestValue
+	Float TotalValue
+	Int i
+	Int j
+
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(afRelationshipPoints == 0.0)
+		Warn(FW_LOG, "Argument afRelationshipPoints was 0. Function will not be executed.")
+		Return False
+	EndIf
+
+	While(i < FormListCount(None, "APPS.Framework.Relationship.Groups." + asGroupName))
+		Float ReturnValue = ModRelationshipPoints(FormListGet(None, "APPS.Framework.Relationship.Groups." + asGroupName, i) As Actor, afRelationshipPoints, abIsSurplusCarryingOver)
+
+		If(FormListCount(None, GROUPS_LINK + asGroupName) > 0)
+			If(i == 0)
+				HighestValue = ReturnValue
+				LowestValue = ReturnValue
+			EndIf
+			
+			If(ReturnValue > HighestValue)
+				HighestValue = ReturnValue
+			EndIf
+
+			If(ReturnValue < LowestValue)
+				LowestValue = ReturnValue
+			EndIf
+
+			TotalValue += ReturnValue
+		EndIf
+
+		i += 1
+	EndWhile
+
+	While(j < FormListCount(None, GROUPS_LINK + asGroupName))
+		If(IntListGet(None, GROUPS_LINK + asGroupName, j) == 1)
+			(FormListGet(None, GROUPS_LINK + asGroupName, j) As GlobalVariable).SetValue(HighestValue)
+		ElseIf(IntListGet(None, GROUPS_LINK + asGroupName, j) == 2)
+			(FormListGet(None, GROUPS_LINK + asGroupName, j) As GlobalVariable).SetValue(LowestValue)
+		Else
+			(FormListGet(None, GROUPS_LINK + asGroupName, j) As GlobalVariable).SetValue(TotalValue / i)
+		EndIf
+
+		j += 1
+	EndWhile
+
+	Return True
+EndFunction
+
+Bool Function LinkPrivateGroupWithGV(Quest akToken, String asGroupName, GlobalVariable akGlobalVar, Int auiReturnType = 1)
+;1 Highest
+;2 Lowest
+;3 Average
+	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
+
+	If(ModIndex == -1)
+		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access LinkPrivateGroupWithGV(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
+		Return False
+	EndIf
+
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(!akGlobalVar)
+		Throw(FW_LOG, "Argument akGlobalVar is None!", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(auiReturnType < 1 || auiReturnType > 3)
+		Throw(FW_LOG, "Return type wasn't set correctly. The lower limit is 1 and the upper limit is 3", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(HasFormValue(akToken, GROUPS_LINK + asGroupName))
+		Throw(FW_LOG, "This group has already a global var linked!", "Invalid arguments")
+		Return False
+	EndIf
+
+	SetFormValue(akToken, GROUPS_LINK + asGroupName, akGlobalVar)
+	SetIntValue(akToken, GROUPS_LINK + asGroupName, auiReturnType)
+
+	Return True
+EndFunction
+
+Bool Function LinkPublicGroupWithGV(String asGroupName, GlobalVariable akGlobalVar, Int auiReturnType = 1)
+	If(!asGroupName)
+		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(!akGlobalVar)
+		Throw(FW_LOG, "Argument akGlobalVar is None!", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(auiReturnType < 1 || auiReturnType > 3)
+		Throw(FW_LOG, "Return type wasn't set correctly. The lower limit is 1 and the upper limit is 3", "Invalid arguments")
+		Return False
+	EndIf
+
+	If(FormListAdd(None, GROUPS_LINK + asGroupName, akGlobalVar, False) == -1)
+		Throw(FW_LOG, "Global variable " + akGlobalVar + " is already added to the group " + asGroupName + "!", "Invalid arguments")
+		Return False
+	EndIf
+
+	IntListAdd(None, GROUPS_LINK + asGroupName, auiReturnType)
+
+	Return True
+EndFunction
+
 Float Function GetRelationshipPoints(Actor akNPC)
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
@@ -3418,144 +3774,73 @@ Float Function GetRelationshipPoints(Actor akNPC)
 	Return GetFloatValue(akNPC, RSP)
 EndFunction
 
-Float Function WouldGiveRP(Actor akNPC, Float aiRelationshipPoints, Bool abIsSurplusCarryingOver = True)
+Float Function WouldGiveRP(Actor akNPC, Float afRelationshipPoints, Bool abIsSurplusCarryingOver = True)
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
 		Return 0.0
 	EndIf
 
-	If(!akNPC.GetActorBase().IsUnique())
-		Throw(FW_LOG, "Actor " + akNPC.GetActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
+	If(!akNPC.GetLeveledActorBase().IsUnique())
+		Throw(FW_LOG, "Actor " + akNPC.GetLeveledActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
 		Return 0.0
 	EndIf
 
-	If(aiRelationshipPoints == 0)
-		Warn(FW_LOG, "Argument aiRelationshipPoints was 0. Function will not be executed.")
+	If(afRelationshipPoints == 0.0)
+		Warn(FW_LOG, "Argument afRelationshipPoints was 0. Function will not be executed.")
 	EndIf
 
 	Float PreviousRP = GetRelationshipPoints(akNPC)
 
-	Return (_CalculateRP(akNPC, aiRelationshipPoints, abIsSurplusCarryingOver) - PreviousRP)
+	Return (_CalculateRP(akNPC, afRelationshipPoints, abIsSurplusCarryingOver) - PreviousRP)
 EndFunction
 
-Float Function ModRelationshipPoints(Actor akNPC, Float aiRelationshipPoints, Bool abIsSurplusCarryingOver = True)
+Float Function ModRelationshipPoints(Actor akNPC, Float afRelationshipPoints, Bool abIsSurplusCarryingOver = True)
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
 		Return 0.0
 	EndIf
 
-	If(!akNPC.GetActorBase().IsUnique())
-		Throw(FW_LOG, "Actor " + akNPC.GetActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
+	If(!akNPC.GetLeveledActorBase().IsUnique())
+		Throw(FW_LOG, "Actor " + akNPC.GetLeveledActorBase().GetName() + " must be an unique actor!", "Invalid arguments")
 		Return 0.0
 	EndIf
 
-	If(aiRelationshipPoints == 0)
-		Warn(FW_LOG, "Argument aiRelationshipPoints was 0. Function will not be executed.")
+	If(afRelationshipPoints == 0.0)
+		Warn(FW_LOG, "Argument afRelationshipPoints was 0. Function will not be executed.")
 	EndIf
 
-	SetRelationshipPoints(akNPC, _CalculateRP(akNPC, aiRelationshipPoints, abIsSurplusCarryingOver))
+	SetRelationshipPoints(akNPC, _CalculateRP(akNPC, afRelationshipPoints, abIsSurplusCarryingOver))
 
-	Return _CalculateRP(akNPC, aiRelationshipPoints, abIsSurplusCarryingOver)
+	Return _CalculateRP(akNPC, afRelationshipPoints, abIsSurplusCarryingOver)
 EndFunction
 
-Bool Function CreatePrivateGroup(Quest akToken, String asGroupName)
-	;/If(ModIndex == -1)
-		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access CreatePrivateGroup(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
-		Return False
-	ElseIf(asGroupName == "")
-		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
+Bool Function SetRelationshipPoints(Actor akNPC, Float afRelationshipPoints)
+	If(!akNPC || afRelationshipPoints < -499 || afRelationshipPoints > 499)
 		Return False
 	EndIf
 
-	If(StringListAdd(akToken, "APPS.Framework.Relationship.Groups", asGroupName, False) == -1)
-		Throw(FW_LOG, asGroupName + " already exists for token " + akToken.GetFormID() + "! Nothing changed.", "Invalid arguments")
-		Return False
-	EndIf
-
-	Return True /;
-EndFunction
-
-Bool Function CreatePublicGroup(String asGroupName)
-	If(asGroupName == "")
-		Throw(FW_LOG, "Argument asGroupName has no group name", "Invalid arguments")
-		Return False
-	EndIf
-
-	If(StringListAdd(None, "APPS.Framework.Relationship.Groups", asGroupName, False) == -1)
-		Throw(FW_LOG, asGroupName + " already exists as a public group! Nothing changed.", "Invalid arguments")
-		Return False
-	EndIf
-
-	Return True
-EndFunction
-
-Bool Function DeletePrivateGroup(Quest akToken, String asGroupName)
-
-EndFunction
-
-Bool Function IsPublicGroupCreated(String asGroupName)
-
-EndFunction
-
-Bool Function AddToPrivateGroup(Quest akToken, String asGroupName, Actor akNPC)
-
-EndFunction
-
-Bool Function AddToPublicGroup(String asGroupName, Actor akNPC)
-
-EndFunction
-
-Bool Function RemoveFromPrivateGroup(Quest akToken, String asGroupName, Actor akNPC)
-
-EndFunction
-
-Bool Function RemoveFromPublicGroup(String asGroupName, Actor akNPC)
-
-EndFunction
-
-Actor[] Function GetPrivateGroupMembers(Quest akToken, String asGroupName)
-
-EndFunction
-
-Actor[] Function GetPublicGroupMembers(String asGroupName)
-
-EndFunction
-
-Bool Function ModPrivateGroupRS(Quest akToken, String asGroupName, Float afValue)
-
-EndFunction
-
-Bool Function ModPublicGroupRS(String asGroupName, Float afValue)
-
-EndFunction
-
-Bool Function SetRelationshipPoints(Actor akNPC, Float aiRelationshipPoints)
-	If(!akNPC || aiRelationshipPoints < -499 || aiRelationshipPoints > 499)
-		Return False
-	EndIf
-
-	SetFloatValue(akNPC, RSP, aiRelationshipPoints)
+	SetFloatValue(akNPC, RSP, afRelationshipPoints)
 
 	If(!akNPC.IsInFaction(RelationshipPointsFaction))
 		akNPC.AddToFaction(RelationshipPointsFaction)
 		akNPC.AddToFaction(RelationshipRankFaction)
 	EndIf
 
-	akNPC.SetFactionRank(RelationshipPointsFaction, aiRelationshipPoints As Int % 100)
-	
-	If(aiRelationshipPoints >= 0)
-		akNPC.SetFactionRank(RelationshipRankFaction, Math.Floor(aiRelationshipPoints / 100) * 10)
+	akNPC.SetFactionRank(RelationshipPointsFaction, afRelationshipPoints As Int % 100)
+
+	If(afRelationshipPoints >= 0.0)
+		akNPC.SetFactionRank(RelationshipRankFaction, Math.Floor(afRelationshipPoints / 100) * 10)
 	Else
-		akNPC.SetFactionRank(RelationshipRankFaction, Math.Ceiling(aiRelationshipPoints / 100) * 10)
+		akNPC.SetFactionRank(RelationshipRankFaction, Math.Ceiling(afRelationshipPoints / 100) * 10)
 	EndIf
 
 	If(GetSyncMode(akNPC) > 1 && !HasIntValue(akNPC, IGNORE_CHANGES))
 		SetIntValue(akNPC, IGNORE_CHANGES, 2)
 
-		If(aiRelationshipPoints >= 0)
-			akNPC.SetRelationshipRank(PlayerRef, Math.Floor(aiRelationshipPoints / 100))
+		If(afRelationshipPoints >= 0.0)
+			akNPC.SetRelationshipRank(PlayerRef, Math.Floor(afRelationshipPoints / 100))
 		Else
-			akNPC.SetRelationshipRank(PlayerRef, Math.Ceiling(aiRelationshipPoints / 100))
+			akNPC.SetRelationshipRank(PlayerRef, Math.Ceiling(afRelationshipPoints / 100))
 		EndIf
 	EndIf
 
@@ -3564,7 +3849,7 @@ Bool Function SetRelationshipPoints(Actor akNPC, Float aiRelationshipPoints)
 	EndIf
 
 	Return True
-	
+
 EndFunction
 
 Float Function GetRPForNextRank(Actor akNPC)
@@ -3607,17 +3892,17 @@ Float Function GetRPForPreviousRank(Actor akNPC)
 	EndIf
 EndFunction
 
-Float Function _CalculateRP(Actor akNPC, Float aiRelationshipPoints, Bool abIsSurplusCarryingOver = True)
+Float Function _CalculateRP(Actor akNPC, Float afRelationshipPoints, Bool abIsSurplusCarryingOver = True)
 	Bool Break
 	Float NewRP
 	Float CurrentRP = GetRelationshipPoints(akNPC)
 	Float PreviousRP = CurrentRP
 	Int CurrentRank = akNPC.GetFactionRank(RelationshipRankFaction) / 10
 
-	If(aiRelationshipPoints > 0)
+	If(afRelationshipPoints > 0.0)
 		While(!Break)
 			Float CurrentMulti = GetRelationshipMulti(akNPC, CurrentRank, CurrentRank + 1)
-			Float CleanedRP = aiRelationshipPoints * CurrentMulti
+			Float CleanedRP = afRelationshipPoints * CurrentMulti
 			Float TempRP = CurrentRP + CleanedRP
 			Float RequiredRP = GetRPForNextRank(akNPC)
 
@@ -3630,7 +3915,7 @@ Float Function _CalculateRP(Actor akNPC, Float aiRelationshipPoints, Bool abIsSu
 			ElseIf(CleanedRP > (RequiredRP * CurrentMulti))
 				If(abIsSurplusCarryingOver)
 					CurrentRank += 1
-					aiRelationshipPoints -= RequiredRP
+					afRelationshipPoints -= RequiredRP
 					CurrentRP = CurrentRank * 100
 					SetIntValue(akNPC, IGNORE_CHANGES, 1)
 					SetRelationshipPoints(akNPC, CurrentRP)
@@ -3643,7 +3928,7 @@ Float Function _CalculateRP(Actor akNPC, Float aiRelationshipPoints, Bool abIsSu
 	Else
 		While(!Break)
 			Float CurrentMulti = GetRelationshipMulti(akNPC, CurrentRank, CurrentRank - 1)
-			Float CleanedRP = aiRelationshipPoints * CurrentMulti
+			Float CleanedRP = afRelationshipPoints * CurrentMulti
 			Float TempRP = CurrentRP + CleanedRP
 			Float RequiredRP = GetRPForPreviousRank(akNPC)
 
@@ -3655,7 +3940,7 @@ Float Function _CalculateRP(Actor akNPC, Float aiRelationshipPoints, Bool abIsSu
 				Break = True
 			ElseIf(CleanedRP < (RequiredRP * CurrentMulti))
 				If(abIsSurplusCarryingOver)
-					aiRelationshipPoints -= RequiredRP
+					afRelationshipPoints -= RequiredRP
 					CurrentRP = CurrentRank * 100 - 1
 					CurrentRank -= 1
 					SetIntValue(akNPC, IGNORE_CHANGES, 1)
