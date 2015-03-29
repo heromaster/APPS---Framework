@@ -6,7 +6,7 @@ Int Property USE_FRAMEWORK_LOG = 1 AutoReadOnly Hidden
 Int Property USE_PAPYRUS_LOG = 2 AutoReadOnly Hidden
 Int Property MOD_NOT_FOUND = -1 AutoReadOnly Hidden
 String Property ModName Auto
-String Property FW_LOG = "APPS - Framework" AutoReadOnly Hidden
+
 String Property IS_EMPTY = "" AutoReadOnly Hidden
 
 ;/ |------------------------------------------------------------------------------------------------------------|
@@ -103,6 +103,10 @@ Bool Function RegisterInitQuest(Quest akInitQuest = None, Int aiSetStage = 0, St
 
 	Exception.Notify(FW_LOG, ModName + " registered an initialization quest.", True, False)
 	Return True
+EndFunction
+
+Bool Function IsInitialized(Quest akToken)
+	Return HasIntValue(akToken, MOD_IS_INITIALIZED)
 EndFunction
 
 Bool Function RegisterUninstallQuest(Quest akUninstallQuest = None, Int aiSetStage = 0)
