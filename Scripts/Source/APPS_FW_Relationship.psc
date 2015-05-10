@@ -1,4 +1,5 @@
 Scriptname APPS_FW_Relationship Extends APPS_FW_Core
+Import PapyrusUtil
 Import StorageUtil
 Import Exception
 
@@ -80,13 +81,10 @@ EndFunction
 Bool Function SetGlobalSyncMode(Quest akToken, Int aiSyncMode)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
 
+	aiSyncMode = ClampInt(aiSyncMode, 0, 3)
+
 	If(ModIndex == -1)
 		Throw(FW_LOG, " A mod, which is not registered or sent an invalid Token, tried to access SetGlobalSyncMode(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
-		Return False
-	EndIf
-
-	If(aiSyncMode < 0 || aiSyncMode > 3)
-		Throw(FW_LOG, "Sync modus wasn't set correctly by " + ModName + ". The lower limit is 0 and the upper limit is 3", "Invalid arguments")
 		Return False
 	EndIf
 
@@ -170,7 +168,7 @@ Int Function RemoveGlobalSyncMode(Quest akToken, Bool abVerbose = True)
 EndFunction
 
 Int Function GetSyncMode(Actor akNPC, Bool abGetGlobalIfNotFound = True, Bool abNotifyIfGetGlobal = True)
-	If(akNPC == None)
+	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
 		Return -1
 	EndIf
@@ -191,7 +189,7 @@ Int Function GetSyncMode(Actor akNPC, Bool abGetGlobalIfNotFound = True, Bool ab
 EndFunction
 
 Int Function GetSyncModeChanges(Actor akNPC)
-	If(akNPC == None)
+	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
 		Return -1
 	EndIf
@@ -200,7 +198,7 @@ Int Function GetSyncModeChanges(Actor akNPC)
 EndFunction
 
 Int Function GetSyncModePriority(Quest akToken, Actor akNPC)
-	If(akNPC == None)
+	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
 		Return -1
 	EndIf
@@ -210,6 +208,8 @@ EndFunction
 
 Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
+
+	aiSyncMode = ClampInt(aiSyncMode, 0, 3)
 
 	If(ModIndex == -1)
 		Throw(FW_LOG, " A mod, which is not registered or sent an invalid token, tried to access SetSyncMode(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
@@ -227,12 +227,6 @@ Bool Function SetSyncMode(Quest akToken, Actor akNPC, Int aiSyncMode = 1)
 	EndIf
 
 	String ModName = GetStringValue(akToken, MOD_NAME)
-
-	If(aiSyncMode < 0 || aiSyncMode > 3)
-		Throw(FW_LOG, "Sync mode for " + akNPC.GetLeveledActorBase().GetName() + " was not correctly set by " + ModName + ". The lower limit is 0 and the upper limit is 3.", "Invalid arguments")
-		Return False
-	EndIf
-
 
 	Int ModIndex2 = _GetModIndexFromForm(akToken, SYNC_MODE_CHANGELIST, akNPC) ; Get position of current mod in this list
 	Int SyncModeChanges = FormListCount(akNPC, SYNC_MODE_CHANGELIST) ;Get the list of mods which do change the sync mode on the actor
@@ -329,15 +323,8 @@ Int Function RemoveSyncMode(Quest akToken, Actor akNPC)
 EndFunction
 
 Float Function GetGlobalRelationshipMulti(Int aiFromRelationshipRank, Int aiToRelationshipRank)
-	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
-		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -1.0
-	EndIf
-
-	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
-		Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -1.0
-	EndIf
+	aiFromRelationshipRank = ClampInt(aiFromRelationshipRank, -5, 5)
+	aiToRelationshipRank = ClampInt(aiToRelationshipRank, -5, 5)
 
 	If(aiFromRelationshipRank == aiToRelationshipRank)
 		Throw(FW_LOG, "Argument aiToRelationshipRank can not be the same value as aiFromRelationshipRank.", "Invalid arguments")
@@ -363,18 +350,12 @@ EndFunction
 Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRank, Int aiToRelationshipRank, Float afMultiplier)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
 
+	aiFromRelationshipRank = ClampInt(aiFromRelationshipRank, -5, 5)
+	aiToRelationshipRank = ClampInt(aiToRelationshipRank, -5, 5)
+	afMultiplier = ClampFloat(afMultiplier, 0.0, 65536.0)
+
 	If(ModIndex == -1)
 		Throw(FW_LOG, " A mod, which is not registered or sent an invalid token, tried to access SetGlobalRelationshipMulti(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
-		Return False
-	EndIf
-
-	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
-		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return False
-	EndIf
-
-	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
-		Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return False
 	EndIf
 
@@ -388,11 +369,6 @@ Bool Function SetGlobalRelationshipMulti(Quest akToken, Int aiFromRelationshipRa
 		Return False
 	ElseIf(aiToRelationshipRank < aiFromRelationshipRank && aiFromRelationshipRank - aiToRelationshipRank != 1)
 		Throw(FW_LOG, "Multiplier can only be set for the next or previous rank. From Rank " + aiFromRelationshipRank + " to Rank " + aiToRelationshipRank + " is incorrect.", "Invalid arguments")
-		Return False
-	EndIf
-
-	If(afMultiplier <= 0.0)
-		Throw(FW_LOG, "Multiplier can not be set to 0 or lower", "Invalid arguments")
 		Return False
 	EndIf
 
@@ -766,38 +742,22 @@ EndFunction
 
 Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] afMultipliers)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
+	Int i
 
-	;/ beginValidation /;
 	If(ModIndex == -1)
 		Throw(FW_LOG, "A mod, which is not registered or sent an invalid token, tried to access SetGlobalRelationshipMultis(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Return False
-	ElseIf (afMultipliers.Length < 20)
+	EndIf
+
+	If (afMultipliers.Length < 20)
 		Throw(FW_LOG, "Argument afMultipliers was not set correctly. The array has to be 20-items long.", "Invalid arguments")
 		Return False
-	ElseIf (afMultipliers[0] < 0.0 || \
-			afMultipliers[1] < 0.0 || \
-			afMultipliers[2] < 0.0 || \
-			afMultipliers[3] < 0.0 || \
-			afMultipliers[4] < 0.0 || \
-			afMultipliers[5] < 0.0 || \
-			afMultipliers[6] < 0.0 || \
-			afMultipliers[7] < 0.0 || \
-			afMultipliers[8] < 0.0 || \
-			afMultipliers[9] < 0.0 || \
-			afMultipliers[10] < 0.0 || \
-			afMultipliers[11] < 0.0 || \
-			afMultipliers[12] < 0.0 || \
-			afMultipliers[13] < 0.0 || \
-			afMultipliers[14] < 0.0 || \
-			afMultipliers[15] < 0.0 || \
-			afMultipliers[16] < 0.0 || \
-			afMultipliers[17] < 0.0 || \
-			afMultipliers[18] < 0.0 || \
-			afMultipliers[19] < 0.0)
-		Throw(FW_LOG, "Argument afMultipliers was not set correctly. Every item in the array has to be either a positive float or zero.", "Invalid arguments")
-		Return False
 	EndIf
-	;/ endValidation /;
+
+	While(i < 20)
+		afMultipliers[i] = ClampFloat(afMultipliers[i], 0.0, 65536.0)
+		i += 1
+	EndWhile
 
 	String ModName = GetStringValue(akToken, MOD_NAME)
 	Int ModIndex2 = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST) ; Get position of current mod in this list
@@ -805,7 +765,6 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] afMultipliers)
 
 	;If the mod was found, update its new value
 	If(ModIndex2 >= 0)
-		;/ openFold Repeat 20 times /;
 		If (afMultipliers[0] > 0.0)
 			FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, afMultipliers[0])
 			IntListSet(None, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, 1)	; 0: default framework values, 1: custom mod values
@@ -887,7 +846,6 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] afMultipliers)
 			IntListSet(None, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Global multiplier for rank " + -1 + " to " + 0 + " got updated by " + ModName + ".", False)
 		EndIf
-		;/ closeFold /;
 
 		;If the mod is also on the last position then also update the global relationship multipliers
 		If(ModIndex2 == RSMultiChanges - 1)
@@ -916,7 +874,7 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] afMultipliers)
 			Return True
 		EndIf
 	Else
-		Int i = 0
+		i = 0
 
 		;Go through the list of changes to the global relationship multipliers
 		While(i < RSMultiChanges)
@@ -1077,7 +1035,7 @@ Bool Function SetGlobalRelationshipMultis(Quest akToken, Float[] afMultipliers)
 	FloatListAdd(None, RS_MULTI_SM2_SM1_CHANGELIST, i, 1.0)
 	IntListAdd(None, RS_MULTI_SM2_SM1_CHANGELIST, i, 0)
 	FloatListAdd(None, RS_MULTI_SM1_S0_CHANGELIST, i, 2.0)
-	Int i = IntListAdd(None, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
+	i = IntListAdd(None, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
 
 	If (afMultipliers[0])
 		FloatListSet(None, RS_MULTI_S0_S1_CHANGELIST, i, afMultipliers[0])
@@ -1876,18 +1834,11 @@ Float[] Function RemoveGlobalRelationshipMultis(Quest akToken)
 EndFunction
 
 Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abGetGlobalIfNotFound = True, Bool abNotifyIfGetGlobal = True)
+	aiFromRelationshipRank = ClampInt(aiFromRelationshipRank, -5, 5)
+	aiToRelationshipRank = ClampInt(aiToRelationshipRank, -5, 5)
+
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC for function GetRelationshipMulti() is None!", "Invalid arguments")
-		Return -1.0
-	EndIf
-
-	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
-		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -1.0
-	EndIf
-
-	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
-		Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return -1.0
 	EndIf
 
@@ -1921,7 +1872,7 @@ Float Function GetRelationshipMulti(Actor akNPC, Int aiFromRelationshipRank, Int
 EndFunction
 
 Int Function GetRelationshipMultiPriority(Quest akToken, Actor akNPC)
-	If(akNPC == None)
+	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC is None!", "Invalid arguments")
 		Return -1
 	EndIf
@@ -1932,6 +1883,9 @@ EndFunction
 Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Float afMultiplier)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
 
+	aiFromRelationshipRank = ClampInt(aiFromRelationshipRank, -5, 5)
+	aiToRelationshipRank = ClampInt(aiToRelationshipRank, -5, 5)
+
 	If(ModIndex == -1)
 		Throw(FW_LOG, " A mod, which is not registered or sent an invalid token, tried to access SetRelationshipMulti(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Return False
@@ -1939,16 +1893,6 @@ Bool Function SetRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelatio
 
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC for function SetRelationshipMulti() is None!", "Invalid arguments")
-		Return False
-	EndIf
-
-	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
-		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return False
-	EndIf
-
-	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
-		Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
 		Return False
 	EndIf
 
@@ -2339,41 +2283,27 @@ EndFunction
 
 Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] afMultipliers)
 	Int ModIndex = _GetModIndexFromForm(akToken, REGISTERED_RS)
+	Int i
 
-	;/ beginValidation /;
 	If(ModIndex == -1)
 		Throw(FW_LOG, " A mod, which is not registered or sent an invalid token, tried to access SetRelationshipMultis(). The FormID of this token is " + akToken.GetFormID() + ".", "Access denied")
 		Return False
-	ElseIf(!akNPC)
+	EndIf
+
+	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC for function SetRelationshipMultis() is None!", "Invalid arguments")
 		Return False
-	ElseIf (afMultipliers.Length != 20)
+	EndIf
+
+	If (afMultipliers.Length != 20)
 		Throw(FW_LOG, "Argument afMultipliers was not set correctly. The array has to be 20-items long.", "Invalid arguments")
 		Return False
-	ElseIf (afMultipliers[0] < 0.0 || \
-			afMultipliers[1] < 0.0 || \
-			afMultipliers[2] < 0.0 || \
-			afMultipliers[3] < 0.0 || \
-			afMultipliers[4] < 0.0 || \
-			afMultipliers[5] < 0.0 || \
-			afMultipliers[6] < 0.0 || \
-			afMultipliers[7] < 0.0 || \
-			afMultipliers[8] < 0.0 || \
-			afMultipliers[9] < 0.0 || \
-			afMultipliers[10] < 0.0 || \
-			afMultipliers[11] < 0.0 || \
-			afMultipliers[12] < 0.0 || \
-			afMultipliers[13] < 0.0 || \
-			afMultipliers[14] < 0.0 || \
-			afMultipliers[15] < 0.0 || \
-			afMultipliers[16] < 0.0 || \
-			afMultipliers[17] < 0.0 || \
-			afMultipliers[18] < 0.0 || \
-			afMultipliers[19] < 0.0)
-		Throw(FW_LOG, "Argument afMultipliers was not set correctly. Every item in the array has to be either a positive float or zero.", "Invalid arguments")
-		Return False
 	EndIf
-	;/ endValidation /;
+
+	While(i < 20)
+		afMultipliers[i] = ClampFloat(afMultipliers[i], 0.0, 65536.0)
+		i += 1
+	EndWhile
 
 	Int ModIndex2 = _GetModIndexFromForm(akToken, RS_MULTI_CHANGELIST, akNPC) ; Get position of current mod in this list
 	Int RSMultiChanges = FormListCount(akNPC, RS_MULTI_CHANGELIST) ;Get the list of mods which change this actor's relationship multipliers
@@ -2381,7 +2311,6 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] afMultip
 
 	;If the mod was found, update its new value
 	If(ModIndex2 >= 0)
-		;/ openFold Repeat 20 times /;
 		If (afMultipliers[0])
 			FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, afMultipliers[0])
 			IntListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, ModIndex2, 1)	; 0: default framework values, 1: custom mod values
@@ -2463,7 +2392,6 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] afMultip
 			IntListSet(akNPC, RS_MULTI_SM1_S0_CHANGELIST, ModIndex2, 1)
 			Notify(FW_LOG, "Relationship multiplier of actor " + akNPC.GetLeveledActorBase().GetName() + " for rank " + -1 + " to " + 0 + " got updated by " + ModName + ".", False)
 		EndIf
-		;/ closeFold /;
 
 		;If the mod is also on the last position then also update the actor's relationship multipliers
 		If(ModIndex2 == RSMultiChanges - 1)
@@ -2492,7 +2420,7 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] afMultip
 			Return True
 		EndIf
 	Else
-		Int i = 0
+		i = 0
 
 		;Go through the list of changes to the actor's relationship multipliers
 		While(i < RSMultiChanges)
@@ -2653,7 +2581,7 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] afMultip
 	FloatListAdd(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, 1.0)
 	IntListAdd(akNPC, RS_MULTI_SM2_SM1_CHANGELIST, i, 0)
 	FloatListAdd(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 2.0)
-	Int i = IntListAdd(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
+	i = IntListAdd(akNPC, RS_MULTI_SM1_S0_CHANGELIST, i, 0)
 
 	If (afMultipliers[0])
 		FloatListSet(akNPC, RS_MULTI_S0_S1_CHANGELIST, i, afMultipliers[0])
@@ -2723,6 +2651,9 @@ Bool Function SetRelationshipMultis(Quest akToken, Actor akNPC, Float[] afMultip
 EndFunction
 
 Float Function RemoveRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRelationshipRank, Int aiToRelationshipRank, Bool abVerbose = True)
+	aiFromRelationshipRank = ClampInt(aiFromRelationshipRank, -5, 5)
+	aiToRelationshipRank = ClampInt(aiToRelationshipRank, -5, 5)
+
 	If(!akNPC)
 		Throw(FW_LOG, "Argument akNPC for function RemoveRelationshipMulti() is None!", "Invalid arguments")
 		Return -2.0
@@ -2736,16 +2667,6 @@ Float Function RemoveRelationshipMulti(Quest akToken, Actor akNPC, Int aiFromRel
 			Notify(FW_LOG, "A mod tried to remove its changes to " + akNPC.GetLeveledActorBase().GetName() + "'s relationship multipliers. But there were no changes made by this mod. FormID of the token is " + akToken.GetFormID() + ".")
 			Return -1.0
 		EndIf
-	EndIf
-
-	If(aiFromRelationshipRank < -5 || aiFromRelationshipRank > 5)
-		Throw(FW_LOG, "Argument aiFromRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -2.0
-	EndIf
-
-	If(aiToRelationshipRank < -5 || aiToRelationshipRank > 5)
-		Throw(FW_LOG, "Argument aiToRelationshipRank was not set correctly. The range is from -5 to 5.", "Invalid arguments")
-		Return -2.0
 	EndIf
 
 	If(aiFromRelationshipRank == aiToRelationshipRank)
@@ -3685,7 +3606,7 @@ Bool Function ModPrivateGroupRP(Quest akToken, String asGroupName, Float afRelat
 		Return False
 	EndIf
 
-		While(i < FormListCount(akToken, "APPS.Framework.Relationship.Groups." + asGroupName))
+	While(i < FormListCount(akToken, "APPS.Framework.Relationship.Groups." + asGroupName))
 		Float ReturnValue = ModRelationshipPoints(FormListGet(akToken, "APPS.Framework.Relationship.Groups." + asGroupName, i) As Actor, afRelationshipPoints, abIsSurplusCarryingOver)
 
 		If(FormListCount(akToken, GROUPS_LINK + asGroupName) > 0)
